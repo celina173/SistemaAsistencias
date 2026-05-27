@@ -5,16 +5,16 @@ namespace ISFDyT124.Models
     public class Materia
     {
         [Key]
-        public int ma_id { get; set; }
+        public int MaId { get; set; }
 
         [Required]
         [StringLength(100)]
-        public string ma_denominacion { get; set; }
+        public string MaDenominacion { get; set; }
 
         [StringLength(50)]
-        public string ma_modalidad { get; set; }
+        public string? MaModalidad { get; set; }
 
-        public int ma_cant_modulos { get; set; }
+        public int? MaCantModulos { get; set; }
 
         public ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
     }
