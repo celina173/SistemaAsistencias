@@ -1,3 +1,4 @@
+
                          Sistema de Asistencias ISFDYT 124
 
 Documentación: El alumnado de la carrera “Desarrollador de Software” del ISFDYT124, está realizando un sistema de Asistencia en la nube para el Instituto 124 con el fin de digitalizar todas las asistencias del alumnado, modernizando el anticuado modelo de asistencia a papel utilizado desde prácticamente su creación. Todo el trabajo para crear la asistencia se realizará en un repositorio compartido que está vinculado con GitHub. Este mismo está dividido en varios módulos que se separan en 4 grupos que se dividen de estas formas: Grupo 1: Login Y Recuperar Contraseña. Grupo 2: AVM Usuarios. Grupo 3: AVM de Carreras y AVM de Materias y Grupo 4:  Asistencias y Asistencia Global.
