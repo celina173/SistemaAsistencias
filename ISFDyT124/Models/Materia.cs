@@ -31,6 +31,7 @@ namespace ISFDyT124.Models
         [Display(Name = "Cantidad de Módulos")]
         public int? MaCantModulos { get; set; }
 
-        public ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
+        // RELACION
+        public virtual ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
     }
 }
