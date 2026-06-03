@@ -14,7 +14,7 @@ namespace ISFDyT124.Models
         public DateTime? AsFecha { get; set; }
 
         //Bloque horario de la clase.
-        [Display(Name = "Presente del estudiante")]
+        [Display(Name = "Presente")]
         public bool AsPresente { get; set; } = false;
 
         // Motivo o justificación en caso de ausencia.
