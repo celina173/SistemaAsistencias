@@ -8,6 +8,8 @@ namespace ISFDyT124.Models
 {
     public class Usuario
     {
+
+        //.
         //ID
         [Key] 
         public int UsId { get; set; }
