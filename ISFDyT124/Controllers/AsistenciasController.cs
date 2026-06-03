@@ -220,10 +220,4 @@
 //    }
 //}
 
-//"Este controlador gestiona la asistencia asegurando la integridad
-//de los datos mediante tres reglas principales:
 
-//-1.Automatización: Si la fecha viene vacía, se asigna DateTime.Now.
-//-2. Validación: Se bloquea el registro de fechas futuras para evitar errores de carga.
-//-3. Consistencia: Si se marca 'Presente', se limpia automáticamente
-//cualquier estado de justificación previo, evitando datos contradictorios en la base de datos."
