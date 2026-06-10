@@ -18,6 +18,8 @@ builder.Services.AddScoped<UsuarioCrearDto>();
 builder.Services.AddScoped<UsuarioDetalleDto>();
 
 // A�ade controladores con vistas para MVC
+builder.Services.AddDbContext<AsistenciaContext>(options =>
+    options.UseSqlServer(connectionString));
 builder.Services.AddControllersWithViews();
 
 // Configura la autenticaci�n basada en cookies
