@@ -1,71 +1,60 @@
-﻿@{
+﻿@model ISFDyT124.Models.AsistenciaFormViewModel
+
+@{
     ViewData["Title"] = "Toma de Asistencia";
-    ViewData["BodyClass"] = "asistencia-page";
 }
 
-<main class="main-container-asistencia">
+<main class="main-container-global">
     <div class="info-banner">
         <div class="info-col-left">
-            <p>30/04/2026 12:32hs</p>
+            <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
             <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
         </div>
         <div class="info-col-right">
-            <p class="info-bold">Magali Bobet</p>
-            <p class="info-bold">Practicas Profesionalizantes III</p>
+            <p class="info-bold">Profesor</p>
+            <p class="info-bold">@ViewData["CaMaDenominacion"]</p>
         </div>
     </div>
 
-    <div class="table-container">
-        <table class="attendance-table">
-            <thead>
-                <tr>
-                    <th>Apellido y Nombre</th>
-                    <th>Modulos</th>
-                    <th>Justificacion</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Albornoz Celina</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Distasio Ignacio</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Medina Roselen</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Alarcon Nicolas</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Terraza Nahuel</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <form asp-action="Asistencia" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CaMaId" />
 
-    <button class="btn-guardar" id="btnGuardar">Guardar</button>
+        <div style="display:flex;justify-content:center;">
+            <table style="border-collapse:collapse;border:2px solid #083c8a;width:720px;text-align:left;">
+                <thead>
+                    <tr>
+                        <th style="padding:10px;border:1px solid #083c8a;width:40%">Apellido y Nombre</th>
+                        <th style="padding:10px;border:1px solid #083c8a;width:40%">Modulos</th>
+                        <th style="padding:10px;border:1px solid #083c8a;width:20%">Justificacion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Rows.Count; i++)
+                    {
+                        <tr>
+                            <td style="padding:8px;border:1px solid #083c8a;">
+                                @Model.Rows[i].FullName
+                                <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
+                            </td>
+                            <td style="padding:8px;border:1px solid #083c8a;">
+                                @for (int m = 0; m < 4; m++)
+                                {
+                                    <input type="checkbox" name="Rows[@i].Modulos[@m]" value="true" @(Model.Rows[i].Modulos[m] ? "checked" : "") style="margin-right:6px;" />
+                                }
+                            </td>
+                            <td style="padding:8px;border:1px solid #083c8a;text-align:center;">
+                                <input type="checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
+                                <input type="hidden" name="Rows[@i].AsPresente" value="@(Model.Rows[i].AsPresente ? "true" : "false")" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;">
+            <button type="submit" class="btn btn-primary" style="background:#083c8a;border-radius:26px;padding:12px 40px;border:none;">Guardar</button>
+        </div>
+    </form>
 </main>

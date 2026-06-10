@@ -1,31 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Inicio";
-    ViewData["BodyClass"] = "inicio-page";
+    ViewData["Title"] = "Asistencias";
 }
 
-<main class="main-container">
-    <div class="tab-inicio">
-        Inicio
-    </div>
+<div class="asistencia-page" style="min-height:80vh;padding-top:40px;">
+    <div style="display:flex;justify-content:center;">
+        <div style="width:560px;background:#fff;border-radius:16px;padding:32px;box-shadow:0 60px 40px rgba(0,0,0,0.35);">
+            <div style="text-align:center;margin-bottom:10px;">
+                <span style="background:#ccefff;padding:8px 24px;border-radius:20px;color:#fff;font-weight:600;">Inicio</span>
+            </div>
+            <form asp-action="Asistencia" method="get">
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label class="control-label" style="font-weight:700;">Carrera / Materia:</label>
+                    <select name="CaMaId" class="form-control" asp-items="@(ViewData["CaMaId"] as SelectList)" style="margin-top:8px;border-radius:8px;padding:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,0.06);">
+                        <option value="">-- Seleccione una Carrera/Materia --</option>
+                    </select>
+                </div>
 
-    <div class="form-card">
-        <div class="input-group">
-            <label for="carrera">Carrera:</label>
-            <select id="carrera" name="carrera" class="custom-select">
-                <option value="" disabled selected>Seleccione una Carrera</option>
-                <option value="1">Tecnicatura Sup. en Desarrollo de Software</option>
-            </select>
+                <div style="text-align:center;">
+                    <button type="submit" class="btn btn-primary" style="background:#083c8a;border-radius:26px;padding:10px 36px;border:none;">Siguiente</button>
+                </div>
+            </form>
         </div>
-
-        <div class="input-group">
-            <label for="materia">Materia:</label>
-            <select id="materia" name="materia" class="custom-select">
-                <option value="" disabled selected>Seleccione una Materia</option>
-                <option value="1">Practicas Preprofesionalizantes III</option>
-                <option value="2">ingles</option>
-            </select>
-        </div>
-
-        <button class="btn-siguiente" id="btnSiguiente">Siguiente</button>
     </div>
-</main>
+</div>

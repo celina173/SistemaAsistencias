@@ -13,7 +13,7 @@ namespace ISFDyT124.Data
         public DbSet<Asistencia> Asistencias { get; set; }
         public DbSet<Carrera> Carreras { get; set; }
         public DbSet<CarreraCohorte> CarreraCohortes { get; set; }
-        public DbSet<CarreraMateria> CarreraMaterias { get; set; }
+        public DbSet<CarrerasMaterias> CarreraMaterias { get; set; }
         public DbSet<Cohorte> Cohortes { get; set; }
         public DbSet <Login> Login { get; set; }
         public DbSet<Materia> Materias { get; set; }
