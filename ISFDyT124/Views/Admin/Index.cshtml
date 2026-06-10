@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Panel de Control";
     ViewData["BodyClass"] = "admin-page";
 }
@@ -9,19 +9,25 @@
 
 <main class="main-container-admin">
     <div class="cards-grid">
-        <div class="admin-card" id="card-usuarios">
-            <img src="~/images/icono-estudiantes.png" alt="Usuarios" class="card-icon">
-            <h3>Usuarios</h3>
-        </div>
+        <a asp-controller="Admin" asp-action="UsuariosABM" style="text-decoration: none; color: inherit;">
+            <div class="admin-card" id="card-usuarios">
+                <img src="~/images/icono-estudiantes.png" alt="Usuarios" class="card-icon">
+                <h3>Usuarios</h3>
+            </div>
+        </a>
 
-        <div class="admin-card" id="card-materias">
-            <img src="~/images/icono-materias.png" alt="Materias" class="card-icon">
-            <h3>Materias</h3>
-        </div>
+        <a asp-controller="Materias" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="admin-card" id="card-materias">
+                <img src="~/images/icono-materias.png" alt="Materias" class="card-icon">
+                <h3>Materias</h3>
+            </div>
+        </a>
 
-        <div class="admin-card" id="card-carreras">
-            <img src="~/images/icono-carreras.png" alt="Carreras" class="card-icon">
-            <h3>Carreras</h3>
-        </div>
+        <a asp-controller="Carreras" asp-action="Index" style="text-decoration: none; color: inherit;">
+            <div class="admin-card" id="card-carreras">
+                <img src="~/images/icono-carreras.png" alt="Carreras" class="card-icon">
+                <h3>Carreras</h3>
+            </div>
+        </a>
     </div>
 </main>

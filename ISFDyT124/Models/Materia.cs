@@ -9,29 +9,32 @@ namespace ISFDyT124.Models
         public int MaId { get; set; }
 
         [Required(ErrorMessage = "Debe ingresar el nombre de la materia.")]
-        [StringLength(30, ErrorMessage = "No se permiten más de 30 caracteres.")]
+        [StringLength(30, ErrorMessage = "No se permiten mÃ¡s de 30 caracteres.")]
         [RegularExpression(
-            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s.,()-]*$",
-            ErrorMessage = "Ingrese una materia válida."
+            @"^[A-Za-zÃÃ‰ÃÃ“ÃšÃ¡Ã©Ã­Ã³ÃºÃœÃ¼Ã‘Ã±0-9\s.,()-]*$",
+            ErrorMessage = "Ingrese una materia vÃ¡lida."
         )]
         [Display(Name = "Materia")]
-        public string MaDenominacion { get; set; }
+        public string MaDenominacion { get; set; } = null!;
 
         [Required(ErrorMessage = "Debe ingresar una modalidad.")]
-        [StringLength(25, ErrorMessage = "No se permiten más de 25 caracteres.")]
+        [StringLength(25, ErrorMessage = "No se permiten mÃ¡s de 25 caracteres.")]
         [RegularExpression(
-            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]*$",
-            ErrorMessage = "Ingrese una modalidad válida."
+            @"^[A-Za-zÃÃ‰ÃÃ“ÃšÃ¡Ã©Ã­Ã³ÃºÃœÃ¼Ã‘Ã±\s]*$",
+            ErrorMessage = "Ingrese una modalidad vÃ¡lida."
         )]
+
+
         [Display(Name = "Modalidad")]
         public string? MaModalidad { get; set; }
 
-        [Required(ErrorMessage = "Debe ingresar la cantidad de módulos.")]
-        [Range(1, 4, ErrorMessage = "La cantidad de módulos debe estar entre 1 y 4.")]
-        [Display(Name = "Cantidad de Módulos")]
+        [Required(ErrorMessage = "Debe ingresar la cantidad de mÃ³dulos.")]
+        [Range(1, 4, ErrorMessage = "La cantidad de mÃ³dulos debe estar entre 1 y 4.")]
+        [Display(Name = "Cantidad de MÃ³dulos")]
         public int? MaCantModulos { get; set; }
 
         // RELACION
-        public virtual ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
+        public virtual ICollection<CarreraMateria>? CarreraMaterias { get; set; }
+        public virtual ICollection<Asistencia>? Asistencias { get; set; }
     }
 }

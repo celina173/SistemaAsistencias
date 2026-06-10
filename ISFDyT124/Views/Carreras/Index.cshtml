@@ -1,0 +1,46 @@
+@model IEnumerable<ISFDyT124.Models.Carrera>
+
+@{
+    ViewData["Title"] = "Carreras";
+}
+
+<div class="admin-banner">
+    CARRERAS
+</div>
+
+<main class="main-container-gestion">
+    <div class="toolbar-container">
+        <div class="spacer"></div>
+        <div class="add-btn-container">
+            <a asp-action="Create" class="btn-add" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+        </div>
+    </div>
+
+    <div class="crud-table-container">
+        <table class="crud-table">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.CaId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CaDenominacion)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.CaId)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CaDenominacion)</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a asp-action="Edit" asp-route-CaId="@item.CaId" class="btn-edit">✏️</a>
+                                <a asp-action="Details" asp-route-CaId="@item.CaId" class="btn-details">📋</a>
+                                <a asp-action="Delete" asp-route-CaId="@item.CaId" class="btn-delete">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

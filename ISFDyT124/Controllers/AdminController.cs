@@ -1,71 +1,52 @@
 ﻿using ISFDyT124.Data;
-using ISFDyT124.Models;
 using ISFDyT124.DTO;
+using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
-    /// <summary>
-    /// Controlador responsable de las acciones administrativas del sistema.
-    /// Solo los usuarios con rol de Administrador o Preceptor deberían acceder a estas funciones.
-    /// </summary>
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly InstitutoDbContext _context;
 
-        // Constructor del controlador con inyección de dependencias del DbContext de la aplicación
         public AdminController(InstitutoDbContext context)
         {
             _context = context;
         }
 
-        #region SECTION 1: DASHBOARD ADMINISTRATIVO (MÉTRICAS)
-
-        /// <summary>
-        /// Vista principal del panel de administración.
-        /// Muestra estadísticas generales de la institución basadas en la base de datos SQL.
-        /// </summary>
         public async Task<IActionResult> Index()
         {
-            // 1. Obtener la cantidad total de alumnos (usuarios con el rol de Alumno - ID 3)
             ViewBag.TotalAlumnos = await _context.Usuarios
                 .Where(u => u.RoId == 3)
                 .CountAsync();
 
-            // 2. Obtener la cantidad total de docentes (usuarios con el rol de Docente - ID 2)
             ViewBag.TotalDocentes = await _context.Usuarios
                 .Where(u => u.RoId == 2)
                 .CountAsync();
 
-            // 3. Cantidad total de materias activas (Simulado, al no existir modelo Materia)
-            ViewBag.TotalMaterias = 0;
+            ViewBag.TotalMaterias = await _context.Materias.CountAsync();
+            ViewBag.TotalCarreras = await _context.Carreras.CountAsync();
+            ViewBag.TotalAsistencias = await _context.Asistencias.CountAsync();
 
-            // 4. Cantidad total de carreras dictadas (Simulado, al no existir modelo Carrera)
-            ViewBag.TotalCarreras = 0;
-
-            // 5. Asistencias totales registradas (Simulado, al no existir modelo Asistencia)
-            ViewBag.TotalAsistencias = 0;
-
-            // 6. Asistencias del día actual (Simulado)
-            ViewBag.AsistenciasHoy = 0;
+            var hoy = DateTime.Today;
+            ViewBag.AsistenciasHoy = await _context.Asistencias
+                .Where(a => a.AsFecha != null && a.AsFecha.Value.Date == hoy)
+                .CountAsync();
 
             return View();
         }
 
-        #endregion
-
-        #region SECTION 2: GESTIÓN DE USUARIOS (ABM / CRUD)
-
-        /// <summary>
-        /// Muestra el listado completo de usuarios registrados en el sistema,
-        /// mapeados a UsuarioDetalleDto.
-        /// </summary>
         public async Task<IActionResult> UsuariosABM()
         {
-            // Consultamos todos los usuarios cargando eager-loading sus roles para evitar consultas N+1
             var usuarios = await _context.Usuarios
                 .Include(u => u.Rol)
+                .Include(u => u.CarreraCohorte).ThenInclude(cc => cc.Carrera)
+                .Include(u => u.CarreraCohorte).ThenInclude(cc => cc.Cohorte)
+                .Include(u => u.CarreraMaterias).ThenInclude(cm => cm.Carrera)
+                .Include(u => u.CarreraMaterias).ThenInclude(cm => cm.Materia)
                 .Select(u => new UsuarioDetalleDto
                 {
                     UsId = u.UsId,
@@ -74,79 +55,125 @@ namespace ISFDyT124.Controllers
                     UsEmail = u.UsEmail,
                     UsDni = u.UsDni,
                     RoId = u.RoId,
-                    RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null
+                    RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null,
+                    CaCoId = u.CaCoId,
+                    CarreraCohorteDenominacion = u.CaCoId != null && u.CarreraCohorte != null
+                        ? u.CarreraCohorte.Carrera.CaDenominacion + " - " + u.CarreraCohorte.Cohorte.CoAnio
+                        : null,
+                    MateriasDenominacion = u.CarreraMaterias.Any()
+                        ? string.Join(", ", u.CarreraMaterias.Select(cm => cm.Carrera.CaDenominacion + " / " + cm.Materia.MaDenominacion))
+                        : null
                 })
                 .ToListAsync();
 
             return View(usuarios);
         }
 
-        /// <summary>
-        /// Acción GET que renderiza el formulario para registrar un nuevo usuario en la base de datos.
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> UsuarioAgregar()
         {
-            // Cargamos la lista de roles disponibles de la base de datos para mostrarlos en un Dropdown en la vista
             ViewBag.RolesList = await _context.Roles.ToListAsync();
-            return View();
+            ViewBag.CarreraCohortesList = await _context.CarreraCohortes
+                .Include(cc => cc.Carrera)
+                .Include(cc => cc.Cohorte)
+                .Select(cc => new
+                {
+                    cc.CaCoId,
+                    Denominacion = cc.Carrera.CaDenominacion + " - " + cc.Cohorte.CoAnio
+                })
+                .ToListAsync();
+            ViewBag.CarreraMateriasList = await _context.CarreraMaterias
+                .Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
+                .Select(cm => new
+                {
+                    cm.CaMaId,
+                    Denominacion = cm.Carrera.CaDenominacion + " / " + cm.Materia.MaDenominacion
+                })
+                .ToListAsync();
+            return View(new UsuarioCrearDto());
         }
 
-        /// <summary>
-        /// Acción POST que procesa la creación de un nuevo usuario usando UsuarioCrearDto.
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto dto)
+        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // Verificar que el DNI no esté duplicado en el sistema
-                var dniExiste = await _context.Usuarios.AnyAsync(u => u.UsDni == dto.UsDni);
-                if (dniExiste)
-                {
-                    ModelState.AddModelError("UsDni", "El DNI ingresado ya se encuentra registrado.");
-                    ViewBag.RolesList = await _context.Roles.ToListAsync();
-                    return View(dto);
-                }
-
-                // CÁLCULO DE PRIMARY KEYS MANUALES (Ya que no son autoincrementales en el script SQL):
-                int nuevoUsId = _context.Usuarios.Any() ? await _context.Usuarios.MaxAsync(u => u.UsId) + 1 : 1;
-
-                var usuario = new Usuario
-                {
-                    UsId = nuevoUsId,
-                    UsApellido = dto.UsApellido ?? string.Empty,
-                    UsNombre = dto.UsNombre ?? string.Empty,
-                    UsEmail = dto.UsEmail,
-                    UsDni = dto.UsDni,
-                    RoId = dto.RoId
-                };
-
-                _context.Usuarios.Add(usuario);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(UsuariosABM));
+                ViewBag.RolesList = await _context.Roles.ToListAsync();
+                return View(model);
             }
 
-            // Si falla la validación del modelo, recargamos la lista de roles
-            ViewBag.RolesList = await _context.Roles.ToListAsync();
-            return View(dto);
+            if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
+            {
+                ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
+                ViewBag.RolesList = await _context.Roles.ToListAsync();
+                return View(model);
+            }
+
+            int nuevoUsId = _context.Usuarios.Any()
+                ? await _context.Usuarios.MaxAsync(u => u.UsId) + 1 : 1;
+
+            var usuario = new Usuario
+            {
+                UsId = nuevoUsId,
+                UsApellido = model.UsApellido,
+                UsNombre = model.UsNombre,
+                UsDni = model.UsDni,
+                UsEmail = model.UsEmail,
+                UsContrasena = model.UsDni.ToString(),
+                RoId = selectedRoleId,
+                CaCoId = selectedRoleId == 3 ? model.CaCoId : null
+            };
+
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            if (selectedRoleId == 2 && model.SelectedCaMaIds != null)
+            {
+                var materias = await _context.CarreraMaterias
+                    .Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
+                    .ToListAsync();
+                foreach (var cm in materias)
+                {
+                    usuario.CarreraMaterias.Add(cm);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(UsuariosABM));
         }
 
-        /// <summary>
-        /// GET para editar los datos personales de un usuario por su UsId.
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> UsuarioEditar(int id)
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.Rol)
+                .Include(u => u.CarreraMaterias)
                 .FirstOrDefaultAsync(u => u.UsId == id);
 
             if (usuario == null)
-            {
                 return NotFound();
-            }
+
+            ViewBag.RolesList = await _context.Roles.ToListAsync();
+            ViewBag.CarreraCohortesList = await _context.CarreraCohortes
+                .Include(cc => cc.Carrera)
+                .Include(cc => cc.Cohorte)
+                .Select(cc => new
+                {
+                    cc.CaCoId,
+                    Denominacion = cc.Carrera.CaDenominacion + " - " + cc.Cohorte.CoAnio
+                })
+                .ToListAsync();
+            ViewBag.CarreraMateriasList = await _context.CarreraMaterias
+                .Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
+                .Select(cm => new
+                {
+                    cm.CaMaId,
+                    Denominacion = cm.Carrera.CaDenominacion + " / " + cm.Materia.MaDenominacion
+                })
+                .ToListAsync();
 
             var dto = new UsuarioDetalleDto
             {
@@ -156,92 +183,82 @@ namespace ISFDyT124.Controllers
                 UsEmail = usuario.UsEmail,
                 UsDni = usuario.UsDni,
                 RoId = usuario.RoId,
-                RoDenominacion = usuario.Rol != null ? usuario.Rol.RoDenominacion : null
+                RoDenominacion = usuario.Rol?.RoDenominacion,
+                CaCoId = usuario.CaCoId,
+                MateriasDenominacion = string.Join(",", usuario.CarreraMaterias.Select(cm => cm.CaMaId))
             };
 
-            // Pasar roles y el rol actual del usuario a la vista
-            ViewBag.RolesList = await _context.Roles.ToListAsync();
-            ViewBag.CurrentRoleId = usuario.RoId;
-
             return View(dto);
         }
 
-        /// <summary>
-        /// POST que procesa la actualización de un usuario existente.
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UsuarioEditar(int id, UsuarioDetalleDto dto)
+        public async Task<IActionResult> UsuarioEditar(int id, UsuarioDetalleDto model, int selectedRoleId, List<int>? selectedCaMaIds)
         {
-            if (id != dto.UsId)
-            {
+            if (id != model.UsId)
                 return BadRequest();
-            }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    var usuario = await _context.Usuarios.FindAsync(id);
-                    if (usuario == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Verificar DNI duplicado
-                    var dniExisteEnOtro = await _context.Usuarios.AnyAsync(u => u.UsDni == dto.UsDni && u.UsId != dto.UsId);
-                    if (dniExisteEnOtro)
-                    {
-                        ModelState.AddModelError("UsDni", "El DNI ingresado ya se encuentra registrado en otro usuario.");
-                        ViewBag.RolesList = await _context.Roles.ToListAsync();
-                        ViewBag.CurrentRoleId = usuario.RoId;
-                        return View(dto);
-                    }
-
-                    usuario.UsApellido = dto.UsApellido ?? string.Empty;
-                    usuario.UsNombre = dto.UsNombre ?? string.Empty;
-                    usuario.UsEmail = dto.UsEmail;
-                    usuario.UsDni = dto.UsDni;
-                    usuario.RoId = dto.RoId;
-
-                    _context.Update(usuario);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.Usuarios.Any(u => u.UsId == id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(UsuariosABM));
+                ViewBag.RolesList = await _context.Roles.ToListAsync();
+                return View(model);
             }
 
-            ViewBag.RolesList = await _context.Roles.ToListAsync();
-            ViewBag.CurrentRoleId = dto.RoId;
-            return View(dto);
+            var usuario = await _context.Usuarios
+                .Include(u => u.CarreraMaterias)
+                .FirstOrDefaultAsync(u => u.UsId == id);
+
+            if (usuario == null)
+                return NotFound();
+
+            usuario.UsApellido = model.UsApellido;
+            usuario.UsNombre = model.UsNombre;
+            usuario.UsDni = model.UsDni;
+            usuario.UsEmail = model.UsEmail;
+            usuario.RoId = selectedRoleId;
+            usuario.CaCoId = selectedRoleId == 3 ? model.CaCoId : null;
+
+            if (selectedRoleId == 2)
+            {
+                usuario.CarreraMaterias.Clear();
+                if (selectedCaMaIds != null)
+                {
+                    var materias = await _context.CarreraMaterias
+                        .Where(cm => selectedCaMaIds.Contains(cm.CaMaId))
+                        .ToListAsync();
+                    foreach (var cm in materias)
+                    {
+                        usuario.CarreraMaterias.Add(cm);
+                    }
+                }
+            }
+            else
+            {
+                usuario.CarreraMaterias.Clear();
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(UsuariosABM));
         }
 
-        /// <summary>
-        /// POST para eliminar físicamente un usuario.
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UsuarioEliminar(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuarios
+                .Include(u => u.UsuarioRoles)
+                .Include(u => u.CarreraMaterias)
+                .FirstOrDefaultAsync(u => u.UsId == id);
+
             if (usuario != null)
             {
+                usuario.CarreraMaterias.Clear();
+                _context.UsuarioRoles.RemoveRange(usuario.UsuarioRoles);
                 _context.Usuarios.Remove(usuario);
                 await _context.SaveChangesAsync();
             }
+
             return RedirectToAction(nameof(UsuariosABM));
         }
-
-        #endregion
     }
 }

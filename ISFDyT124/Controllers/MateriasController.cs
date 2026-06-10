@@ -3,20 +3,32 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ISFDyT124.Models;
 using ISFDyT124.Data;
+using ISFDyT124.DTO;
 
 public class MateriasController : Controller
 {
-    private readonly AsistenciaContext _context;
+    private readonly InstitutoDbContext _context;
 
-    public MateriasController(AsistenciaContext context)
+    public MateriasController(InstitutoDbContext context)
     {
         _context = context;
     }
 
     // GET: MATERIAS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Materias.ToListAsync());
+        var materias = await _context.Materias
+            .Select(m => new MateriaDetalleDto
+            {
+                MaId = m.MaId,
+                MaDenominacion = m.MaDenominacion,
+                MaModalidad = m.MaModalidad,
+                MaCantModulos = m.MaCantModulos,
+                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+            })
+            .ToListAsync();
+
+        return View(materias);
     }
 
     // GET: MATERIAS/Details/5
@@ -28,7 +40,17 @@ public class MateriasController : Controller
         }
 
         var materia = await _context.Materias
-            .FirstOrDefaultAsync(m => m.MaId == MaId);
+            .Where(m => m.MaId == MaId)
+            .Select(m => new MateriaDetalleDto
+            {
+                MaId = m.MaId,
+                MaDenominacion = m.MaDenominacion,
+                MaModalidad = m.MaModalidad,
+                MaCantModulos = m.MaCantModulos,
+                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+            })
+            .FirstOrDefaultAsync();
+
         if (materia == null)
         {
             return NotFound();
@@ -40,23 +62,29 @@ public class MateriasController : Controller
     // GET: MATERIAS/Create
     public IActionResult Create()
     {
-        return View();
+        return View(new MateriaCrearDto());
     }
 
     // POST: MATERIAS/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos,CarrerasMaterias")] Materia materia)
+    public async Task<IActionResult> Create(MateriaCrearDto materiaDto)
     {
         if (ModelState.IsValid)
         {
+            var materia = new Materia
+            {
+                MaDenominacion = materiaDto.MaDenominacion ?? string.Empty,
+                MaModalidad = materiaDto.MaModalidad,
+                MaCantModulos = materiaDto.MaCantModulos
+            };
+
             _context.Add(materia);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        return View(materia);
+
+        return View(materiaDto);
     }
 
     // GET: MATERIAS/Edit/5
@@ -72,42 +100,61 @@ public class MateriasController : Controller
         {
             return NotFound();
         }
-        return View(materia);
+
+        var materiaDto = new MateriaCrearDto
+        {
+            MaId = materia.MaId,
+            MaDenominacion = materia.MaDenominacion,
+            MaModalidad = materia.MaModalidad,
+            MaCantModulos = materia.MaCantModulos
+        };
+
+        return View(materiaDto);
     }
 
     // POST: MATERIAS/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? MaId, [Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos,CarrerasMaterias")] Materia materia)
+    public async Task<IActionResult> Edit(int? MaId, MateriaCrearDto materiaDto)
     {
-        if (MaId != materia.MaId)
+        if (MaId != materiaDto.MaId)
         {
             return NotFound();
         }
 
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                _context.Update(materia);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MateriaExists(materia.MaId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return RedirectToAction(nameof(Index));
+            return View(materiaDto);
         }
-        return View(materia);
+
+        var materia = await _context.Materias.FindAsync(MaId);
+        if (materia == null)
+        {
+            return NotFound();
+        }
+
+        materia.MaDenominacion = materiaDto.MaDenominacion ?? string.Empty;
+        materia.MaModalidad = materiaDto.MaModalidad;
+        materia.MaCantModulos = materiaDto.MaCantModulos;
+
+        try
+        {
+            _context.Update(materia);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!MateriaExists(materia.MaId))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: MATERIAS/Delete/5
@@ -119,7 +166,17 @@ public class MateriasController : Controller
         }
 
         var materia = await _context.Materias
-            .FirstOrDefaultAsync(m => m.MaId == MaId);
+            .Where(m => m.MaId == MaId)
+            .Select(m => new MateriaDetalleDto
+            {
+                MaId = m.MaId,
+                MaDenominacion = m.MaDenominacion,
+                MaModalidad = m.MaModalidad,
+                MaCantModulos = m.MaCantModulos,
+                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+            })
+            .FirstOrDefaultAsync();
+
         if (materia == null)
         {
             return NotFound();
@@ -137,9 +194,9 @@ public class MateriasController : Controller
         if (materia != null)
         {
             _context.Materias.Remove(materia);
+            await _context.SaveChangesAsync();
         }
 
-        await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 

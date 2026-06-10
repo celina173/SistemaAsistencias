@@ -10,5 +10,8 @@ namespace ISFDyT124.DTO
         public int UsDni { get; set; }
         public int RoId { get; set; }
         public string? RoDenominacion { get; set; }
+        public int? CaCoId { get; set; }
+        public string? CarreraCohorteDenominacion { get; set; }
+        public string? MateriasDenominacion { get; set; }
     }
 }
