@@ -19,6 +19,9 @@ namespace ISFDyT124.Data
         public DbSet<Materia> Materias { get; set; }
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Inscripciones> Inscripciones { get; set; }
+
+
 
 
         protected override void OnModelCreating(ModelBuilder Builder)   
