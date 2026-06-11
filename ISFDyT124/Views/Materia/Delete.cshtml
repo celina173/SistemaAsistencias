@@ -1,4 +1,4 @@
-@model ISFDyT124.Models.Materia
+@model ISFDyT124.DTO.MateriaDetalleDto
 
 @{
     ViewData["Title"] = "Delete";
@@ -8,7 +8,7 @@
 
 <h3>Are you sure you want to delete this?</h3>
 <div>
-    <h4>ISFDyT124.Models.Materia</h4>
+    <h4>Materia</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -36,10 +36,10 @@
     </dl>
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CarrerasMaterias)
+            Carreras relacionadas
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CarrerasMaterias)
+            @Html.DisplayFor(model => model.CarreraMateriasCount)
         </dd>
     </dl>
     <form asp-action="Delete">

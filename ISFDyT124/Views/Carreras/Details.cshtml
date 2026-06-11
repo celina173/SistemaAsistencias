@@ -1,0 +1,28 @@
+@model ISFDyT124.Models.Carrera
+
+@{
+    ViewData["Title"] = "Detalle Carrera";
+}
+
+<div class="admin-banner">
+    CARRERAS
+</div>
+
+<main class="main-container-agregar">
+    <div class="form-card-agregar">
+        <h2 class="form-title"><u>Detalle Carrera</u></h2>
+
+        <dl class="row">
+            <dt class="col-sm-2">ID</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.CaId)</dd>
+
+            <dt class="col-sm-2">Denominación</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.CaDenominacion)</dd>
+        </dl>
+
+        <div class="button-container">
+            <a asp-action="Edit" asp-route-CaId="@Model.CaId" class="btn-guardar-estudiante">Editar</a>
+            <a asp-action="Index" class="btn-cancelar">Volver</a>
+        </div>
+    </div>
+</main>

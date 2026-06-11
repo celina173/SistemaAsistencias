@@ -1,4 +1,5 @@
-﻿@{
+@model IEnumerable<ISFDyT124.DTO.UsuarioDetalleDto>
+@{
     ViewData["Title"] = "Gestión de Usuarios";
     ViewData["BodyClass"] = "gestion-page";
 }
@@ -17,7 +18,7 @@
         </div>
 
         <div class="add-btn-container">
-            <button class="btn-add" id="btnAgregar">+</button>
+            <a asp-controller="Admin" asp-action="UsuarioAgregar" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
         </div>
     </div>
 
@@ -25,14 +26,36 @@
         <table class="crud-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Apellido y Nombre</th>
-                    <th style="width: 15%;">DNI</th>
-                    <th style="width: 15%;">Rol</th>
-                    <th style="width: 25%;">Carrera</th>
-                    <th style="width: 20%;">Acciones</th>
+                    <th style="width: 20%;">Apellido y Nombre</th>
+                    <th style="width: 10%;">DNI</th>
+                    <th style="width: 10%;">Rol</th>
+                    <th style="width: 25%;">Carrera / Cohorte</th>
+                    <th style="width: 25%;">Materias</th>
+                    <th style="width: 10%;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
+                @if (Model != null)
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.UsApellido, @item.UsNombre</td>
+                            <td>@item.UsDni</td>
+                            <td>@(item.RoDenominacion ?? "Sin Rol")</td>
+                            <td>@(item.CarreraCohorteDenominacion ?? "-")</td>
+                            <td style="font-size:0.85em;">@(item.MateriasDenominacion ?? "-")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="UsuarioEditar" asp-route-id="@item.UsId" class="btn-edit">✏️</a>
+                                    <form asp-action="UsuarioEliminar" asp-route-id="@item.UsId" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar este usuario?');">
+                                        <button type="submit" class="btn-delete" style="border:none; background:none; cursor:pointer;">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
             </tbody>
         </table>
     </div>

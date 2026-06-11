@@ -45,17 +45,28 @@ namespace ISFDyT124.Models
         [EmailAddress(ErrorMessage = "Ingrese una dirección de mail válida")]
         public string? UsEmail { get; set; }
 
+        //CONTRASEÑA
+        [Required(ErrorMessage = "Ingrese una contraseña válida")]
+        [Display(Name = "Contraseña")]
+        public string UsContrasena { get; set; }
+
         //Relacion de Usuario - Rol
         [ForeignKey("Rol")] // Indica que la propiedad RolId es clave foránea hacia la entidad Rol
         [Required(ErrorMessage = "Debe elegir un rol.")] // Campo obligatorio elegir rol
         [Display(Name = "Rol")] // Etiqueta para vistas 
         public int RoId { get; set; } // Clave foránea al rol del usuario
 
+        // CarreraCohorte asignado (solo para Alumnos)
+        [Display(Name = "Carrera / Cohorte")]
+        public int? CaCoId { get; set; }
+
 
 
         public virtual Rol? Rol { get; set; } = null!; // Relaciónes de Usuario a Rol
+        public virtual CarreraCohorte? CarreraCohorte { get; set; }
 
-
-
+        public virtual ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();
+        public virtual ICollection<Asistencia> Asistencias { get; set; } = new List<Asistencia>();
+        public virtual ICollection<CarreraMateria> CarreraMaterias { get; set; } = new List<CarreraMateria>();
     }
 }

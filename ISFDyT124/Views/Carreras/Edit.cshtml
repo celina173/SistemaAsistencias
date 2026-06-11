@@ -1,0 +1,35 @@
+@model ISFDyT124.Models.Carrera
+
+@{
+    ViewData["Title"] = "Editar Carrera";
+}
+
+<div class="admin-banner">
+    CARRERAS
+</div>
+
+<main class="main-container-agregar">
+    <div class="form-card-agregar">
+        <h2 class="form-title"><u>Editar Carrera</u></h2>
+
+        <form asp-action="Edit" class="form-grid">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="CaId" />
+
+            <div class="input-group">
+                <label asp-for="CaDenominacion"></label>
+                <input asp-for="CaDenominacion" required>
+                <span asp-validation-for="CaDenominacion" class="text-danger"></span>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="btn-guardar-estudiante">Guardar</button>
+                <a asp-action="Index" class="btn-cancelar">Volver</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

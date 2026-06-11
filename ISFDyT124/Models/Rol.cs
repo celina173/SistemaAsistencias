@@ -20,6 +20,7 @@ namespace ISFDyT124.Models
 
         // Relación con usuarios: un rol puede estar asignado a muchos usuarios
         public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
-        // Colección de usuarios que tienen este rol. Se inicializa como una lista vacía para evitar problemas de referencia nula al agregar usuarios a un rol.
+
+        public virtual ICollection<UsuarioRol> UsuarioRoles { get; set; } = new List<UsuarioRol>();
     }
 }

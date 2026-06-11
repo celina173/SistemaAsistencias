@@ -10,24 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 2. LOGIN -> REDIRECCIÓN
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const usuario = document.getElementById('usuario').value.trim();
-            const contrasena = document.getElementById('contrasena').value.trim();
-
-            if (usuario === 'docente' && contrasena === 'docente') {
-                window.location.href = '/Home/Index';
-            } else if (usuario === 'admin' && contrasena === 'admin') {
-                window.location.href = '/Admin/Index';
-            } else {
-                alert('Usuario o contraseña incorrectos.');
-            }
-        });
-    }
-
     // 3. INICIO -> ASISTENCIA
     const btnSiguiente = document.getElementById('btnSiguiente');
     if (btnSiguiente) {

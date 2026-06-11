@@ -1,4 +1,4 @@
-@model IEnumerable<ISFDyT124.Models.Materia>
+@model IEnumerable<ISFDyT124.DTO.MateriaDetalleDto>
 
 @{
     ViewData["Title"] = "Index";
@@ -22,7 +22,7 @@
                 @Html.DisplayNameFor(model => model.MaCantModulos)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.CarrerasMaterias)
+                Carreras relacionadas
             </th>
             <th></th>
         </tr>
@@ -40,12 +40,12 @@
                 @Html.DisplayFor(model => item.MaCantModulos)
             </td>
             <td>
-                @Html.DisplayFor(model => item.CarrerasMaterias)
+                @Html.DisplayFor(model => item.CarreraMateriasCount)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.MaId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaId">Delete</a>
+                <a asp-action="Edit" asp-route-MaId="@item.MaId">Edit</a> |
+                <a asp-action="Details" asp-route-MaId="@item.MaId">Details</a> |
+                <a asp-action="Delete" asp-route-MaId="@item.MaId">Delete</a>
             </td>
         </tr>
 }

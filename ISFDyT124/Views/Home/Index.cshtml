@@ -1,4 +1,6 @@
-﻿@{
+﻿@model ISFDyT124.DTO.HomeIndexDto
+
+@{
     ViewData["Title"] = "Inicio";
     ViewData["BodyClass"] = "inicio-page";
 }
@@ -10,19 +12,24 @@
 
     <div class="form-card">
         <div class="input-group">
-            <label for="carrera">Carrera:</label>
-            <select id="carrera" name="carrera" class="custom-select">
+            <label for="SelectedCarreraId">Carrera:</label>
+            <select asp-for="SelectedCarreraId" id="carrera" class="custom-select">
                 <option value="" disabled selected>Seleccione una Carrera</option>
-                <option value="1">Tecnicatura Sup. en Desarrollo de Software</option>
+                @foreach (var carrera in Model.Carreras)
+                {
+                    <option value="@carrera.CaId">@carrera.CaDenominacion</option>
+                }
             </select>
         </div>
 
         <div class="input-group">
-            <label for="materia">Materia:</label>
-            <select id="materia" name="materia" class="custom-select">
+            <label for="SelectedMateriaId">Materia:</label>
+            <select asp-for="SelectedMateriaId" id="materia" class="custom-select">
                 <option value="" disabled selected>Seleccione una Materia</option>
-                <option value="1">Practicas Preprofesionalizantes III</option>
-                <option value="2">ingles</option>
+                @foreach (var materia in Model.Materias)
+                {
+                    <option value="@materia.MaId">@materia.MaDenominacion</option>
+                }
             </select>
         </div>
 

@@ -20,6 +20,7 @@ namespace ISFDyT124.Models
 
 
         // RELACION
-        public virtual ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
+        public virtual ICollection<CarreraMateria>? CarreraMaterias { get; set; }
+        public virtual ICollection<CarreraCohorte>? CarreraCohortes { get; set; }
     }
 }
