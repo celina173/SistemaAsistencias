@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ISFDyT124.Models;
@@ -43,9 +44,11 @@ public class MateriasController : Controller
     }
 
     // POST: MATERIAS/Create
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos")] Materia materia)
+    public async Task<IActionResult> Create([Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos,CarrerasMaterias")] Materia materia)
     {
         if (ModelState.IsValid)
         {
@@ -73,9 +76,11 @@ public class MateriasController : Controller
     }
 
     // POST: MATERIAS/Edit/5
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? MaId, [Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos")] Materia materia)
+    public async Task<IActionResult> Edit(int? MaId, [Bind("MaId,MaDenominacion,MaModalidad,MaCantModulos,CarrerasMaterias")] Materia materia)
     {
         if (MaId != materia.MaId)
         {

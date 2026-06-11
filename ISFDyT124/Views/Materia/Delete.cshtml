@@ -8,26 +8,38 @@
 
 <h3>Are you sure you want to delete this?</h3>
 <div>
-    <h4>Materia</h4>
+    <h4>ISFDyT124.Models.Materia</h4>
     <hr />
     <dl class="row">
-        <dt class="col-sm-2">
+        <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.MaDenominacion)
         </dt>
-        <dd class="col-sm-10">
+        <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.MaDenominacion)
         </dd>
-        <dt class="col-sm-2">
+    </dl>
+    <dl class="row">
+        <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.MaModalidad)
         </dt>
-        <dd class="col-sm-10">
+        <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.MaModalidad)
         </dd>
-        <dt class="col-sm-2">
+    </dl>
+    <dl class="row">
+        <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.MaCantModulos)
         </dt>
-        <dd class="col-sm-10">
+        <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.MaCantModulos)
+        </dd>
+    </dl>
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CarrerasMaterias)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CarrerasMaterias)
         </dd>
     </dl>
     <form asp-action="Delete">
