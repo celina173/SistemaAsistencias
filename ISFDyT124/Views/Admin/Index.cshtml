@@ -3,25 +3,86 @@
     ViewData["BodyClass"] = "admin-page";
 }
 
-<div class="admin-banner">
-    ADMIN
-</div>
-
-<main class="main-container-admin">
-    <div class="cards-grid">
-        <div class="admin-card" id="card-usuarios">
-            <img src="~/images/icono-estudiantes.png" alt="Usuarios" class="card-icon">
-            <h3>Usuarios</h3>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-page">
+    
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
         </div>
-
-        <div class="admin-card" id="card-materias">
-            <img src="~/images/icono-materias.png" alt="Materias" class="card-icon">
-            <h3>Materias</h3>
+        
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
         </div>
+        
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+    
+    <div class="header-divider"></div>
 
-        <div class="admin-card" id="card-carreras">
-            <img src="~/images/icono-carreras.png" alt="Carreras" class="card-icon">
-            <h3>Carreras</h3>
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">PANEL DE CONTROL</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">ADMINISTRADOR</p>
         </div>
     </div>
-</main>
+
+    <main class="main-container-admin">
+        <div class="cards-grid">
+            
+            <div class="admin-card" id="card-estudiantes" onclick="window.location.href='gestion-estudiantes.html'">
+                <i class="bi bi-people card-icon-vector"></i>
+                <h3>Estudiantes</h3>
+            </div>
+
+            <div class="admin-card" id="card-materias" onclick="window.location.href='gestion-materias.html'">
+                <i class="bi bi-book card-icon-vector"></i>
+                <h3>Materias</h3>
+            </div>
+
+            <div class="admin-card" id="card-carreras" onclick="window.location.href='gestion-carreras.html'">
+                <i class="bi bi-mortarboard card-icon-vector"></i>
+                <h3>Carreras</h3>
+            </div>
+
+            <div class="admin-card" id="card-docentes" onclick="window.location.href='gestion-docentes.html'">
+                <i class="bi bi-person-workspace card-icon-vector"></i>
+                <h3>Docentes</h3>
+            </div>
+
+            <div class="admin-card" id="card-inscripciones" onclick="window.location.href='gestion-inscripciones-materias.html'">
+                <i class="bi bi-journal-check card-icon-vector"></i>
+                <h3>Inscripción a Materias</h3>
+            </div>
+
+        </div>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>

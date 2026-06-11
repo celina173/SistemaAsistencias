@@ -7,35 +7,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login IS 124</title>
-    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-page">
     <div class="login-card">
         <div class="logo-container">
-            <img src="~/images/logo.png" alt="IS 124 Logo" class="logo-img">
+            <img src="img/logo.png" alt="IS 124 Logo" class="logo-img">
         </div>
 
         <form id="loginForm">
             <div class="input-group">
                 <label for="usuario">Usuario</label>
-                <input type="text" id="usuario" name="usuario" required>
+                <input type="text" id="usuario" name="usuario" placeholder="Ingresá tu usuario" required>
             </div>
 
             <div class="input-group">
                 <label for="contrasena">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" required>
+                <input type="password" id="contrasena" name="contrasena" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn-submit">
+            <button type="submit" class="btn-submit" aria-label="Ingresar">
                 <span class="arrow">➔</span>
             </button>
         </form>
 
         <div class="link-container">
-            <a href="#" class="forgot-password">Olvide mi Contraseña</a>
+            <a href="recupero-contraseña.html" class="forgot-password">Olvidé mi contraseña</a>
         </div>
     </div>
 
-    <script src="/js/script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

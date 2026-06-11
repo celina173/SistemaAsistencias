@@ -3,29 +3,82 @@
     ViewData["BodyClass"] = "inicio-page";
 }
 
-<main class="main-container">
-    <div class="tab-inicio">
-        Inicio
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Sistema de Asistencias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="inicio-page">
 
-    <div class="form-card">
-        <div class="input-group">
-            <label for="carrera">Carrera:</label>
-            <select id="carrera" name="carrera" class="custom-select">
-                <option value="" disabled selected>Seleccione una Carrera</option>
-                <option value="1">Tecnicatura Sup. en Desarrollo de Software</option>
-            </select>
+    <header class="top-header">
+        <div class="menu-icon" id="toggleSidebar">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
         </div>
 
-        <div class="input-group">
-            <label for="materia">Materia:</label>
-            <select id="materia" name="materia" class="custom-select">
-                <option value="" disabled selected>Seleccione una Materia</option>
-                <option value="1">Practicas Preprofesionalizantes III</option>
-                <option value="2">ingles</option>
-            </select>
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
         </div>
 
-        <button class="btn-siguiente" id="btnSiguiente">Siguiente</button>
+        <div class="header-logo">
+            <img src="img/logo.png" alt="Logo Institucional" class="logo-img">
+        </div>
+    </header>
+
+    <div class="header-divider"></div>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-title-container">
+        <h2 class="page-main-title">Gestión de Asistencia</h2>
+        <p class="page-subtitle" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-top: 5px;">Seleccione la carrera y materia para continuar</p>
     </div>
-</main>
+
+    <main class="main-container-form">
+        <div class="form-card">
+            <form id="formInicioAsistencia" class="form-grid">
+
+                <div class="input-field" style="grid-column: span 2;">
+                    <label for="carrera">Carrera</label>
+                    <input type="text" id="carrera" name="carrera" list="lista-carreras" placeholder="Escribí para buscar una carrera..." required autocomplete="off">
+                    <datalist id="lista-carreras">
+                        <option value="Tecnicatura Sup. en Desarrollo de Software"></option>
+                        <option value="Tecnicatura Sup. en Análisis de Sistemas"></option>
+                        <option value="Tecnicatura Sup. en Higiene y Seguridad"></option>
+                    </datalist>
+                </div>
+
+                <div class="input-field" style="grid-column: span 2;">
+                    <label for="materia">Materia</label>
+                    <input type="text" id="materia" name="materia" list="lista-materias" placeholder="Escribí para buscar una materia..." required autocomplete="off">
+                    <datalist id="lista-materias">
+                        <option value="Prácticas Preprofesionalizantes III"></option>
+                        <option value="Programación Avanzada"></option>
+                        <option value="Base de Datos"></option>
+                        <option value="Inglés"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-buttons" style="grid-column: span 2; justify-content: center; margin-top: 15px;">
+                    <button type="submit" class="btn-save" id="btnSiguiente" style="width: 100%; padding: 14px;">Configurar Asistencia</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

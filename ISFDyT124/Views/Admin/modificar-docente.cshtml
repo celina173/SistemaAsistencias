@@ -1,0 +1,104 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Docente - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="agregar-page">
+
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li><a href="inicio-admin.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li><a href="gestion-docentes.html">Volver a Gestión</a></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">PANEL DE CONTROL</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">ADMINISTRADOR</p>
+        </div>
+    </div>
+
+    <div class="page-title-container">
+        <h2 class="page-main-title">Modificar Docente</h2>
+    </div>
+
+    <main class="main-container-form">
+        <div class="form-card">
+            <form id="formModificarDocente" class="form-grid">
+
+                <div class="input-field">
+                    <label for="apellidosDocente">Apellidos</label>
+                    <input type="text" id="apellidosDocente" name="apellidosDocente" value="Pérez" placeholder="Ej: Pérez" required autocomplete="off">
+                </div>
+
+                <div class="input-field">
+                    <label for="nombresDocente">Nombres</label>
+                    <input type="text" id="nombresDocente" name="nombresDocente" value="Juan Carlos" placeholder="Ej: Juan Carlos" required autocomplete="off">
+                </div>
+
+                <div class="input-field">
+                    <label for="dniDocente">DNI</label>
+                    <input type="text" id="dniDocente" name="dniDocente" value="24.123.456" placeholder="Ej: 24.123.456" required autocomplete="off">
+                </div>
+
+                <div class="input-field">
+                    <label for="emailDocente">Email</label>
+                    <input type="email" id="emailDocente" name="emailDocente" value="juan.perez@ies124.edu.ar" placeholder="Ej: docente@instituto.com" required autocomplete="off">
+                </div>
+
+                <div class="input-field" style="grid-column: span 2;">
+                    <label for="materiaDocente">Materia / Legajo</label>
+                    <input type="text" id="materiaDocente" name="materiaDocente" value="Programación Avanzada" list="lista-materias" placeholder="Escribí para buscar materia..." required autocomplete="off">
+                    <datalist id="lista-materias">
+                        <option value="Programación I"></option>
+                        <option value="Base de Datos"></option>
+                        <option value="Sistemas Operativos"></option>
+                        <option value="Práctica Profesionalizante"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-buttons" style="grid-column: span 2;">
+                    <button type="button" class="btn-cancel" onclick="window.location.href='gestion-docentes.html'">Cancelar</button>
+                    <button type="submit" class="btn-save">Actualizar Docente</button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
