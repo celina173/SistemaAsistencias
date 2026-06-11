@@ -37,7 +37,7 @@ namespace ISFDyT124.Models
         [Range(6000000, 99999999, ErrorMessage = "Debe ingresar los 7-8 dígitos del DNI.")] // Valida que el DNI tenga un rango válido entre 7 y 8 dígitos 
         [Required(ErrorMessage = "Debe ingresar un número de DNI válido (8 dígitos).")] // Campo obligatorio 
         [Display(Name = "DNI")] // Etiqueta para mostrar en vistas y formularios
-        public int UsDni { get; set; } // Propiedad para almacenar el DNI del usuario
+        public int UsDNI { get; set; } // Propiedad para almacenar el DNI del usuario
 
 
         //EMAIL
