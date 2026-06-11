@@ -1,38 +1,43 @@
-﻿@model ISFDyT124.DTO.HomeIndexDto
+@model ISFDyT124.DTO.HomeIndexDto
 
 @{
     ViewData["Title"] = "Inicio";
     ViewData["BodyClass"] = "inicio-page";
 }
 
-<main class="main-container">
-    <div class="tab-inicio">
-        Inicio
-    </div>
+<div class="page-title-container">
+    <h2 class="page-main-title">Gestión de Asistencia</h2>
+    <p class="page-subtitle" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-top: 5px;">Seleccione la carrera y materia para continuar</p>
+</div>
 
+<main class="main-container-form">
     <div class="form-card">
-        <div class="input-group">
-            <label for="SelectedCarreraId">Carrera:</label>
-            <select asp-for="SelectedCarreraId" id="carrera" class="custom-select">
-                <option value="" disabled selected>Seleccione una Carrera</option>
-                @foreach (var carrera in Model.Carreras)
-                {
-                    <option value="@carrera.CaId">@carrera.CaDenominacion</option>
-                }
-            </select>
-        </div>
+        <form asp-controller="Asistencias" asp-action="Index" method="get" class="form-grid">
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="carrera">Carrera</label>
+                <select asp-for="SelectedCarreraId" id="carrera" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Carrera</option>
+                    @foreach (var carrera in Model.Carreras)
+                    {
+                        <option value="@carrera.CaId">@carrera.CaDenominacion</option>
+                    }
+                </select>
+            </div>
 
-        <div class="input-group">
-            <label for="SelectedMateriaId">Materia:</label>
-            <select asp-for="SelectedMateriaId" id="materia" class="custom-select">
-                <option value="" disabled selected>Seleccione una Materia</option>
-                @foreach (var materia in Model.Materias)
-                {
-                    <option value="@materia.MaId">@materia.MaDenominacion</option>
-                }
-            </select>
-        </div>
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="materia">Materia</label>
+                <select asp-for="SelectedMateriaId" id="materia" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Materia</option>
+                    @foreach (var materia in Model.Materias)
+                    {
+                        <option value="@materia.MaId">@materia.MaDenominacion</option>
+                    }
+                </select>
+            </div>
 
-        <button class="btn-siguiente" id="btnSiguiente">Siguiente</button>
+            <div class="form-buttons" style="grid-column: span 2; justify-content: center; margin-top: 15px;">
+                <button type="submit" class="btn-save" id="btnSiguiente" style="width: 100%; padding: 14px;">Configurar Asistencia</button>
+            </div>
+        </form>
     </div>
 </main>

@@ -1,0 +1,103 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Inscripción - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="agregar-page gestion-page modificar-inscripcion">
+
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li><a href="inicio-admin.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li><a href="gestion-inscripciones-materias.html">Volver a Gestión</a></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">GESTIÓN DE INSCRIPCIONES</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">MODIFICAR REGISTRO</p>
+        </div>
+    </div>
+
+    <main class="main-container-form">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="form-main-title">MODIFICAR INSCRIPCION A MATERIA</h2>
+                <div class="form-title-divider"></div>
+            </div>
+
+            <form id="formModificarInscripcion">
+                <div class="form-grid">
+                    <div class="input-field">
+                        <label>Alumno</label>
+                        <input type="text" value="Albornoz Celina" readonly>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="carrera">Carrera</label>
+                        <select id="carrera" required>
+                            <option value="software" selected>Tec. Sup. en Desarrollo de Software</option>
+                            <option value="enfermeria">Tec. Sup. en Enfermería</option>
+                            <option value="primaria">Prof. de Educación Primaria</option>
+                        </select>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="materia">Materia</label>
+                        <select id="materia" required>
+                            <option value="progra1" selected>Programación I</option>
+                            <option value="bd">Base de Datos</option>
+                            <option value="practicas3">Prácticas Profesionalizantes III</option>
+                        </select>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="fecha">Fecha de Alta</label>
+                        <input type="date" id="fecha" value="2026-03-12" required>
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <a href="gestion-inscripciones-materias.html" class="btn-cancel">Cancelar</a>
+                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
