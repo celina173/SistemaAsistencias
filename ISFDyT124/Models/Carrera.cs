@@ -15,11 +15,10 @@ namespace ISFDyT124.Models
             ErrorMessage = "Ingrese una denominación válida."
         )]
         [Display(Name = "Denominación")]
-        public string CaDenominacion { get; set; }
+        public string CaDenominacion { get; set; } = null!;
 
-
-
-        // RELACION
-        public virtual ICollection<CarrerasMaterias>? CarrerasMaterias { get; set; }
+        // RELACIONES
+        public virtual ICollection<CarreraCohorte>? CarreraCohortes { get; set; }
+        public virtual ICollection<CarreraMateria>? CarreraMaterias { get; set; }
     }
 }

@@ -45,7 +45,7 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera)
+    public async Task<IActionResult> Create([Bind("CaId,CaDenominacion")] Carrera carrera)
     {
         if (ModelState.IsValid)
         {
@@ -75,7 +75,7 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? CaId, [Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera)
+    public async Task<IActionResult> Edit(int? CaId, [Bind("CaId,CaDenominacion")] Carrera carrera)
     {
         if (CaId != carrera.CaId)
         {
