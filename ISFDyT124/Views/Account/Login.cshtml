@@ -15,7 +15,9 @@
             <img src="~/images/logo.png" alt="IS 124 Logo" class="logo-img">
         </div>
 
-        <form id="loginForm">
+        <form id="loginForm" method="post" action="/Account/Login">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
             <div class="input-group">
                 <label for="usuario">Usuario</label>
                 <input type="text" id="usuario" name="usuario" required>

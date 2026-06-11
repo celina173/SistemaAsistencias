@@ -1,4 +1,4 @@
-@model ISFDyT124.Models.Materia
+@model ISFDyT124.DTO.MateriaDetalleDto
 
 @{
     ViewData["Title"] = "Details";
@@ -17,6 +17,7 @@
             @Html.DisplayFor(model => model.MaDenominacion)
         </dd>
     </dl>
+    <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.MaModalidad)
         </dt>
@@ -24,6 +25,7 @@
             @Html.DisplayFor(model => model.MaModalidad)
         </dd>
     </dl>
+    <dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.MaCantModulos)
         </dt>
@@ -31,15 +33,16 @@
             @Html.DisplayFor(model => model.MaCantModulos)
         </dd>
     </dl>
+    <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CarrerasMaterias)
+            Carreras relacionadas
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CarrerasMaterias)
+            @Html.DisplayFor(model => model.CarreraMateriasCount)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaId">Edit</a> |
+    <a asp-action="Edit" asp-route-MaId="@Model?.MaId">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

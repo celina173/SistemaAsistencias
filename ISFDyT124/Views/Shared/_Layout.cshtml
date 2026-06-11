@@ -35,6 +35,13 @@
                 <span class="menu-arrow">➔</span>
                 <a asp-controller="Home" asp-action="AsistenciaGlobal">Calendario</a>
             </li>
+            @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                <li>
+                    <span class="menu-arrow">➔</span>
+                    <a asp-controller="Admin" asp-action="Index">Panel Admin</a>
+                </li>
+            }
             <li>
                 <span class="menu-arrow">➔</span>
                 <a asp-controller="Account" asp-action="Login">Cerrar Sesion</a>

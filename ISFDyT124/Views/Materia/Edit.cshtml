@@ -1,4 +1,4 @@
-@model ISFDyT124.Models.Materia
+@model ISFDyT124.DTO.MateriaCrearDto
 
 @{
     ViewData["Title"] = "Edit";
@@ -27,11 +27,6 @@
                 <label asp-for="MaCantModulos" class="control-label"></label>
                 <input asp-for="MaCantModulos" class="form-control" />
                 <span asp-validation-for="MaCantModulos" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CarrerasMaterias" class="control-label"></label>
-                <input asp-for="CarrerasMaterias" class="form-control" />
-                <span asp-validation-for="CarrerasMaterias" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

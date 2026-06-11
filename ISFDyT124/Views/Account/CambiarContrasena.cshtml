@@ -1,0 +1,37 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambiar Contraseña - IS 124</title>
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+</head>
+<body class="login-page">
+    <div class="login-card">
+        <h2>Cambiar Contraseña</h2>
+        <p>Tu contraseña actual es tu DNI. Por seguridad, debés cambiarla.</p>
+
+        <form method="post" action="/Account/CambiarContrasena">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
+
+            <div class="input-group">
+                <label for="nuevaContrasena">Nueva contraseña</label>
+                <input type="password" id="nuevaContrasena" name="nuevaContrasena" required minlength="6">
+            </div>
+
+            <div class="input-group">
+                <label for="confirmarContrasena">Confirmar contraseña</label>
+                <input type="password" id="confirmarContrasena" name="confirmarContrasena" required minlength="6">
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span>Guardar</span>
+            </button>
+        </form>
+    </div>
+</body>
+</html>

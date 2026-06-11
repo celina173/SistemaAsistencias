@@ -1,13 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ISFDyT124.Models;
 using ISFDyT124.Data;
 
+[Authorize(Roles = "Admin")]
 public class CarrerasController : Controller
 {
-    private readonly AsistenciaContext _context;
+    private readonly InstitutoDbContext _context;
 
-    public CarrerasController(AsistenciaContext context)
+    public CarrerasController(InstitutoDbContext context)
     {
         _context = context;
     }

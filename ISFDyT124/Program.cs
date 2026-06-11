@@ -1,24 +1,21 @@
 
-using ISFDyT124.Data;
+using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
+using ISFDyT124.Models; // Importa los modelos
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
 
 //using ISFDyT124.DTOs; // Importa objetos de transferencia de datos
 
 var builder = WebApplication.CreateBuilder(args); // Crea el constructor del builder de la aplicaci�n web
 
-// Configura la conexi�n a la base de datos SQL Server usando el contexto SiAsContext
-builder.Services.AddDbContext<SiAsContext>(options =>
+// Configura la conexin a la base de datos SQL Server usando el contexto InstitutoDbContext
+builder.Services.AddDbContext<InstitutoDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DBSI")
             ?? throw new InvalidOperationException("Connection string 'DBSI' not found.")
     )
 );
 
-//A�ade el servicio UsuarioDTO con duraci�n por alcance (scoped)
-builder.Services.AddScoped<UsuarioCrearDto>();
-builder.Services.AddScoped<UsuarioDetalleDto>();
-
-// A�ade controladores con vistas para MVC
+// Aade controladores con vistas para MVC
 builder.Services.AddControllersWithViews();
 
 // Configura la autenticaci�n basada en cookies
@@ -28,8 +25,8 @@ builder
         "Cookies",
         options => // Configura opciones para autenticaci�n por cookies
         {
-            options.LoginPath = "/Access/Login"; // Ruta a la p�gina de login para redirecci�n en caso de no autenticado
-            options.LogoutPath = "/Access/Salir"; // Ruta para cerrar sesi�n
+            options.LoginPath = "/Account/Login"; // Ruta a la p�gina de login para redirecci�n en caso de no autenticado
+            options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesi�n
             options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiraci�n de la cookie (30 minutos)
             options.SlidingExpiration = true; // Renueva el tiempo de expiraci�n al solicitar recursos si el usuario est� activo
             options.AccessDeniedPath = "/Home/Privacy"; // Ruta a la que redirige si el usuario no tiene permisos
@@ -37,6 +34,41 @@ builder
     );
 
 var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n realizada
+
+// Seed: crear roles y usuario admin si no existen
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
+
+    var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
+    if (rolAdmin == null)
+    {
+        rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
+        context.Roles.Add(rolAdmin);
+    }
+
+    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Profesor"))
+        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
+
+    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
+        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
+
+    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
+    {
+        context.Usuarios.Add(new Usuario
+        {
+            UsId = 1,
+            UsNombre = "Admin",
+            UsApellido = "Sistema",
+            UsDni = 12345678,
+            UsEmail = "admin@instituto.edu.ar",
+            UsContrasena = "12345678",
+            RoId = rolAdmin.RoId
+        });
+    }
+
+    await context.SaveChangesAsync();
+}
 
 // Configuraciones para ambientes que NO son de desarrollo
 if (!app.Environment.IsDevelopment())
