@@ -1,0 +1,81 @@
+@model IEnumerable<ISFDyT124.Models.Asistencia>
+
+@{
+    ViewData["Title"] = "Historial de Asistencias";
+    ViewData["BodyClass"] = "global-page";
+}
+
+<main class="main-container-global">
+    <div class="info-banner" style="background-color: #002e8c; color: white; border-radius: 10px; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div class="info-col-left">
+            <h2 class="info-bold" style="margin: 0; font-size: 20px;">Historial de Asistencias</h2>
+            <p style="margin: 5px 0 0 0;">Materia: @ViewBag.MateriaNombre</p>
+        </div>
+        <div class="info-col-right">
+            <a class="btn-siguiente" asp-controller="Profesor" asp-action="Index" 
+               style="margin: 0; padding: 8px 15px; font-size: 14px; text-decoration: none; display: inline-block; background-color: #b3e5fc; color: #002e8c; border-radius: 8px; font-weight: bold; box-shadow: none;">
+                Volver al Panel
+            </a>
+        </div>
+    </div>
+
+    <div class="global-table-container" style="width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; background-color: white;">
+        <table class="global-table" style="width: 100%; border-collapse: collapse; min-width: 100%;">
+            <thead>
+                <tr style="background-color: #b3e5fc;">
+                    <th style="padding: 12px; border: 2px solid #001a8c; text-align: center;">Fecha</th>
+                    <th style="padding: 12px; border: 2px solid #001a8c; text-align: left; padding-left: 20px;">Alumno</th>
+                    <th style="padding: 12px; border: 2px solid #001a8c; text-align: center;">Estado</th>
+                    <th style="padding: 12px; border: 2px solid #001a8c; text-align: center;">Justificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #888; padding: 30px; border: 2px solid #001a8c;">
+                            No hay registros de asistencia para esta materia.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var registro in Model)
+                    {
+                        var esPresente = registro.AsPresente;
+                        var esJustificado = registro.AsJustificacion;
+                        
+                        <tr>
+                            <td style="padding: 12px; border: 2px solid #001a8c; text-align: center; font-weight: normal;">
+                                @registro.AsFecha?.ToString("dd/MM/yyyy")
+                            </td>
+                            <td style="padding: 12px; border: 2px solid #001a8c; text-align: left; padding-left: 20px; font-weight: normal;">
+                                @(registro.Usuario != null ? $"{registro.Usuario.UsApellido}, {registro.Usuario.UsNombre}" : "Alumno no identificado")
+                            </td>
+                            <td style="padding: 12px; border: 2px solid #001a8c; text-align: center; font-weight: bold; color: @(esPresente ? "#155724" : "#721c24"); background-color: @(esPresente ? "#d4edda" : "#f8d7da");">
+                                @(esPresente ? "Presente" : "Ausente")
+                            </td>
+                            <td style="padding: 12px; border: 2px solid #001a8c; text-align: center; font-weight: normal;">
+                                @if (esPresente)
+                                {
+                                    <span style="color: #6c757d;">--</span>
+                                }
+                                else
+                                {
+                                    if (esJustificado)
+                                    {
+                                        <span style="color: #155724; font-weight: bold; background-color: #d4edda; padding: 4px 8px; border-radius: 4px; display: inline-block;">Justificada</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #721c24; font-weight: bold; background-color: #f8d7da; padding: 4px 8px; border-radius: 4px; display: inline-block;">Injustificada</span>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

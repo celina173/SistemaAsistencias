@@ -1,0 +1,149 @@
+@model IEnumerable<ISFDyT124.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Toma de Asistencia";
+    ViewData["BodyClass"] = "asistencia-page";
+    var asistenciasExistentes = ViewBag.AsistenciasExistentes as Dictionary<int, ISFDyT124.Models.Asistencia> ?? new Dictionary<int, ISFDyT124.Models.Asistencia>();
+    int cantModulos = ViewBag.CantModulos;
+}
+
+<main class="main-container-asistencia">
+    <div class="info-banner" style="display: flex; flex-direction: column; gap: 10px; background-color: #002e8c; color: white;">
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+            <div class="info-col-left">
+                <p class="info-bold">@ViewBag.CarreraNombre</p>
+                <p>Docente: @User.Identity?.Name</p>
+            </div>
+            <div class="info-col-right" style="text-align: right;">
+                <p class="info-bold">@ViewBag.MateriaNombre</p>
+                <p>Módulos de la Materia: @cantModulos</p>
+            </div>
+        </div>
+        
+        <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top: 10px; display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <form method="get" id="dateFilterForm" asp-controller="Profesor" asp-action="Asistencia" style="display: flex; align-items: center; gap: 10px;">
+                <input type="hidden" name="caId" value="@ViewBag.CarreraId" />
+                <input type="hidden" name="coId" value="@ViewBag.CohorteId" />
+                <input type="hidden" name="maId" value="@ViewBag.MateriaId" />
+                <label for="fechaFiltro" style="font-weight: bold;">Fecha de Asistencia:</label>
+                <input type="date" id="fechaFiltro" name="fecha" value="@ViewBag.Fecha.ToString("yyyy-MM-dd")" 
+                       onchange="this.form.submit()" class="custom-select" 
+                       style="width: auto; display: inline-block; padding: 5px 10px; border-radius: 8px; font-size: 14px; color: #000; box-shadow: none;" 
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+            </form>
+            <div>
+                <a class="btn-siguiente" asp-controller="Profesor" asp-action="HistorialAsistencias" asp-route-maId="@ViewBag.MateriaId" 
+                   style="margin: 0; padding: 8px 15px; font-size: 14px; text-decoration: none; display: inline-block; background-color: #b3e5fc; color: #002e8c; border-radius: 8px;">
+                    Ver Historial
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background-color: #d4edda; color: #155724; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; text-align: center; font-weight: bold; border: 1px solid #c3e6cb;">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form method="post" asp-controller="Profesor" asp-action="GuardarAsistencia" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="maId" value="@ViewBag.MateriaId" />
+        <input type="hidden" name="fecha" value="@ViewBag.Fecha.ToString("yyyy-MM-dd")" />
+
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Apellido y Nombre</th>
+                        <th style="text-align: center;">Módulos (Asistencia)</th>
+                        <th style="text-align: center;">Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #888; padding: 20px;">
+                                No hay alumnos registrados en esta carrera y cohorte.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var alumno in Model)
+                        {
+                            var asistencia = asistenciasExistentes.ContainsKey(alumno.UsId) ? asistenciasExistentes[alumno.UsId] : null;
+                            var isPresente = asistencia != null && asistencia.AsPresente;
+                            var isJustified = asistencia != null && asistencia.AsJustificacion;
+
+                            <tr>
+                                <td>@alumno.UsApellido, @alumno.UsNombre</td>
+                                <td class="modules-cell" style="text-align: center;">
+                                    <!-- Inputs ocultos que se enviarán al controlador -->
+                                    <input type="hidden" id="presente_@alumno.UsId" name="asistencias[@alumno.UsId].AsPresente" value="@(isPresente ? "true" : "false")" />
+                                    
+                                    <!-- Renderizar checkboxes para cada módulo de la clase -->
+                                    @for (int i = 1; i <= cantModulos; i++)
+                                    {
+                                        <input type="checkbox" class="custom-checkbox module-check-@alumno.UsId" 
+                                               @(isPresente ? "checked" : "") 
+                                               onchange="updatePresente(@alumno.UsId)" 
+                                               title="Módulo @i" />
+                                    }
+                                </td>
+                                <td class="justification-cell" style="text-align: center;">
+                                    <input type="hidden" id="justif_@alumno.UsId" name="asistencias[@alumno.UsId].AsJustificacion" value="@(isJustified ? "true" : "false")" />
+                                    <input type="checkbox" id="justif_cb_@alumno.UsId" class="custom-checkbox" 
+                                           @(isJustified ? "checked" : "") 
+                                           @(isPresente ? "disabled" : "") 
+                                           onchange="updateJustificacion(@alumno.UsId)" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <button type="submit" class="btn-guardar" id="btnGuardar">Guardar Asistencias</button>
+        }
+    </form>
+</main>
+
+@section Scripts {
+    <script>
+        function updatePresente(alumnoId) {
+            const checkboxes = document.querySelectorAll('.module-check-' + alumnoId);
+            let anyChecked = false;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    anyChecked = true;
+                }
+            });
+
+            // Actualizar el valor del input oculto
+            document.getElementById('presente_' + alumnoId).value = anyChecked ? "true" : "false";
+
+            // Si está presente, desmarcar y deshabilitar la justificación (regla de negocio)
+            const justifCheckbox = document.getElementById('justif_cb_' + alumnoId);
+            const justifHidden = document.getElementById('justif_' + alumnoId);
+            
+            if (anyChecked) {
+                justifCheckbox.checked = false;
+                justifCheckbox.disabled = true;
+                justifHidden.value = "false";
+            } else {
+                justifCheckbox.disabled = false;
+            }
+        }
+
+        function updateJustificacion(alumnoId) {
+            const cb = document.getElementById('justif_cb_' + alumnoId);
+            document.getElementById('justif_' + alumnoId).value = cb.checked ? "true" : "false";
+        }
+    </script>
+}

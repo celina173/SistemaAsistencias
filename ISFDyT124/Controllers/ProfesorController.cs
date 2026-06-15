@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
@@ -54,6 +54,11 @@ namespace ISFDyT124.Controllers
                     .ToList()
             };
 
+            // Cargar los cohortes para el selector en la vista
+            ViewBag.Cohortes = await _context.Cohortes
+                .Select(co => new CohorteDetalleDto { CoId = co.CoId, CoAnio = co.CoAnio })
+                .ToListAsync();
+
             return View(model);
         }
 
@@ -95,6 +100,10 @@ namespace ISFDyT124.Controllers
             var asistenciasExistentes = await _context.Asistencias
                 .Where(a => a.MaId == maId && a.AsFecha.Value.Date == fechaFiltro.Date)
                 .ToDictionaryAsync(a => a.UsId.Value, a => a);
+
+            var carrera = await _context.Carreras.FindAsync(caId);
+            ViewBag.CarreraNombre = carrera?.CaDenominacion ?? "Carrera";
+            ViewBag.MateriaNombre = materia?.MaDenominacion ?? "Materia";
 
             ViewBag.AsistenciasExistentes = asistenciasExistentes;
             ViewBag.CarreraId = caId;
