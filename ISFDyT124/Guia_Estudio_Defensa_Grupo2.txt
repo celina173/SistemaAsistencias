@@ -1,0 +1,198 @@
+========================================================================
+             GUÍA DE ESTUDIO Y DEFENSA DEL CÓDIGO - GRUPO 2
+========================================================================
+Proyecto: Sistema de Asistencias - ISFDyT 124
+Rama: Grupo-2
+Documento de soporte para estudio y defensa de código.
+
+------------------------------------------------------------------------
+1. INTEGRANTES Y CRÉDITOS DEL DESARROLLO
+------------------------------------------------------------------------
+* Santiago Casi: Modelos de datos físicos de Entity Framework Core.
+* Pablo Casi: Diseño y estructuración de los DTOs (Data Transfer Objects).
+* Gustavo Olivera (IamGustav-Code): Controlador de Profesor y consolidación
+  del CRUD de Alumnos en AdminController.
+* Gianna Branca: Vistas de la interfaz de usuario del Módulo Profesor.
+* Lucas Britos y Federico Pinto: Planificación, documentación técnica
+  y diseño conceptual de los flujos de Profesor y Alumnos.
+
+========================================================================
+2. DISEÑO DE PERSISTENCIA: MODELOS Y CONFIGURACIÓN SQL (Santiago Casi)
+========================================================================
+Para conectar nuestra aplicación .NET 8.0 MVC con la base de datos SQL
+Server, se crearon los modelos dentro de la carpeta 'Models/'.
+
+Método de Elaboración de los Modelos:
+* Enfoque Code-First con Migraciones: Los modelos de datos se elaboraron
+  manualmente en código C# (carpeta 'Models/'), definiendo sus propiedades,
+  tipos de datos, relaciones y validaciones directamente. Posteriormente,
+  se utilizó Entity Framework Core Migrations (comandos como 'Add-Migration'
+  y 'Update-Database') para generar y actualizar el esquema correspondiente
+  en la base de datos SQL Server.
+* Mapeo por Convención (Convention-based Mapping): A diferencia del uso de
+  atributos explícitos de mapeo como [Table] y [Column] (los cuales no son
+  necesarios aquí), se adoptaron las convenciones estándar de EF Core. Esto
+  significa que el nombre de cada clase coincide con el nombre de su DbSet
+  (ej. Usuarios, Roles, Materias, Asistencias) y las propiedades coinciden
+  exactamente con los nombres de las columnas físicas en la base de datos
+  (ej. UsId, UsDni, RoId, AsFecha), garantizando un mapeo automático y limpio.
+
+Reglas críticas de persistencia aplicadas:
+* Data Annotations (Anotaciones de Datos): Se colocaron atributos sobre las
+  propiedades en las clases modelo para definir reglas de validación que
+  actúan a nivel de base de datos y validan los datos en formularios web:
+  - [Key]: Indica la clave primaria de la entidad (ej. 'UsId', 'MaId').
+  - [Required]: Marca una propiedad como obligatoria (NOT NULL en la base de 
+    datos) con mensajes de error personalizados.
+  - [MaxLength] / [StringLength]: Define límites de caracteres (ej. 100 para 
+    Nombre/Apellido), determinando el tamaño nvarchar en la base de datos.
+  - [RegularExpression]: Valida formatos específicos usando expresiones
+    regulares (ej. restringir DNI a solo números y el Apellido/Nombre a letras).
+  - [Range]: Limita los valores a rangos específicos (ej. que la cantidad de 
+    módulos de una Materia sea de 1 a 4).
+  - [Display]: Traduce los nombres técnicos a etiquetas de interfaz amigables.
+  - [ForeignKey]: Asocia de forma explícita las claves foráneas (ej. 'RoId' hacia 'Rol').
+
+* Configuración Fluent API (Data/InstitutoDbContext.cs): En el contexto de
+  base de datos se sobreescribió 'OnModelCreating' para establecer reglas avanzadas:
+  - Desactivación de Claves Autoincrementales: Las tablas del SQL no tienen 
+    la propiedad autoincrementable 'IDENTITY'. Se indicó a EF Core que los 
+    identificadores son generados manual y externamente por el sistema mediante:
+    modelBuilder.Entity<Entidad>().Property(x => x.Id).ValueGeneratedNever();
+  - Índices Únicos: Se configuró la columna 'UsDni' de la tabla 'Usuarios' 
+    con un índice único para evitar duplicaciones:
+    modelBuilder.Entity<Usuario>().HasIndex(u => u.UsDni).IsUnique();
+  - Integridad Referencial (OnDelete): Se configuró el comportamiento de
+    borrado en cascada (DeleteBehavior.Cascade) para relaciones clave (ej. si se
+    elimina un usuario, se eliminan en cascada sus asignaciones en UsuarioRoles
+    y sus registros de Asistencia).
+
+Relaciones Clave entre Modelos:
+* Usuario (Alumnos/Docentes/Admins) tiene un Rol (RoId).
+* Un alumno se relaciona con un único 'CarreraCohorte' (CaCoId), que a su vez
+  asocia una 'Carrera' con un 'Cohorte' (año de cursada).
+* Un docente se relaciona con múltiples materias y carreras a través de la
+  tabla intermedia 'CarrerasMaterias' (CarreraMateria).
+* 'Asistencia' registra el presentismo y se vincula con un 'Usuario' (alumno),
+  una 'Materia' (MaId) y una fecha (`AsFecha`).
+
+========================================================================
+3. PATRÓN DTO (DATA TRANSFER OBJECTS) (Pablo Casi)
+========================================================================
+¿Qué es un DTO y por qué lo usamos?
+Un DTO es un objeto que transporta datos entre procesos o capas de la aplicación.
+En lugar de pasar las entidades del modelo físico (que mapean directamente a las
+tablas de la base de datos) a las vistas del navegador web, utilizamos DTOs por:
+1. Seguridad (Encapsulamiento): Evita exponer columnas internas de la base de
+   datos (como contraseñas u otros datos sensibles) al cliente web.
+2. Desacoplamiento: Si la base de datos física cambia, solo modificamos el
+   mapeo en el controlador; las vistas siguen funcionando igual usando el DTO.
+3. Optimización: Enviamos a la vista únicamente los campos necesarios, reduciendo
+   el peso de la petición de red.
+
+DTOs Clave Utilizados:
+* UsuarioCrearDto: Contiene solo los datos personales esenciales necesarios para
+  el formulario de alta de un alumno o usuario.
+* UsuarioDetalleDto: Reúne datos del usuario y textos combinados ya procesados
+  (como "Carrera - Cohorte" formateado) para renderizar grillas de forma directa.
+* HomeIndexDto: Transporta las listas de Carreras y Materias para poblar los
+  selectores en la vista inicial.
+
+========================================================================
+4. MÓDULO DE PROFESOR (Gustavo Olivera & Gianna Branca)
+========================================================================
+
+A. Lógica del Controlador (Gustavo Olivera - ProfesorController.cs)
+* Atributo [Authorize(Roles = "Profesor")]: Restringe el controlador para que
+  solo usuarios identificados como profesores accedan a estas rutas.
+* Index() [GET]: Obtiene el ID del docente autenticado desde las Claims del
+  usuario actual. Consulta las cátedras asignadas al docente, las mapea al DTO
+  'HomeIndexDto' y las pasa a la vista de inicio del profesor.
+* Asistencia() [GET]: Recibe la materia (`maId`), carrera (`caId`) y cohorte (`coId`).
+  Busca los alumnos asociados a ese cohorte, consulta si ya existe una planilla
+  de asistencia tomada hoy (guardándola en un Diccionario para edición rápida) y
+  las pasa a la planilla.
+* GuardarAsistencia() [POST]: Recibe la materia, la fecha y un diccionario
+  `Dictionary<int, AsistenciaCrearDto>`. Realiza una operación transaccional:
+  si la asistencia ya existe hoy la actualiza (`Update`), de lo contrario genera
+  un ID manual y hace un insert (`Add`). Finaliza con `SaveChangesAsync()`.
+* HistorialAsistencias() [GET]: Lista todas las asistencias tomadas para la
+  materia ordenada cronológicamente en orden descendente.
+
+B. Interfaz de Usuario (Gianna Branca - Views/Profesor/)
+* Index.cshtml: Formulario de inicio que permite al docente elegir carrera,
+  cohorte (año) y materia que dictará, redirigiéndolo a la planilla.
+* Asistencia.cshtml:
+  - Lee dinámicamente `ViewBag.CantModulos` de la materia seleccionada para
+    renderizar la cantidad de checkboxes correspondiente (entre 1 y 4 módulos).
+  - Regla de Negocio con Javascript: Si se tilda algún módulo de asistencia,
+    el alumno está Presente, por lo que la "Justificación" de falta se
+    desmarca y se deshabilita automáticamente en tiempo real.
+  - Guarda los cambios en lote enviando los valores mediante inputs ocultos
+    mapeados para construir el diccionario en C#.
+* HistorialAsistencias.cshtml: Grilla con estilos limpios y colores de estados
+  semánticos (verde para Presente, rojo para Ausentes Justificados e Injustificados).
+
+========================================================================
+5. CRUD DE ALUMNOS (Consolidado en AdminController.cs)
+========================================================================
+(Desarrollado por Gustavo Olivera, documentado por Lucas Britos y Federico Pinto)
+
+El CRUD de alumnos está alojado dentro de la clase `AlumnosController` al final del
+archivo `AdminController.cs` para mantener la lógica administrativa integrada y segura.
+
+* Seguridad Máxima: Clase decorada con `[Authorize(Roles = "Admin")]`.
+* Listado (`Index`): Consulta alumnos filtrando por `RoId == 3`, mapea a
+  `UsuarioDetalleDto` y resuelve el nombre de su Carrera y Año de Cohorte.
+* Formulario de Alta (`Create`):
+  - No requiere contraseña: El DNI del alumno es asignado por defecto como su
+    contraseña inicial en texto plano (`UsContrasena`), respetando el sistema
+    de cuentas del proyecto.
+  - Generación Manual de IDs: Consulta el máximo ID en la tabla `Usuarios` y
+    `UsuarioRoles` y le suma `+1` antes de persistir para evitar conflictos de
+    clave duplicada.
+* Edición (`Edit`): Permite actualizar los campos básicos y reasignar la Carrera/Cohorte.
+* Eliminación (`Delete`): Remueve de forma segura el registro del alumno de
+  las tablas físicas correspondientes.
+
+========================================================================
+6. CONCEPTOS CLAVE PARA RESPONDER PREGUNTAS EN LA DEFENSA
+========================================================================
+
+P: ¿Qué enfoque o método de creación de modelos y base de datos se utilizó y por qué?
+R: Se utilizó el enfoque Code-First con Migraciones de Entity Framework Core. 
+   Esto significa que primero se definieron las clases y modelos en C# (Models/) 
+   con sus atributos de validación, y luego EF Core generó y actualizó la base de 
+   datos a partir de dicho código mediante migraciones. Se eligió para mantener 
+   las reglas de validación en el código de la aplicación y conservar un historial 
+   versionado del esquema de datos.
+
+P: ¿Cómo funciona la Inyección de Dependencias en el proyecto?
+R: El constructor de los controladores recibe el `InstitutoDbContext` mediante
+   parámetros. Este contexto de base de datos es inyectado automáticamente por
+   ASP.NET Core tras configurarlo en `Program.cs`. Esto nos permite usar el
+   contexto de base de datos sin instanciarlo con `new`, mejorando la mantenibilidad
+   y facilitando las pruebas unitarias.
+
+P: ¿Qué es el control transaccional implícito en EF Core?
+R: Cuando hacemos múltiples llamadas a `_context.Add` o `_context.Update` en
+   el bucle de guardado de asistencia, EF Core los acumula en memoria. Al llamar
+   a `await _context.SaveChangesAsync()`, todos los comandos SQL (INSERTs y UPDATEs)
+   se ejecutan dentro de una única transacción en la base de datos. Si una inserción
+   falla, toda la planilla se cancela (Atomicidad de transacciones ACID).
+
+P: ¿Cómo restringimos el acceso según los roles?
+R: En `Program.cs` se habilitó el middleware de autenticación por cookies. En los
+   controladores usamos el atributo `[Authorize(Roles = "Rol")]`. Cuando un usuario
+   hace una solicitud, el middleware lee la cookie, extrae el claim del rol del
+   usuario y verifica si coincide con el requerido; si no coincide, le deniega el
+   acceso devolviendo un código de estado 403 Forbidden o redirigiendo al Login.
+
+P: ¿Por qué hay un archivo de vistas en Views/Alumnos si el controlador está en AdminController.cs?
+R: ASP.NET Core mapea de forma predeterminada el nombre de las vistas basadas en la
+   convención de carpetas. Como declaramos la clase `AlumnosController`, las vistas
+   deben residir en la carpeta `Views/Alumnos/`. Al definir `AlumnosController`
+   dentro de `AdminController.cs`, mantuvimos el orden lógico de los controladores
+   y al mismo tiempo conservamos las vistas existentes intactas, ya que hacen
+   referencia a las rutas `/Alumnos`.
+========================================================================

@@ -41,6 +41,10 @@
                     <span class="menu-arrow">➔</span>
                     <a asp-controller="Admin" asp-action="Index">Panel Admin</a>
                 </li>
+                <li>
+                    <span class="menu-arrow">➔</span>
+                    <a asp-controller="Alumnos" asp-action="Index">Gestión Alumnos</a>
+                </li>
             }
             @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Profesor"))
             {

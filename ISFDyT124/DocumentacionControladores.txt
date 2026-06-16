@@ -1,0 +1,111 @@
+========================================================================
+DOCUMENTACIÓN TÉCNICA: CONTROLADORES Y MODELOS (SISTEMA DE ASISTENCIAS)
+========================================================================
+Este documento proporciona una explicación detallada sobre el diseño, 
+las decisiones arquitectónicas y el funcionamiento línea por línea del 
+código desarrollado para el Sistema de Asistencias del Instituto 124.
+
+Esta documentación ha sido diseñada para ser incorporada directamente 
+al README.md del repositorio de GitHub.
+
+------------------------------------------------------------------------
+1. DISEÑO DE PERSISTENCIA: ENTITY FRAMEWORK CORE Y MAPEO SQL
+------------------------------------------------------------------------
+Para conectar nuestra aplicación .NET 8.0 MVC con la base de datos SQL 
+definida en 'InstitutoNew.sql', se crearon 10 clases de modelos (entidades) 
+y un DbContext.
+
+Reglas de Mapeo aplicadas:
+* Nombres de tablas y columnas exactos (Mapeo por Convención): En lugar de utilizar
+  anotaciones explícitas como [Table] y [Column], se siguió el mapeo por convención 
+  de EF Core. Los nombres de las clases (ej. Usuario) y sus propiedades (ej. UsNombre, 
+  UsDni, AsFecha) coinciden de manera exacta con los nombres de las tablas y columnas 
+  del SQL, simplificando el código.
+* Claves Primarias Manuales (Muy Importante): Debido a que las tablas en la base de 
+  datos no poseen la propiedad autoincrementable 'IDENTITY', en el 
+  'InstitutoDbContext' configuramos a EF Core con:
+  'modelBuilder.Entity<Entidad>().Property(x => x.Id).ValueGeneratedNever();'
+  Esto indica al ORM que los IDs numéricos no son generados por el motor 
+  de base de datos, sino asignados manualmente por el software al momento de insertar.
+
+------------------------------------------------------------------------
+2. DETALLE DE FUNCIONAMIENTO DE ADMINCONTROLLER.CS
+------------------------------------------------------------------------
+El 'AdminController' centraliza todas las operaciones de administración 
+general (CRUD de usuarios y justificaciones).
+
+Estructura y Métodos clave explicados:
+
+* Inyección de Dependencias (DI):
+  - El constructor recibe el 'InstitutoDbContext' inyectado en Program.cs. 
+    Esto permite realizar consultas de manera asíncrona y segura.
+
+* Index() - Dashboard Métricas:
+  - Recupera estadísticas en tiempo real y las asigna a 'ViewBag' para renderizar 
+    en la vista principal de administración:
+    - Alumnos totales: Cuenta usuarios únicos vinculados al rol de Alumno (ID 3).
+    - Docentes totales: Cuenta usuarios vinculados al rol de Docente (ID 2).
+    - Materias y Carreras: Cuenta de las tablas respectivas.
+
+* UsuariosABM() - Listado General:
+  - Hace uso de 'Eager Loading' mediante:
+    .Include(u => u.UsuarioRoles).ThenInclude(ur => ur.Rol)
+    Esto descarga en una única consulta SQL los usuarios y sus respectivos roles, 
+    optimizando el rendimiento de red y base de datos (evita problemas N+1).
+
+* UsuarioAgregar() [POST]:
+  - Recibe el modelo de Usuario desde el formulario.
+  - Verifica si el DNI ingresado ya existe ('_context.Usuarios.AnyAsync(...)'). 
+    Si existe, retorna un error de validación en pantalla.
+  - Resuelve las claves primarias manuales:
+    Busca el ID máximo en la tabla ('MaxAsync()') y le suma +1 para generar el 
+    siguiente ID de forma segura tanto para el Usuario, el Rol asignado como para 
+    el Login (si se especifica contraseña).
+  - Cifrado seguro de contraseña: Usa la biblioteca 'BCrypt.Net' para realizar 
+    un hash seguro del campo 'LoPass' antes de guardarlo en la tabla LOGIN.
+
+* UsuarioEditar() [POST] & UsuarioEliminar() [POST]:
+  - Procesan las modificaciones y la remoción física de usuarios y sus tablas 
+    dependientes de credenciales de acceso y asignaciones.
+
+* JustificarAsistencia() [POST]:
+  - Permite a los administradores justificar faltas buscando la asistencia por 
+    ID ('AsId') y modificando el campo 'AsJustificacion' a 'true'.
+
+------------------------------------------------------------------------
+3. DETALLE DE FUNCIONAMIENTO DE PROFESORCONTROLLER.CS
+------------------------------------------------------------------------
+El 'ProfesorController' gestiona el flujo del aula: selección de cursos 
+y registro de asistencia diaria.
+
+Estructura y Métodos clave explicados:
+
+* Observación Arquitectónica de Datos:
+  - Al no existir una tabla de relación directa entre Alumnos y Carreras/Cohortes 
+    en el script SQL del repositorio, el controlador carga dinámicamente a todos 
+    los usuarios que tengan el rol de 'Alumno (ID 3)' y los ordena alfabéticamente. 
+    Esto permite que no se bloquee el flujo del sistema.
+
+* CargarAsistencia() [GET]:
+  - Recibe la Carrera (caId), Cohorte (coId), Materia (maId) y Fecha seleccionada.
+  - Carga los nombres para el encabezado visual.
+  - Recupera registros de asistencia ya cargados previamente para esa materia y fecha:
+    '_context.Asistencias.Where(...).ToDictionaryAsync(a => a.UsId)'
+    Esto convierte los datos en un diccionario en memoria optimizado. Si la vista 
+    detecta que un alumno ya tenía asistencia cargada hoy, precargará el checkbox 
+    de Presente / Ausente o su Justificación, permitiendo la edición rápida.
+
+* CargarAsistencia() [POST]:
+  - Recibe un diccionario 'asistenciasDic' (clave: UsId, valor: Presente (true/false)).
+  - Realiza un algoritmo inteligente de "Insert or Update en lote":
+    - Si el alumno ya cuenta con un registro para esa fecha y materia en ASISTENCIAS, 
+      actualiza su estado ('AsPresente = nuevoEstado').
+    - Si no existía, calcula el siguiente 'AsId' de forma segura y agrega una nueva 
+      fila con 'AsPresente', 'AsJustificacion = false', 'UsId' y 'MaId'.
+  - Ejecuta 'SaveChangesAsync()' para impactar todos los cambios en lote bajo una 
+    única transacción ACID.
+
+* HistorialAsistencias() [GET]:
+  - Muestra un listado de todas las asistencias registradas para una materia determinada, 
+    ordenadas cronológicamente para el control del docente.
+========================================================================

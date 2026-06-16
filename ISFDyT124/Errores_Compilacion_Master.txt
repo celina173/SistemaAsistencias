@@ -1,0 +1,85 @@
+========================================================================
+       INFORME DE ANÁLISIS: ERRORES DE COMPILACIÓN EN RAMA MASTER
+========================================================================
+Proyecto: Sistema de Asistencias - ISFDyT 124
+Evaluación: Estado de Compilación en Rama 'master' y relación con 'Grupo-2'
+Fecha: 15 de junio de 2026
+
+------------------------------------------------------------------------
+1. ESTADO ACTUAL DE COMPILACIÓN EN RAMA MASTER
+------------------------------------------------------------------------
+Al realizar una compilación limpia ('dotnet build') directamente sobre la 
+rama 'master', el compilador arroja un total de 16 errores de compilación, 
+impidiendo por completo la ejecución de la aplicación.
+
+A continuación se listan los errores agrupados por origen y archivo:
+
+* Errores de Referencia a Espacio de Nombres (Data):
+  - error CS0234: El tipo o el nombre del espacio de nombres 'Data' no 
+    existe en el espacio de nombres 'ISFDyT124' (¿falta alguna referencia 
+    de ensamblado?) en los siguientes archivos:
+    1. Controllers/AccountController.cs (Línea 1)
+    2. Controllers/AdminController.cs (Línea 1)
+    3. Controllers/CarrerasController.cs (Línea 5)
+    4. Controllers/HomeController.cs (Línea 1)
+    5. Controllers/MateriasController.cs (Línea 5)
+    6. Migrations/20260605133142_InitialCreate.Designer.cs (Línea 3)
+    7. Migrations/20260605144324_UsuarioRelationships.Designer.cs (Línea 3)
+    8. Migrations/InstitutoDbContextModelSnapshot.cs (Línea 3)
+    9. Program.cs (Línea 2)
+
+* Errores de Tipo de Contexto de Base de Datos (InstitutoDbContext):
+  - error CS0246: El nombre del tipo o del espacio de nombres 
+    'InstitutoDbContext' no se encontró (¿falta una directiva using o una 
+    referencia de ensamblado?) en los siguientes archivos:
+    10. Migrations/20260605133142_InitialCreate.Designer.cs (Línea 14)
+    11. Migrations/20260605144324_UsuarioRelationships.Designer.cs (Línea 14)
+    12. Migrations/InstitutoDbContextModelSnapshot.cs (Línea 13)
+    13. Controllers/HomeController.cs (Líneas 12 y 14)
+    14. Controllers/AccountController.cs (Líneas 14 y 16)
+
+------------------------------------------------------------------------
+2. DIAGNÓSTICO DEL ORIGEN DE LOS ERRORES
+------------------------------------------------------------------------
+El análisis del código de la rama 'master' demuestra que el error es 
+producido por una desincronización de namespaces dentro de esa misma rama:
+
+1. Ubicación y Namespace del Contexto:
+   En 'master', el archivo 'Data/InstitutoDbContext.cs' fue declarado bajo:
+   'namespace ISFDyT124.Models'
+   en lugar de usar el espacio de nombres lógico 'ISFDyT124.Data'.
+
+2. Consumo en los Controladores y Archivos del Proyecto:
+   Todos los controladores y las clases autogeneradas de migraciones de 
+   'master' comienzan con:
+   'using ISFDyT124.Data;'
+   Como no existe ningún archivo en 'master' que use el namespace 
+   'ISFDyT124.Data', el compilador arroja que el espacio de nombres no 
+   existe y, en consecuencia, no encuentra la clase 'InstitutoDbContext'.
+
+------------------------------------------------------------------------
+3. ANÁLISIS DE RESPONSABILIDAD: ¿CORRESPONDEN A LA RAMA GRUPO-2?
+------------------------------------------------------------------------
+* NO corresponden a la rama 'Grupo-2'. Estos errores están presentes de 
+  forma independiente en la rama 'master' debido a un cambio incompleto 
+  realizado durante fusiones previas ajenas a nuestro grupo.
+* Al contrario, la rama 'Grupo-2' SOLUCIONA estos errores:
+  En 'Grupo-2', modificamos 'Data/InstitutoDbContext.cs' asignándole su 
+  namespace correcto:
+  'namespace ISFDyT124.Data'
+  Esto hace que todos los controladores que importan 'using ISFDyT124.Data;' 
+  encuentren inmediatamente la clase, resolviendo los 16 errores.
+* Prueba de Verificación: Al compilar la rama 'Grupo-2' con el comando 
+  'dotnet build', el resultado es 'Compilación correcta: 0 Errores, 
+  0 Advertencias'.
+
+------------------------------------------------------------------------
+4. CONCLUSIÓN Y RECOMENDACIÓN PARA LA INTEGRACIÓN
+------------------------------------------------------------------------
+* La rama 'master' se encuentra actualmente en un estado "roto" (incompilable).
+* La rama 'Grupo-2' está completamente sana y compilable.
+* Al integrar (merge) la rama 'Grupo-2' en 'master', los archivos de 
+  'Grupo-2' (incluyendo el DbContext corregido) sobreescribirán la 
+  declaración defectuosa en 'master', lo que corregirá automáticamente 
+  la totalidad de los errores de compilación reportados.
+========================================================================
