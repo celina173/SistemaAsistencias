@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ISFDyT124.Models
 {
@@ -30,7 +30,7 @@ namespace ISFDyT124.Models
         // Conexión hacia el modelo Usuario.
         public virtual Usuario? Usuario { get; set; }
 
-        // Conexión hacia el modelo Materia.
-        public virtual Materia? Materia { get; set; }
+        // Conexión hacia el modelo Materias.
+        public virtual Materia? Materias { get; set; }
     }
 }

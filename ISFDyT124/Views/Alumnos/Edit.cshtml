@@ -1,0 +1,65 @@
+@model ISFDyT124.DTO.UsuarioDetalleDto
+@{
+    ViewData["Title"] = "Editar Alumno";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="admin-banner">
+    ADMIN
+</div>
+
+<main class="main-container-agregar">
+    <div class="form-card-agregar">
+        <h2 class="form-title"><u>Editar Alumno</u></h2>
+
+        <form asp-controller="Alumnos" asp-action="Edit" method="post" id="formEditarAlumno" class="form-grid">
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: 1 / -1; font-weight: bold; margin-bottom: 15px;"></div>
+            <input type="hidden" asp-for="UsId" />
+
+            <div class="input-group">
+                <label asp-for="UsApellido">Apellidos</label>
+                <input asp-for="UsApellido" required>
+                <span asp-validation-for="UsApellido" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsNombre">Nombres</label>
+                <input asp-for="UsNombre" required>
+                <span asp-validation-for="UsNombre" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsDni">DNI</label>
+                <input asp-for="UsDni" required type="number">
+                <span asp-validation-for="UsDni" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsEmail">Email</label>
+                <input asp-for="UsEmail" required type="email">
+                <span asp-validation-for="UsEmail" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="CaCoId">Carrera / Cohorte</label>
+                <select asp-for="CaCoId" class="custom-select" required
+                        asp-items="@(new SelectList(ViewBag.CarreraCohortesList, "CaCoId", "Denominacion"))">
+                    <option value="" disabled>Seleccione Carrera / Cohorte</option>
+                </select>
+                <span asp-validation-for="CaCoId" class="text-danger"></span>
+            </div>
+
+            <div class="input-group" style="visibility: hidden;">
+                <!-- Espaciador para mantener alineación en grid de 2 columnas -->
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="btn-guardar-estudiante">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

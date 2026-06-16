@@ -1,0 +1,100 @@
+@model IEnumerable<ISFDyT124.DTO.UsuarioDetalleDto>
+@{
+    ViewData["Title"] = "Gestión de Alumnos";
+    ViewData["BodyClass"] = "gestion-page";
+}
+
+<div class="admin-banner">
+    ADMIN
+</div>
+
+<main class="main-container-gestion">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background-color: #d4edda; color: #155724; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; text-align: center; font-weight: bold; border: 1px solid #c3e6cb;">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="toolbar-container">
+        <div class="spacer"></div>
+
+        <div class="search-box">
+            <input type="text" id="inputBusqueda" placeholder="Buscar alumno...">
+            <button class="btn-search" id="btnBuscar">&#128269;</button>
+        </div>
+
+        <div class="add-btn-container">
+            <a asp-controller="Alumnos" asp-action="Create" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+        </div>
+    </div>
+
+    <div class="crud-table-container">
+        <table class="crud-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Apellido y Nombre</th>
+                    <th style="width: 20%;">DNI</th>
+                    <th style="width: 35%;">Carrera / Cohorte</th>
+                    <th style="width: 10%;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.UsApellido, @item.UsNombre</td>
+                            <td>@item.UsDni</td>
+                            <td>@(item.CarreraCohorteDenominacion ?? "-")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Edit" asp-route-id="@item.UsId" class="btn-edit" style="text-decoration:none;">✏️</a>
+                                    <form asp-action="Delete" asp-route-id="@item.UsId" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar este alumno?');">
+                                        <button type="submit" class="btn-delete" style="border:none; background:none; cursor:pointer;">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #888; padding: 20px;">
+                            No hay alumnos registrados en el sistema.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputBusqueda = document.getElementById('inputBusqueda');
+            const filas = document.querySelectorAll('.crud-table tbody tr');
+
+            if (inputBusqueda) {
+                inputBusqueda.addEventListener('input', function () {
+                    const texto = inputBusqueda.value.toLowerCase().trim();
+
+                    filas.forEach(fila => {
+                        // Saltar si es la fila de sin resultados
+                        if (fila.cells.length === 1) return;
+
+                        const textoFila = fila.textContent.toLowerCase();
+                        if (textoFila.includes(texto)) {
+                            fila.style.display = '';
+                        } else {
+                            fila.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+}
