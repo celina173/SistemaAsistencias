@@ -3,112 +3,154 @@
     ViewData["BodyClass"] = "global-page";
 }
 
-<main class="main-container-global">
-    <div class="info-banner">
-        <div class="info-col-left">
-            <p>30/04/2026 12:32hs</p>
-            <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
-        </div>
-        <div class="info-col-right">
-            <p class="info-bold">Magali Bobet</p>
-            <p class="info-bold">Practicas Profesionalizantes III</p>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia Global - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="global-page">
 
-    <div class="global-table-container">
-        <table class="global-table">
-            <thead>
-                <tr>
-                    <th colspan="11" class="title-cell">ASISTENCIA GLOBAL</th>
-                    <th class="icon-cell">%</th>
-                </tr>
-                <tr>
-                    <th class="align-left">ALUMNOS</th>
-                    <th>4/3/...</th>
-                    <th>11/3/...</th>
-                    <th>18/3/...</th>
-                    <th>25/3/...</th>
-                    <th>1/4/...</th>
-                    <th>8/4/...</th>
-                    <th>15/4/...</th>
-                    <th>22/4/...</th>
-                    <th>29/4/...</th>
-                    <th>6/5/...</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="align-left">Albornoz Celina</td>
-                    <td>100%</td>
-                    <td>50%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>25,00%</td>
-                    <td>50%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>33,33%</td>
-                    <td class="total-col">80%</td>
-                </tr>
-                <tr>
-                    <td class="align-left">Distasio Ignacio</td>
-                    <td>25%</td>
-                    <td>75%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>50%</td>
-                    <td>100%</td>
-                    <td>50%</td>
-                    <td>75,00%</td>
-                    <td>100%</td>
-                    <td>75%</td>
-                    <td class="total-col">70%</td>
-                </tr>
-                <tr>
-                    <td class="align-left">Medina Roselen</td>
-                    <td>75%</td>
-                    <td>50%</td>
-                    <td>50%</td>
-                    <td>50%</td>
-                    <td>75%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>100%</td>
-                    <td>75%</td>
-                    <td>100%</td>
-                    <td class="total-col">50%</td>
-                </tr>
-                <tr>
-                    <td class="align-left">Alarcon Nicolas</td>
-                    <td>33,33%</td>
-                    <td>33,33%</td>
-                    <td>67%</td>
-                    <td>100%</td>
-                    <td>33,33%</td>
-                    <td>33,33%</td>
-                    <td>33,33%</td>
-                    <td>33,33%</td>
-                    <td>100%</td>
-                    <td>33,33%</td>
-                    <td class="total-col">60%</td>
-                </tr>
-                <tr>
-                    <td class="align-left">Terraza Nahuel</td>
-                    <td>67%</td>
-                    <td>33,33%</td>
-                    <td>100%</td>
-                    <td>33,33%</td>
-                    <td>33,33%</td>
-                    <td>100%</td>
-                    <td>33,33%</td>
-                    <td>67%</td>
-                    <td>33,33%</td>
-                    <td>67%</td>
-                    <td class="total-col">80%</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</main>
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <main class="main-container-global">
+
+        <div class="info-banner">
+            <div class="info-col-left">
+                <p>30/04/2026 12:32hs</p>
+                <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+            </div>
+            <div class="info-col-right">
+                <p class="info-bold">Magali Bobet</p>
+                <p class="info-bold">Prácticas Profesionalizantes III</p>
+            </div>
+        </div>
+
+        <div class="global-table-container">
+            <table class="global-table">
+                <thead>
+                    <tr>
+                        <th colspan="12" class="title-cell">Asistencia Global</th>
+                    </tr>
+                    <tr>
+                        <th class="align-left">Alumnos</th>
+                        <th>4/3</th>
+                        <th>11/3</th>
+                        <th>18/3</th>
+                        <th>25/3</th>
+                        <th>1/4</th>
+                        <th>8/4</th>
+                        <th>15/4</th>
+                        <th>22/4</th>
+                        <th>29/4</th>
+                        <th>6/5</th>
+                        <th class="icon-cell" style="border-left: 2px solid #e2e8f0;">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="align-left">Albornoz Celina</td>
+                        <td>100%</td>
+                        <td>50%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>25%</td>
+                        <td>50%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>33%</td>
+                        <td class="total-col">80%</td>
+                    </tr>
+                    <tr>
+                        <td class="align-left">Distasio Ignacio</td>
+                        <td>25%</td>
+                        <td>75%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>50%</td>
+                        <td>100%</td>
+                        <td>50%</td>
+                        <td>75%</td>
+                        <td>100%</td>
+                        <td>75%</td>
+                        <td class="total-col">70%</td>
+                    </tr>
+                    <tr>
+                        <td class="align-left">Medina Roselen</td>
+                        <td>75%</td>
+                        <td>50%</td>
+                        <td>50%</td>
+                        <td>50%</td>
+                        <td>75%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>100%</td>
+                        <td>75%</td>
+                        <td>100%</td>
+                        <td class="total-col">50%</td>
+                    </tr>
+                    <tr>
+                        <td class="align-left">Alarcon Nicolas</td>
+                        <td>33%</td>
+                        <td>33%</td>
+                        <td>67%</td>
+                        <td>100%</td>
+                        <td>33%</td>
+                        <td>33%</td>
+                        <td>33%</td>
+                        <td>33%</td>
+                        <td>100%</td>
+                        <td>33%</td>
+                        <td class="total-col">60%</td>
+                    </tr>
+                    <tr>
+                        <td class="align-left">Terraza Nahuel</td>
+                        <td>67%</td>
+                        <td>33%</td>
+                        <td>100%</td>
+                        <td>33%</td>
+                        <td>33%</td>
+                        <td>100%</td>
+                        <td>33%</td>
+                        <td>67%</td>
+                        <td>33%</td>
+                        <td>67%</td>
+                        <td class="total-col">80%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
