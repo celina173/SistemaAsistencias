@@ -37,6 +37,9 @@
                 @Html.DisplayFor(model => item.MaCantModulos)
             </td>
             <td>
+                @Html.DisplayFor(model => item.CarrerasMaterias)
+            </td>
+            <td>
                 <a asp-action="Edit" asp-route-id="@item.MaId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.MaId">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.MaId">Delete</a>
