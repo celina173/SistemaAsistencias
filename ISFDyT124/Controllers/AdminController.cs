@@ -12,11 +12,14 @@ namespace ISFDyT124.Controllers
     {
         private readonly InstitutoDbContext _context;
 
+        // Inyección de dependencias para usar el contexto de la base de datos
         public AdminController(InstitutoDbContext context)
         {
             _context = context;
         }
 
+        // BLOQUE: DASHBOARD / ESTADÍSTICAS
+        // Preparamos datos rápidos (contadores) que se mostrarán en la pantalla principal del admin
         public async Task<IActionResult> Index()
         {
             ViewBag.TotalAlumnos = await _context.Usuarios
@@ -39,6 +42,9 @@ namespace ISFDyT124.Controllers
             return View();
         }
 
+        // BLOQUE: LISTADO DE USUARIOS (ABM)
+        // Usamos 'Include' para traer todos los datos relacionados (Roles, Carreras, Materias) en una sola consulta
+        // Luego usamos 'Select' para convertir el modelo a un DTO (objeto plano) para mostrarlo seguro en la vista
         public async Task<IActionResult> UsuariosABM()
         {
             var usuarios = await _context.Usuarios
@@ -69,6 +75,8 @@ namespace ISFDyT124.Controllers
             return View(usuarios);
         }
 
+        // BLOQUE: CARGA DE FORMULARIO (GET)
+        // Buscamos todas las opciones disponibles (Roles, Carreras, Materias) para llenar los desplegables del formulario
         [HttpGet]
         public async Task<IActionResult> UsuarioAgregar()
         {
@@ -94,6 +102,9 @@ namespace ISFDyT124.Controllers
             return View(new UsuarioCrearDto());
         }
 
+        // BLOQUE: GUARDADO DE NUEVO USUARIO (POST)
+        // Validamos que el modelo esté bien y que el DNI no exista. 
+        // Si es profesor, vinculamos las materias seleccionadas manualmente.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId)
@@ -111,6 +122,7 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // Calculamos el ID manualmente porque no es autoincremental en la base
             int nuevoUsId = _context.Usuarios.Any()
                 ? await _context.Usuarios.MaxAsync(u => u.UsId) + 1 : 1;
 
@@ -129,6 +141,7 @@ namespace ISFDyT124.Controllers
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
+            // Si es docente (rol 2), asignamos las materias mediante la tabla intermedia
             if (selectedRoleId == 2 && model.SelectedCaMaIds != null)
             {
                 var materias = await _context.CarreraMaterias
@@ -144,6 +157,8 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(nameof(UsuariosABM));
         }
 
+        // BLOQUE: CARGA DE EDICIÓN (GET)
+        // Cargamos los datos del usuario actual y las listas para el formulario de edición
         [HttpGet]
         public async Task<IActionResult> UsuarioEditar(int id)
         {
@@ -191,6 +206,9 @@ namespace ISFDyT124.Controllers
             return View(dto);
         }
 
+        // BLOQUE: GUARDADO DE EDICIÓN (POST)
+        // Actualizamos los datos del usuario. Si es docente, usamos la estrategia de borrar lo anterior (.Clear())
+        // y volver a insertar las materias elegidas para evitar duplicados o errores.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UsuarioEditar(int id, UsuarioDetalleDto model, int selectedRoleId, List<int>? selectedCaMaIds)
@@ -220,7 +238,7 @@ namespace ISFDyT124.Controllers
 
             if (selectedRoleId == 2)
             {
-                usuario.CarreraMaterias.Clear();
+                usuario.CarreraMaterias.Clear(); // Limpiamos relaciones previas
                 if (selectedCaMaIds != null)
                 {
                     var materias = await _context.CarreraMaterias
@@ -234,13 +252,15 @@ namespace ISFDyT124.Controllers
             }
             else
             {
-                usuario.CarreraMaterias.Clear();
+                usuario.CarreraMaterias.Clear(); // Si dejó de ser docente, borramos sus materias
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(UsuariosABM));
         }
 
+        // BLOQUE: ELIMINACIÓN
+        // Limpiamos las tablas relacionadas antes de borrar el usuario para que no queden datos "huérfanos"
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UsuarioEliminar(int id)

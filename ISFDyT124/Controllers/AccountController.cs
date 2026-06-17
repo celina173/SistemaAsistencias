@@ -1,5 +1,6 @@
 ﻿using ISFDyT124.Data;
 using ISFDyT124.DTO;
+using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
