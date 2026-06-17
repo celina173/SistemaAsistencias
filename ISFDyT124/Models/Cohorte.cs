@@ -8,10 +8,9 @@ namespace ISFDyT124.Models
         [Display(Name = "ID Cohorte")]
         public int CoId { get; set; }
 
-        [Required(ErrorMessage = "Debe ingresar una denominación para la cohorte.")]
-        [StringLength(50, ErrorMessage = "No se permiten más de 50 caracteres.")]
+        [Required(ErrorMessage = "Debe ingresar una año para la cohorte.")]
         [Display(Name = "Denominación")]
-        public string CoDenominacion { get; set; } = null!;
+        public string CoAnio { get; set; } = null!;
 
         // Relación: una cohorte puede estar en muchas carreras
         public virtual ICollection<CarreraCohorte>? CarreraCohortes { get; set; }
