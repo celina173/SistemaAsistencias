@@ -39,6 +39,9 @@ var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n r
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
+    
+    // Aplicar migraciones pendientes y crear la base de datos si no existe
+    await context.Database.MigrateAsync();
 
     var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
     if (rolAdmin == null)
