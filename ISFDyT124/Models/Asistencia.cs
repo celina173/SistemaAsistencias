@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace AsistenciaGR.Models
+namespace ISFDyT124.Models
 {
 
     // Representa el modelo de datos para registrar la asistencia a una clase. 

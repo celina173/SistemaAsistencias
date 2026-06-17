@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ISFDyT124.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ISFDyT124.Data;
-using ISFDyT124.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ISFDyT124.Controllers
 {
@@ -24,7 +23,7 @@ namespace ISFDyT124.Controllers
         {
             var asistencias = _context.Asistencias
                 .Include(a => a.Usuario)
-                .Include(a => a.Materia);
+                .Include(a => a.Materias);
             // populate Carreras_Materias select list (CaMaDenominacion)
             var cam = await _context.CarrerasMaterias
                 //.Select(cm => new { cm.CaMaId, cm.CaMaDenominacion })
@@ -83,6 +82,8 @@ namespace ISFDyT124.Controllers
                 ModelState.AddModelError(string.Empty, "Debe seleccionar una carrera/materia.");
                 return View(model);
             }
+
+            var carreraMateria = await _context.CarrerasMaterias.FindAsync(model.CaMaId.Value);
 
             foreach (var row in model.Rows)
             {
