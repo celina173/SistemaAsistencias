@@ -1,11 +1,9 @@
-﻿using ISFDyT124.Data;
-using ISFDyT124.DTO;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using ISFDyT124.Models;
 
 namespace ISFDyT124.Controllers
 {
@@ -18,82 +16,72 @@ namespace ISFDyT124.Controllers
             _context = context;
         }
 
+        // GET: Account/Login
+        [HttpGet]
         public IActionResult Login()
         {
+
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
+        // POST: Account/Login
         [HttpPost]
-        public async Task<IActionResult> Login(UsuarioLoginDto model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
+            {
                 return View(model);
+            }
 
-            var usuario = await _context.Usuarios
+            if (!int.TryParse(model.Usuario, out int dniEntero))
+            {
+                ModelState.AddModelError(string.Empty, "El usuario ingresado debe ser un número de DNI válido.");
+                return View(model);
+            }
+
+
+            var usuarioBD = await _context.Usuarios
                 .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsEmail == model.Usuario);
+                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsPassword == model.Contrasena);
 
-            if (usuario == null || usuario.UsContrasena != model.Contrasena)
+            if (usuarioBD != null)
             {
-                ModelState.AddModelError("", "Usuario o contraseña incorrectos.");
-                return View(model);
+
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, usuarioBD.UsId.ToString()),
+                    new Claim(ClaimTypes.Name, $"{usuarioBD.UsNombre} {usuarioBD.UsApellido}"),
+                    new Claim(ClaimTypes.Email, usuarioBD.UsEmail ?? "")
+                };
+
+                if (usuarioBD.Rol != null && !string.IsNullOrEmpty(usuarioBD.Rol.RoDenominacion))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, usuarioBD.Rol.RoDenominacion));
+                }
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+
+                return RedirectToAction("Index", "Home");
             }
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, usuario.UsId.ToString()),
-                new Claim(ClaimTypes.Name, $"{usuario.UsNombre} {usuario.UsApellido}"),
-                new Claim(ClaimTypes.Email, usuario.UsEmail ?? ""),
-                new Claim(ClaimTypes.Role, usuario.Rol?.RoDenominacion ?? ""),
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            if (usuario.UsDni.ToString() == usuario.UsContrasena)
-                return RedirectToAction("CambiarContrasena");
-
-            return RedirectToAction("Index", "Home");
+            ModelState.AddModelError(string.Empty, "El DNI o la contraseña son incorrectos.");
+            return View(model);
         }
 
-        [Authorize]
-        public IActionResult CambiarContrasena()
-        {
-            return View();
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> CambiarContrasena(string nuevaContrasena, string confirmarContrasena)
-        {
-            if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
-            {
-                ModelState.AddModelError("", "La contraseña debe tener al menos 6 caracteres.");
-                return View();
-            }
-
-            if (nuevaContrasena != confirmarContrasena)
-            {
-                ModelState.AddModelError("", "Las contraseñas no coinciden.");
-                return View();
-            }
-
-            var usuario = await _context.Usuarios.FindAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-            if (usuario == null)
-                return RedirectToAction("Salir");
-
-            usuario.UsContrasena = nuevaContrasena;
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Index", "Home");
-        }
-
-        public async Task<IActionResult> Salir()
+        // GET: Account/Logout
+        public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
+            return RedirectToAction("Login", "Account");
         }
     }
 }
