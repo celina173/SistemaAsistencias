@@ -8,19 +8,27 @@ namespace ISFDyT124.Models
         [Key]
         [Display(Name = "ID Relación")]
         public int CaMaId { get; set; }
+        
 
-        [Required(ErrorMessage = "Debe seleccionar una carrera.")]
         [Display(Name = "Carrera")]
+        [Required(ErrorMessage = "Debe seleccionar una carrera.")]
         [ForeignKey("Carrera")]
         public int CaId { get; set; }
 
-        [Required(ErrorMessage = "Debe seleccionar una materia.")]
         [Display(Name = "Materia")]
+        [Required(ErrorMessage = "Debe seleccionar una materia.")]
         [ForeignKey("Materia")]
         public int MaId { get; set; }
+        
 
-        // Navegación
+
+
+      
         public virtual Carrera? Carrera { get; set; }
+
+
         public virtual Materia? Materia { get; set; }
+
+        public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
     }
 }
