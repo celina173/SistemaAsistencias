@@ -1,7 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ISFDyT124.Models;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace ISFDyT124.Models
 {
+
+    // Representa el modelo de datos para registrar la asistencia a una clase. 
     public class Asistencia
     {
         // Identificador único del registro.
@@ -22,15 +26,21 @@ namespace ISFDyT124.Models
         public bool AsJustificacion { get; set; } = false;
 
         // Clave foránea que conecta con el estudiante.
-        public int? UsId { get; set; }
+        public int? UsId { get; set; } // Por el momento no se utiliza
 
         // Clave foránea que conecta con la a materia
         public int? MaId { get; set; }
 
-        // Conexión hacia el modelo Usuario.
-        public virtual Usuario? Usuario { get; set; }
+        // Clave foránea que conecta con Carreras_Materias (opcional)
+        public int? CaMaId { get; set; }
 
-        // Conexión hacia el modelo Materia.
-        public virtual Materia? Materia { get; set; }
+        // Conexión hacia el modelo Usuarios.
+        public virtual Usuario? Usuario { get; set; } // Por el momento no se utiliza
+
+        // Conexión hacia el modelo Materias.
+        public virtual Materia? Materias { get; set; } // Por el momento no se utiliza
+
+        // Relación opcional hacia Carreras_Materias cuando la asistencia se vincula a una carrera/materia
+        public virtual CarrerasMaterias? CarreraMateria { get; set; }
     }
 }

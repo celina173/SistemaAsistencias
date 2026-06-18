@@ -1,231 +1,294 @@
-﻿//using ISFDyT124.Models;
-//using Microsoft.AspNetCore.Mvc;
+﻿using ISFDyT124.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-//namespace ISFDyT124.Controllers
-//{
-//    public class AsistenciasController : Controller
-//    {
-//        private readonly InstitutoDbContext _context;
-//
-//        public AsistenciasController(InstitutoDbContext context)
-//        {
-//            _context = context;
-//        }
-//
-//        // GET: Asistencias
-//        public async Task<IActionResult> Index()
-//        {
-//            var asistencias = _context.Asistencias
-//                .Include(a => a.Usuario)
-//                .Include(a => a.Materia);
-//            return View(await asistencias.ToListAsync());
-//        }
+namespace ISFDyT124.Controllers
+{
+    public class AsistenciasController : Controller
+    {
+        private readonly InstitutoDbContext _context;
 
-//        // GET: Asistencias/Asistencia
-//        // Vista estática para toma de asistencia (diseño)
-//        public IActionResult Asistencia()
-//        {
-//            return View();
-//        }
+        public AsistenciasController(InstitutoDbContext context)
+        {
+            _context = context;
+        }
 
-//        // GET: Asistencias/AsistenciaGlobal
-//        // Vista estática para asistencia global (diseño)
-//        public IActionResult AsistenciaGlobal()
-//        {
-//            return View();
-//        }
+        // GET: Asistencias
+        public async Task<IActionResult> Index()
+        {
+            var asistencias = _context.Asistencias
+                .Include(a => a.Usuario)
+                .Include(a => a.Materias);
+            // populate Carreras_Materias select list (CaMaDenominacion)
+            var cam = await _context.CarrerasMaterias
+                //.Select(cm => new { cm.CaMaId, cm.CaMaDenominacion })
+                .ToListAsync();
+            ViewData["CaMaId"] = new SelectList(cam, "CaMaId", "CaMaDenominacion");
 
-//        // GET: Asistencias/Details/5
-//        public async Task<IActionResult> Details(int? id)
-//        {
-//            if (id == null)
-//            {
-//                return NotFound();
-//            }
+            return View(await asistencias.ToListAsync());
+        }
 
-//            var asistencia = await _context.Asistencias
-//                .FirstOrDefaultAsync(m => m.AsId == id);
-//            if (asistencia == null)
-//            {
-//                return NotFound();
-//            }
+        //GET: Asistencias/Asistencia
+        //Vista estática para toma de asistencia(diseño)
+        public async Task<IActionResult> Asistencia(int? CaMaId)
+        {
+            var model = new AsistenciaFormViewModel();
+            if (CaMaId == null)
+            {
+                return View(model);
+            }
 
-//            return View(asistencia);
-//        }
+            model.CaMaId = CaMaId;
 
-//        // GET: Asistencias/Create
-//        public IActionResult Create()
-//        {
-//            return View();
-//        }
+            // find role 'Estudiante'
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Estudiante");
+            if (role == null)
+            {
+                return View(model);
+            }
 
-//        // POST: Asistencias/Create
-//        // To protect from overposting attacks, enable the specific properties you want to bind to.
-//        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+            // find users inscribed to this Carreras_Materias via Inscripciones
+            var estudiantes = await _context.Inscripciones
+                .Where(i => i.CaMaId == CaMaId)
+                .Select(i => i.Usuarios)
+                .Where(u => u != null && u.RoId == role.RoId)
+                .Select(u => new { u.UsId, FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim() })
+                .ToListAsync();
 
-//        [HttpPost]
-//        [ValidateAntiForgeryToken]
-//        public async Task<IActionResult> Create([Bind("AsId,AsFecha,AsPresente,AsJustificacion,UsId,MaId")] Asistencia asistencia)
-//        {
-//            // -LÓGICA DE NEGOCIO: CREACIÓN -
+            foreach (var s in estudiantes)
+            {
+                model.Rows.Add(new AsistenciaRowViewModel { UsId = s.UsId, FullName = s.FullName });
+            }
 
-//            //1: Automatización de fecha 
-//            // Si el usuario no eligió fecha, el sistema pone la fecha actual automáticamente
-//            if (asistencia.AsFecha == null)
-//            {
-//                asistencia.AsFecha = DateTime.Now;
-//            }
+            var caMaName = await _context.CarrerasMaterias
+                .Where(cm => cm.CaMaId == CaMaId)
+                .FirstOrDefaultAsync();
+            ViewData["CaMaDenominacion"] = caMaName;
 
-//            // 2. Validación: Fecha no futura, No permitimos registros en fechas futuras
-//            if (asistencia.AsFecha > DateTime.Now)
-//            {
-//                ModelState.AddModelError("AsFecha", "No puedes registrar fechas futuras.");
-//            }
+            return View(model);
+        }
 
-//            // 3. Lógica: Si marca 'Presente', la justificación debe ser false obligatoriamente.
-//            if (asistencia.AsPresente)
-//            {
-//                asistencia.AsJustificacion = false;
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Asistencia(AsistenciaFormViewModel model)
+        {
+            if (model.CaMaId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Debe seleccionar una carrera/materia.");
+                return View(model);
+            }
 
-//            } // 4. Aplicamos flexibilidad en ausencias: Si marca 'Ausente' (AsPresente = false), 
-//              // el sistema permite al usuario decidir libremente si el estudiante justifica o no.
+            var carreraMateria = await _context.CarrerasMaterias.FindAsync(model.CaMaId.Value);
 
-//            else
-//            {
-//                // No aplicamos restricciones adicionales, se respeta la decisión del usuario.
-//            }
+            foreach (var row in model.Rows)
+            {
+                var presente = row.Modulos != null && row.Modulos.Any(x => x);
 
-//            if (ModelState.IsValid)
-//            {
-//                _context.Add(asistencia);
-//                await _context.SaveChangesAsync();
-//                return RedirectToAction(nameof(Index));
-//            }
+                var entity = new Asistencia
+                {
+                    AsFecha = DateTime.Now,
+                    AsPresente = presente,
+                    AsJustificacion = row.AsJustificacion,
+                    UsId = row.UsId,
+                    CaMaId = model.CaMaId,
+                };
 
-//            return View(asistencia);
-//        }
+                _context.Asistencias.Add(entity);
+            }
 
-//        // GET: Asistencias/Edit/5
-//        public async Task<IActionResult> Edit(int? id)
-//        {
-//            if (id == null)
-//            {
-//                return NotFound();
-//            }
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
 
-//            var asistencia = await _context.Asistencias.FindAsync(id);
-//            if (asistencia == null)
-//            {
-//                return NotFound();
-//            }
-//            return View(asistencia);
-//        }
+        // GET: Asistencias/AsistenciaGlobal
+        // Vista estática para asistencia global (diseño)
+        public IActionResult AsistenciaGlobal()
+        {
+            return View();
+        }
 
-//        // POST: Asistencias/Edit/5
-//        // To protect from overposting attacks, enable the specific properties you want to bind to.
-//        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // GET: Asistencias/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var asistencia = await _context.Asistencias
+                .FirstOrDefaultAsync(m => m.AsId == id);
+            if (asistencia == null)
+            {
+                return NotFound();
+            }
 
-//        [HttpPost]
-//        [ValidateAntiForgeryToken]
-//        public async Task<IActionResult> Edit(int id, [Bind("AsId,AsFecha,AsPresente,AsJustificacion,UsId,MaId")] Asistencia asistencia)
-//        {
-//            if (id != asistencia.AsId)
-//            {
-//                return NotFound();
-//            }
+            return View(asistencia);
+        }
 
-//            // -LÓGICA DE NEGOCIO: EDICIÓN -
+        // GET: Asistencias/Create
+        public IActionResult Create()
+        {
+            return View();
+        }
 
-//            // 1. Automatización: Si por error se borra la fecha, la restauramos al momento actual
-//            if (asistencia.AsFecha == null) { asistencia.AsFecha = DateTime.Now; }
+        // POST: Asistencias/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("AsId,AsFecha,AsPresente,AsJustificacion,UsId,MaId")] Asistencia asistencia)
+        {
+            // -LÓGICA DE NEGOCIO: CREACIÓN -
 
-//            // 2. Validación: Mantenemos la regla de no permitir fechas futuras
-//            if (asistencia.AsFecha > DateTime.Now)
-//            {
-//                ModelState.AddModelError("AsFecha", "No puedes registrar fechas futuras.");
-//            }
+            //1: Automatización de fecha 
+            // Si el usuario no eligió fecha, el sistema pone la fecha actual automáticamente
+            if (asistencia.AsFecha == null)
+            {
+                asistencia.AsFecha = DateTime.Now;
+            }
 
+            // 2. Validación: Fecha no futura, No permitimos registros en fechas futuras
+            if (asistencia.AsFecha > DateTime.Now)
+            {
+                ModelState.AddModelError("AsFecha", "No puedes registrar fechas futuras.");
+            }
 
-//            // 3. Limpieza de datos: Si se marca 'Presente' durante la edición, limpiamos la justificación.
-//            if (asistencia.AsPresente)
-//            {
-//                asistencia.AsJustificacion = false;
-//            }
+            // 3. Lógica: Si marca 'Presente', la justificación debe ser false obligatoriamente.
+            if (asistencia.AsPresente)
+            {
+                asistencia.AsJustificacion = false;
 
+            } // 4. Aplicamos flexibilidad en ausencias: Si marca 'Ausente' (AsPresente = false), 
+              // el sistema permite al usuario decidir libremente si el estudiante justifica o no.
 
-//            if (ModelState.IsValid)
-//            {
-//                try
-//                {
-//                    _context.Update(asistencia);
-//                    await _context.SaveChangesAsync();
-//                }
-//                catch (DbUpdateConcurrencyException)
-//                {
-//                    if (!AsistenciaExists(asistencia.AsId))
-//                    {
-//                        return NotFound();
-//                    }
-//                    else
-//                    {
-//                        throw;
-//                    }
-//                }
-//                return RedirectToAction(nameof(Index));
-//            }
-//            return View(asistencia);
-//        }
+            else
+            {
+                // No aplicamos restricciones adicionales, se respeta la decisión del usuario.
+            }
 
+            if (ModelState.IsValid)
+            {
+                _context.Add(asistencia);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
 
+            return View(asistencia);
+        }
 
-//        //(Delete y AsistenciaExists se mantienen iguales)
+        // GET: Asistencias/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-//        // GET: Asistencias/Delete/5
-//        public async Task<IActionResult> Delete(int? id)
-//        {
-//            if (id == null)
-//            {
-//                return NotFound();
-//            }
+            var asistencia = await _context.Asistencias.FindAsync(id);
+            if (asistencia == null)
+            {
+                return NotFound();
+            }
+            return View(asistencia);
+        }
 
-//            var asistencia = await _context.Asistencias
-//                .FirstOrDefaultAsync(m => m.AsId == id);
-//            if (asistencia == null)
-//            {
-//                return NotFound();
-//            }
+        // POST: Asistencias/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
 
-//            return View(asistencia);
-//        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("AsId,AsFecha,AsPresente,AsJustificacion,UsId,MaId")] Asistencia asistencia)
+        {
+            if (id != asistencia.AsId)
+            {
+                return NotFound();
+            }
 
-//        // POST: Asistencias/Delete/5
-//        [HttpPost, ActionName("Delete")]
-//        [ValidateAntiForgeryToken]
-//        public async Task<IActionResult> DeleteConfirmed(int id)
-//        {
-//            var asistencia = await _context.Asistencias.FindAsync(id);
-//            if (asistencia != null)
-//            {
-//                _context.Asistencias.Remove(asistencia);
-//            }
+            // -LÓGICA DE NEGOCIO: EDICIÓN -
 
-//            await _context.SaveChangesAsync();
-//            return RedirectToAction(nameof(Index));
-//        }
+            // 1. Automatización: Si por error se borra la fecha, la restauramos al momento actual
+            if (asistencia.AsFecha == null) { asistencia.AsFecha = DateTime.Now; }
 
-//        private bool AsistenciaExists(int id)
-//        {
-//            return _context.Asistencias.Any(e => e.AsId == id);
-//        }
-//    }
-//}
+            // 2. Validación: Mantenemos la regla de no permitir fechas futuras
+            if (asistencia.AsFecha > DateTime.Now)
+            {
+                ModelState.AddModelError("AsFecha", "No puedes registrar fechas futuras.");
+            }
 
-//"Este controlador gestiona la asistencia asegurando la integridad
-//de los datos mediante tres reglas principales:
+            // 3. Limpieza de datos: Si se marca 'Presente' durante la edición, limpiamos la justificación.
+            if (asistencia.AsPresente)
+            {
+                asistencia.AsJustificacion = false;
+            }
 
-//-1.Automatización: Si la fecha viene vacía, se asigna DateTime.Now.
-//-2. Validación: Se bloquea el registro de fechas futuras para evitar errores de carga.
-//-3. Consistencia: Si se marca 'Presente', se limpia automáticamente
-//cualquier estado de justificación previo, evitando datos contradictorios en la base de datos."
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(asistencia);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!AsistenciaExists(asistencia.AsId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(asistencia);
+        }
+
+        //(Delete y AsistenciaExists se mantienen iguales)
+
+        // GET: Asistencias/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var asistencia = await _context.Asistencias
+                .FirstOrDefaultAsync(m => m.AsId == id);
+            if (asistencia == null)
+            {
+                return NotFound();
+            }
+
+            return View(asistencia);
+        }
+
+        // POST: Asistencias/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var asistencia = await _context.Asistencias.FindAsync(id);
+            if (asistencia != null)
+            {
+                _context.Asistencias.Remove(asistencia);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool AsistenciaExists(int id)
+        {
+            return _context.Asistencias.Any(e => e.AsId == id);
+        }
+    }
+}
