@@ -1,0 +1,134 @@
+========================================================================
+   ANÁLISIS COMPARATIVO DE RAMAS E IMPACTO DE INTEGRACIÓN (MERGE)
+========================================================================
+Proyecto: Sistema de Asistencias - ISFDyT 124
+Comparación: Rama 'master' vs. Rama 'Grupo-2'
+Fecha: 15 de junio de 2026
+
+Este informe técnico evalúa las diferencias en código, modelos y activos 
+entre la rama principal 'master' y el desarrollo actual de la rama 
+'Grupo-2' (incluyendo cambios locales staged), con el fin de identificar 
+mejoras de código, riesgos de compilación y potenciales conflictos de 
+control de versiones (Git) durante la integración.
+
+------------------------------------------------------------------------
+1. MEJORAS E INCORPORACIONES DE ESTABILIDAD (IMPACTO POSITIVO)
+------------------------------------------------------------------------
+El desarrollo de la rama 'Grupo-2' corrige errores latentes en 'master' 
+que impedían la compilación o causaban incoherencias en tiempo de ejecución:
+
+* Corrección de la Propiedad DNI en Usuario:
+  - En 'master': El modelo 'Usuario.cs' definía la propiedad como 'UsDNI' (NI 
+    en mayúscula). Sin embargo, el resto de la aplicación (incluyendo 
+    controladores y vistas de login/administración) la consumía como 'UsDni' 
+    (ni en minúscula). Esto causaba fallos críticos al compilar.
+  - En 'Grupo-2': Se unificó a 'UsDni', resolviendo el error de compilación.
+
+* Corrección del Namespace del DbContext:
+  - En 'master': El contexto de datos 'InstitutoDbContext' estaba declarado 
+    bajo el namespace 'ISFDyT124.Models', a pesar de estar ubicado en la 
+    carpeta 'Data/' y de que los controladores hacían 'using ISFDyT124.Data;'.
+  - En 'Grupo-2': Se actualizó el namespace de 'InstitutoDbContext' a 
+    'ISFDyT124.Data', regularizando la arquitectura física del proyecto.
+
+------------------------------------------------------------------------
+2. CAMBIOS ESTRUCTURALES EN EL MODELO DE DATOS Y CONTEXTO
+------------------------------------------------------------------------
+* Singularización de Cátedras (CarreraMateria):
+  - En 'master': La tabla intermedia se declaraba como DbSet de tipo plural:
+    'public DbSet<CarrerasMaterias> CarrerasMaterias { get; set; }'.
+  - En 'Grupo-2': Se refactorizó a singular 'public DbSet<CarreraMateria> 
+    CarreraMaterias { get; set; }' utilizando la entidad 'CarreraMateria.cs'.
+  - Impacto: Si existe algún desarrollo paralelo en 'master' de otros grupos 
+    que consuma la entidad antigua plural 'CarrerasMaterias', fallará la 
+    compilación tras la fusión y deberá adaptarse al tipo singular.
+
+* Activación de Tablas de Persistencia:
+  - En 'master': Las entidades y DbSets de 'UsuarioRol', 'Cohorte' y 
+    'CarreraCohorte' se encontraban comentados en el DbContext.
+  - En 'Grupo-2': Se descomentaron y configuraron de forma completa mediante 
+    Fluent API, habilitando las relaciones necesarias para el CRUD de Alumnos 
+    y el módulo de profesores.
+
+------------------------------------------------------------------------
+3. ADICIONES DE ARCHIVOS SIN RIESGO DE CONFLICTOS
+------------------------------------------------------------------------
+Los siguientes archivos creados en 'Grupo-2' son nuevos en el repositorio 
+y no colisionarán con desarrollos existentes al fusionar:
+* Controlador independiente de profesores: 'Controllers/ProfesorController.cs'.
+* Vistas del profesor: 'Views/Profesor/Index.cshtml', 'Asistencia.cshtml', y 
+  'HistorialAsistencias.cshtml'.
+* Vistas del CRUD de Alumnos: 'Views/Alumnos/Index.cshtml', 'Create.cshtml', 
+  y 'Edit.cshtml'.
+* Clase auxiliar de base de datos adicional: 'Data/AsistenciaContext.cs'.
+
+------------------------------------------------------------------------
+4. RIESGOS DE CONFLICTO DE FUSIÓN (MERGE CONFLICTS)
+------------------------------------------------------------------------
+Debido a que la rama 'master' integró recientemente cambios estéticos y de 
+navegación del Grupo 1, se presentarán conflictos de marcas de conflicto en 
+los siguientes archivos compartidos:
+
+* Views/Admin/Index.cshtml (Panel de Administración):
+  - En 'master': El Grupo 1 integró íconos vectoriales de Bootstrap (clases 
+    'bi bi-*') para navegar a Usuarios, Materias, Carreras y Docentes.
+  - En 'Grupo-2': Se implementaron imágenes locales ('icono-*.png') para 
+    Usuarios, Materias y Carreras, se añadió una tarjeta para 'Alumnos' 
+    (CRUD) y se quitó la tarjeta de 'Docentes' para delegarla al rol docente.
+  - Resolución sugerida: Resolver el conflicto en el archivo integrando la 
+    nueva tarjeta de acceso a 'Alumnos' dentro del diseño unificado.
+
+* Views/Shared/_Layout.cshtml (Diseño General y Menú):
+  - En ambas ramas se alteró el menú lateral ('sidebarMenu'). En 'Grupo-2' se 
+    agregaron los enlaces condicionales basados en roles para 'Gestión 
+    Alumnos' (rol Admin) y 'Panel Profesor' (rol Profesor).
+  - Resolución sugerida: Conservar los dos nuevos bloques de navegación 
+    agregados por 'Grupo-2' adaptados a la maquetación final del menú lateral.
+
+* wwwroot/css/style.css y wwwroot/js/script.js:
+  - Ambas ramas aplicaron estilos y scripts para el control de apertura/cierre 
+    del menú lateral y la maquetación del dashboard administrativo.
+  - Resolución sugerida: Revisar manualmente las líneas conflictivas en las 
+    clases '.sidebar' y '.sidebar.active', y la función JavaScript que escucha 
+    el click del botón de menú para no deshabilitar la navegación colapsable.
+
+------------------------------------------------------------------------
+5. LIMPIEZA DE CÓDIGO OBSOLETO
+------------------------------------------------------------------------
+* En 'Grupo-2' se eliminaron las vistas administrativas antiguas en desuso:
+  'agregar-estudiante.cshtml', 'gestion-estudiantes.cshtml' y 
+  'modificar-estudiante.cshtml' de 'Views/Admin/'.
+* Esto es correcto ya que fueron reemplazadas por las vistas estructuradas 
+  en 'Views/Alumnos/'. Al fusionar, se debe asegurar que ningún enlace del 
+  sitio intente acceder a las rutas antiguas (lo cual provocaría error 404).
+
+------------------------------------------------------------------------
+6. GUÍA PASO A PASO PARA REALIZAR LA FUSIÓN (MERGE) EN CONSOLA
+------------------------------------------------------------------------
+Para realizar el merge minimizando el impacto de los conflictos:
+
+1. Confirmar todos los cambios locales actuales en tu rama de trabajo:
+   git add .
+   git commit -m "Finaliza módulo profesor, CRUD alumnos y guías de estudio"
+
+2. Cambiar a la rama master y asegurarse de tener lo último de remote:
+   git checkout master
+   git pull origin master
+
+3. Iniciar el proceso de fusión de tu rama:
+   git merge Grupo-2
+
+4. Git listará los archivos con conflictos (como Layout, Admin/Index, css y js).
+   Abre tu editor de código (ej. VS Code), busca los marcadores de conflicto 
+   (<<<<<<< HEAD, =======, >>>>>>> Grupo-2) y resuélvelos de la siguiente manera:
+   - Mantén la tarjeta de Alumnos y el enlace lateral a Alumnos y Profesores.
+   - Integra los estilos del sidebar asegurando su animación.
+   
+5. Una vez resueltos todos los archivos conflictivos, compila el proyecto:
+   dotnet build
+   
+6. Si compila sin errores, agrega y confirma la fusión:
+   git add .
+   git commit -m "Merge branch 'Grupo-2' into master. Resolving layout and style conflicts"
+   git push origin master
+========================================================================

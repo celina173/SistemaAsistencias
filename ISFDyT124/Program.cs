@@ -29,7 +29,7 @@ builder
             options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesi�n
             options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Tiempo de expiraci�n de la cookie (30 minutos)
             options.SlidingExpiration = true; // Renueva el tiempo de expiraci�n al solicitar recursos si el usuario est� activo
-            options.AccessDeniedPath = "/Home/Privacy"; // Ruta a la que redirige si el usuario no tiene permisos
+            options.AccessDeniedPath = "/Account/Login"; // Ruta a la que redirige si el usuario no tiene permisos
         }
     );
 
@@ -39,6 +39,9 @@ var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n r
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
+    
+    // Aplicar migraciones pendientes y crear la base de datos si no existe
+    await context.Database.MigrateAsync();
 
     var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
     if (rolAdmin == null)
@@ -63,8 +66,84 @@ using (var scope = app.Services.CreateScope())
             UsDni = 12345678,
             UsEmail = "admin@instituto.edu.ar",
             UsContrasena = "12345678",
-            RoId = rolAdmin.RoId
+            RoId = 1
         });
+    }
+
+    // Seed de datos para pruebas del Profesor
+    var carrera = await context.Carreras.FirstOrDefaultAsync(c => c.CaId == 1);
+    if (carrera == null)
+    {
+        carrera = new Carrera { CaId = 1, CaDenominacion = "Tec. Sup. en Desarrollo de Software" };
+        context.Carreras.Add(carrera);
+    }
+
+    var materia = await context.Materias.FirstOrDefaultAsync(m => m.MaId == 1);
+    if (materia == null)
+    {
+        materia = new Materia 
+        { 
+            MaId = 1, 
+            MaDenominacion = "Prácticas Prof. III", 
+            MaModalidad = "Presencial", 
+            MaCantModulos = 4 
+        };
+        context.Materias.Add(materia);
+    }
+
+    var cohorte = await context.Cohortes.FirstOrDefaultAsync(c => c.CoId == 1);
+    if (cohorte == null)
+    {
+        cohorte = new Cohorte { CoId = 1, CoAnio = 2026 };
+        context.Cohortes.Add(cohorte);
+    }
+
+    var carreraCohorte = await context.CarreraCohortes.FirstOrDefaultAsync(cc => cc.CaCoId == 1);
+    if (carreraCohorte == null)
+    {
+        carreraCohorte = new CarreraCohorte { CaCoId = 1, CaId = 1, CoId = 1 };
+        context.CarreraCohortes.Add(carreraCohorte);
+    }
+
+    var carreraMateria = await context.CarreraMaterias.FirstOrDefaultAsync(cm => cm.CaMaId == 1);
+    if (carreraMateria == null)
+    {
+        carreraMateria = new CarreraMateria { CaMaId = 1, CaId = 1, MaId = 1 };
+        context.CarreraMaterias.Add(carreraMateria);
+    }
+
+    var docente = await context.Usuarios.Include(u => u.CarreraMaterias).FirstOrDefaultAsync(u => u.UsEmail == "profesor@instituto.edu.ar");
+    if (docente == null)
+    {
+        docente = new Usuario
+        {
+            UsId = 2,
+            UsNombre = "Magali",
+            UsApellido = "Bobet",
+            UsDni = 22222222,
+            UsEmail = "profesor@instituto.edu.ar",
+            UsContrasena = "22222222",
+            RoId = 2
+        };
+        docente.CarreraMaterias.Add(carreraMateria);
+        context.Usuarios.Add(docente);
+    }
+
+    var alumno = await context.Usuarios.FirstOrDefaultAsync(u => u.UsEmail == "alumno@instituto.edu.ar");
+    if (alumno == null)
+    {
+        alumno = new Usuario
+        {
+            UsId = 3,
+            UsNombre = "Celina",
+            UsApellido = "Albornoz",
+            UsDni = 33333333,
+            UsEmail = "alumno@instituto.edu.ar",
+            UsContrasena = "33333333",
+            RoId = 3,
+            CaCoId = 1
+        };
+        context.Usuarios.Add(alumno);
     }
 
     await context.SaveChangesAsync();

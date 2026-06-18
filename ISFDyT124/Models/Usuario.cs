@@ -1,4 +1,4 @@
-﻿using System.ComponentModel; // Importa atributos para descripción y propiedades de datos 
+using System.ComponentModel; // Importa atributos para descripción y propiedades de datos 
 using System.ComponentModel.DataAnnotations; // Importa atributos para validaciones y anotaciones en propiedades 
 using System.ComponentModel.DataAnnotations.Schema; // Importa atributos para relaciones y configuraciones con la base de datos 
 
@@ -58,6 +58,7 @@ namespace ISFDyT124.Models
 
         // CarreraCohorte asignado (solo para Alumnos)
         [Display(Name = "Carrera / Cohorte")]
+        [ForeignKey("CarreraCohorte")]
         public int? CaCoId { get; set; }
 
 

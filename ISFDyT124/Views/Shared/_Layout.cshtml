@@ -1,15 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Sistema de Asistencias</title>
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body class="@ViewData["BodyClass"]">
 
     <header class="top-header">
-        <div class="menu-icon">
+        <div class="menu-icon" id="toggleSidebar">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
@@ -40,6 +41,17 @@
                 <li>
                     <span class="menu-arrow">➔</span>
                     <a asp-controller="Admin" asp-action="Index">Panel Admin</a>
+                </li>
+                <li>
+                    <span class="menu-arrow">➔</span>
+                    <a asp-controller="Alumnos" asp-action="Index">Gestión Alumnos</a>
+                </li>
+            }
+            @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Profesor"))
+            {
+                <li>
+                    <span class="menu-arrow">➔</span>
+                    <a asp-controller="Profesor" asp-action="Index">Panel Profesor</a>
                 </li>
             }
             <li>

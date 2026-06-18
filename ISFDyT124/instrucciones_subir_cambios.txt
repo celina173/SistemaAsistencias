@@ -1,0 +1,55 @@
+================================================================================
+CÓMO SUBIR CAMBIOS DE LA RAMA 'Grupo-2' A 'master' EN LA NUBE (VISUAL STUDIO 2022)
+================================================================================
+
+Existen dos métodos principales para integrar tus cambios de 'Grupo-2' en la rama 'master' en la nube utilizando las herramientas visuales de Visual Studio 2022.
+
+--------------------------------------------------------------------------------
+MÉTODO 1: A través de un Pull Request en GitHub (RECOMENDADO para trabajo en equipo)
+--------------------------------------------------------------------------------
+
+Este es el flujo estándar en proyectos colaborativos porque permite revisar el código antes de fusionarlo a la rama principal:
+
+Paso 1: Guardar y confirmar (Commit) tus cambios locales
+1. Abre tu proyecto en Visual Studio 2022.
+2. Abre la pestaña "Cambios de Git" (Git Changes) (suele estar a la derecha o puedes abrirla desde el menú superior: Ver > Cambios de Git).
+3. Verás los archivos modificados. Escribe un mensaje descriptivo en el cuadro de texto (ejemplo: "Carga de ProfesorController y documentación").
+4. Haz clic en el botón "Confirmar todo" (Commit All).
+
+Paso 2: Subir (Push) los cambios a la nube en tu rama 'Grupo-2'
+1. En la misma pestaña de "Cambios de Git", haz clic en el botón de la flecha hacia arriba (Inserción / Push) para subir los commits locales a la nube.
+
+Paso 3: Crear el Pull Request (PR)
+1. Al realizar el Push, Visual Studio 2022 mostrará un banner superior azul que dice: "Crear una solicitud de incorporación de cambios" (Create a Pull Request). Haz clic en él.
+2. Esto abrirá tu navegador en el repositorio de GitHub.
+3. Asegúrate de configurar las ramas de fusión:
+   - base: 'master'   <---   compare: 'Grupo-2'
+4. Haz clic en "Create Pull Request".
+5. Si todo está correcto y no hay conflictos en la web, presiona "Merge pull request" y luego "Confirm merge". ¡Listo!
+
+--------------------------------------------------------------------------------
+MÉTODO 2: Fusión local y subida directa (Más rápido, de forma individual)
+--------------------------------------------------------------------------------
+
+Si tienes permisos directos en la rama master y deseas hacer todo desde Visual Studio:
+
+Paso 1: Confirmar y subir tus cambios en 'Grupo-2'
+1. Realiza el Commit de tus cambios en la pestaña "Cambios de Git".
+2. Haz clic en el botón de Inserción (Push) para que tu rama 'Grupo-2' remota esté idéntica a tu local.
+
+Paso 2: Cambiar a la rama 'master'
+1. En la esquina inferior derecha de Visual Studio 2022, haz clic en el nombre de la rama actual ("Grupo-2").
+2. En el menú que se despliega, busca la rama local "master" y haz clic en ella para cambiarte (Checkout).
+
+Paso 3: Descargar el último estado de 'master'
+1. Con la rama 'master' activa, haz clic en la flecha hacia abajo (Confirmar extracción / Pull) en la pestaña "Cambios de Git" para asegurarte de tener la versión más actualizada de la nube.
+
+Paso 4: Fusionar 'Grupo-2' en 'master'
+1. En el menú superior de Visual Studio, ve a: Git > Administrar ramas (Manage Branches).
+2. En la lista de la izquierda, haz clic secundario (clic derecho) sobre tu rama local **"Grupo-2"**.
+3. Selecciona la opción: **"Fusionar 'Grupo-2' en 'master'"** (Merge 'Grupo-2' into 'master').
+4. Si hay conflictos, Visual Studio te abrirá una ventana interactiva para resolverlos. Si no los hay, la fusión se completará localmente.
+
+Paso 5: Subir la fusión a la nube
+1. Verás que tu rama 'master' tiene commits pendientes de subir.
+2. Haz clic en el botón de la flecha hacia arriba (Inserción / Push) para subir la fusión final a la rama 'master' en la nube.

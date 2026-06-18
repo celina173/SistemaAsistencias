@@ -1,0 +1,52 @@
+@model ISFDyT124.DTO.HomeIndexDto
+
+@{
+    ViewData["Title"] = "Panel Profesor";
+    ViewData["BodyClass"] = "inicio-page";
+    var cohortes = ViewBag.Cohortes as List<ISFDyT124.DTO.CohorteDetalleDto> ?? new List<ISFDyT124.DTO.CohorteDetalleDto>();
+}
+
+<main class="main-container">
+    <div class="tab-inicio">
+        Panel Profesor
+    </div>
+
+    <div class="form-card">
+        <form id="formSeleccionClase" method="get" asp-controller="Profesor" asp-action="Asistencia">
+            <div class="input-group">
+                <label for="carrera">Carrera:</label>
+                <select name="caId" id="carrera" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Carrera</option>
+                    @foreach (var carrera in Model.Carreras)
+                    {
+                        <option value="@carrera.CaId">@carrera.CaDenominacion</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="cohorte">Cohorte (Año):</label>
+                <select name="coId" id="cohorte" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione un Cohorte</option>
+                    @foreach (var cohorte in cohortes)
+                    {
+                        <option value="@cohorte.CoId">@cohorte.CoAnio</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="materia">Materia:</label>
+                <select name="maId" id="materia" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Materia</option>
+                    @foreach (var materia in Model.Materias)
+                    {
+                        <option value="@materia.MaId">@materia.MaDenominacion</option>
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn-siguiente">Siguiente</button>
+        </form>
+    </div>
+</main>

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ISFDyT124.Models
 {
@@ -22,15 +22,15 @@ namespace ISFDyT124.Models
         public bool AsJustificacion { get; set; } = false;
 
         // Clave foránea que conecta con el estudiante.
-        public int? UsId { get; set; } // Por el momento no se utiliza
+        public int? UsId { get; set; }
 
         // Clave foránea que conecta con la a materia
         public int? MaId { get; set; }
 
-        // Conexión hacia el modelo Usuarios.
-        public virtual Usuario? Usuario { get; set; } // Por el momento no se utiliza
+        // Conexión hacia el modelo Usuario.
+        public virtual Usuario? Usuario { get; set; }
 
         // Conexión hacia el modelo Materias.
-        public virtual Materia? Materias { get; set; } // Por el momento no se utiliza
+        public virtual Materia? Materias { get; set; }
     }
 }

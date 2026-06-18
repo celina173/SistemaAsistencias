@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿using System.Security.Claims;
+=======
+using System.Security.Claims;
+>>>>>>> Grupo-2
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
@@ -8,8 +12,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
+<<<<<<< HEAD
     // Solo los usuarios con el rol "Profesor" pueden acceder a este controlador
     [Authorize(Roles = "Admin")]
+=======
+    // Los usuarios con el rol "Profesor" o "Admin" pueden acceder a este controlador
+    [Authorize(Roles = "Profesor,Admin")]
+>>>>>>> Grupo-2
     public class ProfesorController : Controller
     {
         private readonly InstitutoDbContext _context;
@@ -26,6 +35,7 @@ namespace ISFDyT124.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+<<<<<<< HEAD
             // Obtener el ID del docente autenticado
             var docenteId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
@@ -53,6 +63,57 @@ namespace ISFDyT124.Controllers
                     .Select(m => new MateriaDetalleDto { MaId = m.MaId, MaDenominacion = m.MaDenominacion })
                     .ToList()
             };
+=======
+            HomeIndexDto model;
+
+            // Si el usuario es Admin, carga todas las carreras y materias del sistema
+            if (User.IsInRole("Admin"))
+            {
+                var todasCarreras = await _context.Carreras
+                    .Select(c => new CarreraDetalleDto { CaId = c.CaId, CaDenominacion = c.CaDenominacion })
+                    .ToListAsync();
+
+                var todasMaterias = await _context.Materias
+                    .Select(m => new MateriaDetalleDto { MaId = m.MaId, MaDenominacion = m.MaDenominacion })
+                    .ToListAsync();
+
+                model = new HomeIndexDto
+                {
+                    Carreras = todasCarreras,
+                    Materias = todasMaterias
+                };
+            }
+            else
+            {
+                // Obtener el ID del docente autenticado
+                var docenteId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                // Consultar las cátedras (Carrera-Materia) asociadas a este docente
+                var misCatedras = await _context.Usuarios
+                    .Where(u => u.UsId == docenteId)
+                    .SelectMany(u => u.CarreraMaterias)
+                    .Include(cm => cm.Carrera)
+                    .Include(cm => cm.Materia)
+                    .ToListAsync();
+
+                // Mapear los datos al DTO para poblar los selectores en la vista
+                model = new HomeIndexDto
+                {
+                    Carreras = misCatedras
+                        .Select(cm => cm.Carrera)
+                        .Where(c => c != null)
+                        .Distinct()
+                        .Select(c => new CarreraDetalleDto { CaId = c.CaId, CaDenominacion = c.CaDenominacion })
+                        .ToList(),
+                    Materias = misCatedras
+                        .Select(cm => cm.Materia)
+                        .Where(m => m != null)
+                        .Distinct()
+                        .Select(m => new MateriaDetalleDto { MaId = m.MaId, MaDenominacion = m.MaDenominacion })
+                        .ToList()
+                };
+            }
+>>>>>>> Grupo-2
 
             // Cargar los cohortes para el selector en la vista
             ViewBag.Cohortes = await _context.Cohortes

@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore;
+//using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+//using System.Drawing.Drawing2D;
 
-namespace ISFDyT124.Models
-{
-    public class InstitutoDbContext : DbContext
-    {
-        public InstitutoDbContext(DbContextOptions<InstitutoDbContext> options)
-            : base(options)
-        {
-        }
+//namespace ISFDyT124.Models
+//{
+//    public class InstitutoDbContext : DbContext
+//    {
+//        public InstitutoDbContext(DbContextOptions<InstitutoDbContext> options)
+//            : base(options)
+//        {
+//        }
 
         // Definición de DbSets para cada una de las tablas del SQL
         public DbSet<Rol> Roles { get; set; } = null!;
@@ -24,78 +26,83 @@ namespace ISFDyT124.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            // Mapeo explícito y desactivación de autoincremento para PKs manuales (ya que no tienen IDENTITY en el SQL)
-            modelBuilder.Entity<Rol>().Property(r => r.RoId).ValueGeneratedNever();
-            modelBuilder.Entity<Usuario>().Property(u => u.UsId).ValueGeneratedNever();
-            modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();
+//            // Mapeo explícito y desactivación de autoincremento para PKs manuales (ya que no tienen IDENTITY en el SQL)
+//            modelBuilder.Entity<Rol>().Property(r => r.RoId).ValueGeneratedNever();
+//            modelBuilder.Entity<Usuario>().Property(u => u.UsId).ValueGeneratedNever();
+//            modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();
+//            modelBuilder.Entity<Login>().Property(l => l.LoId).ValueGeneratedNever();
+//            modelBuilder.Entity<Materia>().Property(m => m.MaId).ValueGeneratedNever();
+//            modelBuilder.Entity<Carrera>().Property(c => c.CaId).ValueGeneratedNever();
+//            modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
+//            modelBuilder.Entity<Asistencia>().Property(a => a.AsId).ValueGeneratedNever();
+//            modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
+//            modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedNever();
 
-            modelBuilder.Entity<Materia>().Property(m => m.MaId).ValueGeneratedNever();
-            modelBuilder.Entity<Carrera>().Property(c => c.CaId).ValueGeneratedNever();
-            modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
-            modelBuilder.Entity<Asistencia>().Property(a => a.AsId).ValueGeneratedNever();
-            modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
-            modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedNever();
+//            // Configurar DNI único de la tabla USUARIOS
+//            modelBuilder.Entity<Usuario>()
+//                .HasIndex(u => u.UsDNI)
+//                .IsUnique();
 
-            // Configurar DNI único de la tabla USUARIOS
-            // COMENTADO POR ERROR CS1061: "Usuario no contiene definición para UsDNI"
-            // modelBuilder.Entity<Usuario>()
-            //     .HasIndex(u => u.UsDNI)
-            //     .IsUnique();
+//            // Configuración de las Relaciones y Claves Foráneas
 
-            // Configuración de las Relaciones y Claves Foráneas
+//            // Relación LOGIN -> USUARIO (Uno a Uno / Muchos a Uno, según esquema de base de datos)
+//            modelBuilder.Entity<Login>()
+//                .HasOne(l => l.Usuario)
+//                .WithMany(u => u.Logins)
+//                .HasForeignKey(l => l.LoUser)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación USUARIOS_ROLES -> USUARIOS y ROLES
-            modelBuilder.Entity<UsuarioRol>()
-                .HasOne(ur => ur.Usuario)
-                .WithMany(u => u.UsuarioRoles)
-                .HasForeignKey(ur => ur.UsId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            // Relación USUARIOS_ROLES -> USUARIOS y ROLES
+//            modelBuilder.Entity<UsuarioRol>()
+//                .HasOne(ur => ur.Usuario)
+//                .WithMany(u => u.UsuarioRoles)
+//                .HasForeignKey(ur => ur.UsId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<UsuarioRol>()
-                .HasOne(ur => ur.Rol)
-                .WithMany(r => r.UsuarioRoles)
-                .HasForeignKey(ur => ur.RoId)
-                .OnDelete(DeleteBehavior.Restrict); // <--- ACÁ ESTÁ EL CAMBIO SALVADOR
+//            modelBuilder.Entity<UsuarioRol>()
+//                .HasOne(ur => ur.Rol)
+//                .WithMany(r => r.UsuarioRoles)
+//                .HasForeignKey(ur => ur.RoId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación CARRERAS_COHORTES -> CARRERAS y COHORTE
-            modelBuilder.Entity<CarreraCohorte>()
-                .HasOne(cc => cc.Carrera)
-                .WithMany(c => c.CarreraCohortes)
-                .HasForeignKey(cc => cc.CaId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            // Relación CARRERAS_COHORTES -> CARRERAS y COHORTE
+//            modelBuilder.Entity<CarreraCohorte>()
+//                .HasOne(cc => cc.Carrera)
+//                .WithMany(c => c.CarreraCohortes)
+//                .HasForeignKey(cc => cc.CaId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CarreraCohorte>()
-                .HasOne(cc => cc.Cohorte)
-                .WithMany(co => co.CarreraCohortes)
-                .HasForeignKey(cc => cc.CoId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            modelBuilder.Entity<CarreraCohorte>()
+//                .HasOne(cc => cc.Cohorte)
+//                .WithMany(co => co.CarreraCohortes)
+//                .HasForeignKey(cc => cc.CoId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación CARRERAS_MATERIAS -> CARRERAS y MATERIAS
-            modelBuilder.Entity<CarreraMateria>()
-                .HasOne(cm => cm.Carrera)
-                .WithMany(c => c.CarreraMaterias)
-                .HasForeignKey(cm => cm.CaId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            // Relación CARRERAS_MATERIAS -> CARRERAS y MATERIAS
+//            modelBuilder.Entity<CarreraMateria>()
+//                .HasOne(cm => cm.Carrera)
+//                .WithMany(c => c.CarreraMaterias)
+//                .HasForeignKey(cm => cm.CaId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CarreraMateria>()
-                .HasOne(cm => cm.Materia)
-                .WithMany(m => m.CarreraMaterias)
-                .HasForeignKey(cm => cm.MaId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            modelBuilder.Entity<CarreraMateria>()
+//                .HasOne(cm => cm.Materia)
+//                .WithMany(m => m.CarreraMaterias)
+//                .HasForeignKey(cm => cm.MaId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
-            modelBuilder.Entity<Asistencia>()
-                .HasOne(a => a.Usuario)
-                .WithMany(u => u.Asistencias)
-                .HasForeignKey(a => a.UsId)
-                .OnDelete(DeleteBehavior.Cascade);
+//            // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
+//            modelBuilder.Entity<Asistencia>()
+//                .HasOne(a => a.Usuario)
+//                .WithMany(u => u.Asistencias)
+//                .HasForeignKey(a => a.UsId)
+//                .OnDelete(DeleteBehavior.Cascade);
 
-            // COMENTADO POR ERROR CS1061: "Asistencia no contiene definición para Materia"
-            // modelBuilder.Entity<Asistencia>()
-            //     .HasOne(a => a.Materia)
-            //     .WithMany(m => m.Asistencias)
-            //     .HasForeignKey(a => a.MaId)
-            //     .OnDelete(DeleteBehavior.Cascade);
-        }
-    }
-}
+//            modelBuilder.Entity<Asistencia>()
+//                .HasOne(a => a.Materia)
+//                .WithMany(m => m.Asistencias)
+//                .HasForeignKey(a => a.MaId)
+//                .OnDelete(DeleteBehavior.Cascade);
+//        }
+//    }
+//}

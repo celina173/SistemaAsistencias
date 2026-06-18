@@ -1,0 +1,315 @@
+========================================================================
+    EXPLICACIÓN DETALLADA LÍNEA POR LÍNEA Y DEFENSA DEL CÓDIGO - GRUPO 2
+========================================================================
+Proyecto: Sistema de Asistencias - ISFDyT 124
+Rama: Grupo-2
+Destinatario: Preparación para examen y defensa ante el docente.
+
+Este documento contiene un desglose completo de la lógica implementada
+en los controladores y vistas para el Módulo de Profesor y el CRUD de 
+Alumnos, explicando el propósito de cada línea clave y cómo defenderlo.
+
+========================================================================
+PARTE 1: PROFESORCONTROLLER.CS (Controlador de Profesores)
+========================================================================
+
+Ubicación: Controllers/ProfesorController.cs
+
+------------------------------------------------------------------------
+Cabecera y Dependencias (Líneas 1-21)
+------------------------------------------------------------------------
+* Línea 12: [Authorize(Roles = "Profesor")]
+  - Explicación: Es un filtro de autorización. Restringe el acceso a todo el
+    controlador únicamente a usuarios que tengan el rol de "Profesor". Si un
+    alumno o administrador intenta ingresar, el middleware de ASP.NET Core
+    intercepta la petición y devuelve un código 403 Forbidden o redirige al Login.
+  - Defensa: "Garantiza la seguridad a nivel de controlador mediante el sistema
+    de control de accesos basado en roles (RBAC) integrado en ASP.NET Core".
+
+* Líneas 15-21: Constructor e Inyección de Dependencias
+  - private readonly InstitutoDbContext _context;
+  - public ProfesorController(InstitutoDbContext context) { _context = context; }
+  - Explicación: ASP.NET Core inyecta el contexto de la base de datos
+    'InstitutoDbContext' en el constructor del controlador de forma automática
+    (registrado en Program.cs). Lo almacenamos en el campo privado de solo lectura
+    '_context' para realizar consultas LINQ.
+  - Defensa: "Evita el uso de acoplamiento fuerte (como usar 'new InstitutoDbContext()')
+    y nos permite delegar el ciclo de vida del contexto al contenedor de dependencias
+    del framework, lo que facilita pruebas unitarias y la mantenibilidad".
+
+------------------------------------------------------------------------
+Acción Index() - Dashboard de Cátedras (Líneas 23-65)
+------------------------------------------------------------------------
+* Línea 30: var docenteId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+  - Explicación: Extrae el identificador único del usuario (UsId) desde los Claims
+    almacenados en la cookie de autenticación cifrada del navegador.
+  - Defensa: "Obtenemos el ID del docente directamente del contexto de seguridad de la
+    sesión (User.Identity), previniendo que un usuario suplante a otro modificando
+    parámetros en la URL".
+
+* Líneas 33-38: Consulta de Cátedras con LINQ (Eager Loading)
+  - var misCatedras = await _context.Usuarios
+        .Where(u => u.UsId == docenteId)
+        .SelectMany(u => u.CarreraMaterias)
+        .Include(cm => cm.Carrera)
+        .Include(cm => cm.Materia)
+        .ToListAsync();
+  - Explicación: Filtra el usuario docente actual, navega por su relación intermedia
+    'CarreraMaterias' y utiliza '.Include()' para cargar con carga ansiosa (Eager Loading)
+    los objetos de Carrera y Materia relacionados en una única sentencia SQL.
+  - Defensa: "Usamos Eager Loading para evitar el problema de consultas 'N+1', trayendo
+    todas las entidades relacionadas (Carreras y Materias) en una sola consulta de base
+    de datos optimizada".
+
+* Líneas 41-55: Mapeo manual al DTO (HomeIndexDto)
+  - Explicación: Se crea un objeto 'HomeIndexDto' y se pueblan sus listas 'Carreras'
+    y 'Materias' extrayendo los datos de 'misCatedras'. Se utiliza '.Distinct()'
+    para asegurar que si el docente dicta la misma materia en distintos años, la materia
+    o carrera figure una sola vez en el selector visual.
+  - Defensa: "El DTO (Data Transfer Object) se utiliza para desacoplar el modelo de base
+    de datos físico de la interfaz web, enviando solo los datos necesarios y protegiendo
+    los campos sensibles".
+
+------------------------------------------------------------------------
+Acción Asistencia() - Planilla Diaria (Líneas 67-116)
+------------------------------------------------------------------------
+* Línea 71: public async Task<IActionResult> Asistencia(int caId, int coId, int maId, DateTime? fecha)
+  - Explicación: Acción GET que recibe el ID de Carrera (caId), de Cohorte (coId),
+    de Materia (maId) y la fecha de toma de asistencia.
+
+* Líneas 73-80: Validación de Fecha Futura
+  - var fechaFiltro = fecha ?? DateTime.Today;
+  - if (fechaFiltro > DateTime.Today) { ... return View("Error"); }
+  - Explicación: Si no se pasa una fecha, se toma el día de hoy. Luego se valida que
+    no sea posterior a la fecha actual para evitar registros inválidos en el futuro.
+  - Defensa: "Aplicamos una regla de negocio y validación del lado del servidor para
+    evitar inconsistencias lógicas en el presentismo".
+
+* Línea 82-84: Obtención de Módulos
+  - var materia = await _context.Materias.FindAsync(maId);
+  - ViewBag.CantModulos = materia?.MaCantModulos ?? 1;
+  - Explicación: Busca la materia seleccionada para conocer la cantidad de módulos
+    asignados (de 1 a 4) y la expone mediante 'ViewBag' para renderizar los checkboxes.
+
+* Líneas 87-97: Cargar Alumnos de la Carrera y Cohorte
+  - Carga el registro intermedio de 'CarreraCohortes' usando 'CaId' y 'CoId'.
+  - Recupera los usuarios que tienen rol de Alumno (RoId == 3) asignados a ese
+    'CaCoId', ordenándolos alfabéticamente por Apellido y Nombre.
+  - Defensa: "Buscamos los estudiantes matriculados en la combinación carrera-año
+    y ordenamos los resultados de forma alfabética para facilitar el trabajo del docente".
+
+* Líneas 100-102: Carga de Asistencias Existentes (Precarga / Edición)
+  - var asistenciasExistentes = await _context.Asistencias
+        .Where(a => a.MaId == maId && a.AsFecha.Value.Date == fechaFiltro.Date)
+        .ToDictionaryAsync(a => a.UsId.Value, a => a);
+  - Explicación: Consulta si existen registros de asistencias tomadas hoy para esa materia.
+    Lo convierte a un diccionario indexado por el ID de usuario ('UsId').
+  - Defensa: "Convertir la colección de asistencias en un Diccionario en C# nos permite
+    hacer búsquedas en tiempo O(1) constante en la vista al renderizar cada fila, precargando
+    los estados anteriores de asistencia sin ralentizar la página".
+
+------------------------------------------------------------------------
+Acción GuardarAsistencia() - Upsert Transaccional (Líneas 117-176)
+------------------------------------------------------------------------
+* Línea 120: public async Task<IActionResult> GuardarAsistencia(int maId, DateTime fecha, Dictionary<int, AsistenciaCrearDto> asistencias)
+  - Explicación: Recibe el ID de la materia, la fecha y un Diccionario donde la clave es
+    el ID del alumno (UsId) y el valor contiene si asistió y si está justificado.
+  - Defensa: "El enlazador de modelos de ASP.NET Core (Model Binder) mapea los inputs del
+    formulario automáticamente a un Diccionario estructurado en C#, simplificando la lógica".
+
+* Línea 128: int proximoAsId = _context.Asistencias.Any() ? await _context.Asistencias.MaxAsync(a => a.AsId) + 1 : 1;
+  - Explicación: Busca el valor de ID de asistencia más alto en la base de datos y le suma
+    1. Esto se requiere porque las tablas físicas no tienen la propiedad 'IDENTITY' en SQL Server.
+  - Defensa: "Como el esquema de base de datos no autogenera los IDs, el software calcula
+    secuencialmente la clave primaria antes del almacenamiento garantizando la integridad de datos".
+
+* Líneas 130-167: Bucle de Inserción o Modificación (Upsert)
+  - Itera la lista de alumnos. Si el alumno está marcado como presente, la justificación
+    se fuerza a false (`justificado = false`) por regla lógica.
+  - Busca si existe un registro de asistencia previo (`AsistenciaExistente`).
+  - Si existe: Actualiza los campos `AsPresente` y `AsJustificacion` y llama a `_context.Update()`.
+  - Si no existe: Crea una nueva entidad `Asistencia` asignándole el `proximoAsId` (e incrementándolo)
+    y la inserta con `_context.Asistencias.Add()`.
+
+* Línea 170: await _context.SaveChangesAsync();
+  - Explicación: Guarda los cambios acumulados en memoria.
+  - Defensa: "EF Core ejecuta todas las inserciones y actualizaciones dentro de una única
+    transacción SQL implícita. Si algún registro falla, la transacción entera se revierte (ACID),
+    evitando que queden planillas parciales o incompletas".
+
+========================================================================
+PARTE 2: ALUMNOSCONTROLLER (En Controllers/AdminController.cs)
+========================================================================
+
+Clase controladora encargada de la administración del CRUD de alumnos.
+
+* Línea 265: [Authorize(Roles = "Admin")]
+  - Explicación: Restringe el acceso a este CRUD únicamente a los administradores.
+
+------------------------------------------------------------------------
+Acción Index() - Listado de Alumnos (Líneas 275-300)
+------------------------------------------------------------------------
+* Filtra los usuarios con Rol ID = 3 (Alumnos), carga de forma ansiosa la carrera y cohorte y los
+  mapea a una lista de `UsuarioDetalleDto`.
+* Líneas 293-295: CarreraCohorteDenominacion = u.CaCoId != null && u.CarreraCohorte != null ? ...
+  - Explicación: Concatena la carrera y el año del cohorte (ej. "Desarrollo de Software - 2024")
+    para que la vista renderice una denominación entendible en lugar de un ID numérico técnico.
+
+------------------------------------------------------------------------
+Acciones Create() - Registro de Alumnos (Líneas 302-384)
+------------------------------------------------------------------------
+* GET Create(): Carga en `ViewBag.CarreraCohortesList` las carreras y cohortes disponibles para el dropdown.
+
+* POST Create(UsuarioCrearDto model):
+  - Verifica `ModelState.IsValid`. Si no es válido, retorna la misma vista enviando los mensajes de error.
+  - Valida duplicación de DNI: `_context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni)`.
+    Si el DNI ya existe, añade un error con `ModelState.AddModelError("UsDni", "...")`.
+  - Generación de claves manuales secuenciales:
+    Busca el ID máximo para `Usuario` y para `UsuarioRol` y suma `+1` a cada uno.
+  - Asigna Contraseña por Defecto: `UsContrasena = model.UsDni.ToString()`.
+    Defensa: "Por políticas del proyecto, el alumno ingresa inicialmente usando su número
+    de DNI como contraseña. Posteriormente podrá modificarla desde su perfil de usuario".
+  - Inserta el registro del estudiante en `Usuarios` y su rol 'Alumno' en `UsuarioRoles`.
+
+------------------------------------------------------------------------
+Acciones Edit() - Modificación de Alumnos (Líneas 386-480)
+------------------------------------------------------------------------
+* Recupera el alumno usando el ID y valida que tenga el rol de Alumno (`RoId == 3`).
+* Al procesar el POST:
+  - Valida el DNI duplicado pero excluyendo al alumno que se está editando actual:
+    `u => u.UsDni == model.UsDni && u.UsId != id`.
+    Defensa: "Esto permite verificar que el DNI modificado no pertenezca a OTRO usuario ya
+    registrado, pero no arroja error si el DNI es el del propio alumno siendo editado".
+
+------------------------------------------------------------------------
+Acción Delete() - Eliminación de Alumnos (Líneas 482-502)
+------------------------------------------------------------------------
+* Recibe el POST de eliminación.
+* Recupera el estudiante, elimina sus roles en la tabla intermedia `UsuarioRoles` para evitar
+  inconsistencias o errores de clave foránea, elimina el registro principal en `Usuarios`
+  y guarda los cambios en la base de datos de manera transaccional.
+
+========================================================================
+PARTE 3: VISTAS DEL MÓDULO PROFESOR
+========================================================================
+
+------------------------------------------------------------------------
+A. Index.cshtml (Dashboard de Selección del Docente)
+------------------------------------------------------------------------
+* Línea 1: @model ISFDyT124.DTO.HomeIndexDto
+  - Explicación: Define que el modelo de la vista es de tipo `HomeIndexDto`.
+* Línea 15: <form id="formSeleccionClase" method="get" asp-controller="Profesor" asp-action="Asistencia">
+  - Explicación: Define un formulario HTML con método GET. Al enviar (Submit), redirige a
+    la acción 'Asistencia' del controlador 'Profesor', enviando los parámetros en la URL.
+* Líneas 18-24: Dropdown de Carreras
+  - Genera dinámicamente las opciones del selector de carreras iterando la lista `Model.Carreras`.
+* Líneas 29-35: Dropdown de Cohortes
+  - Itera la lista auxiliar `ViewBag.Cohortes` cargada desde el controlador.
+
+------------------------------------------------------------------------
+B. Asistencia.cshtml (Planilla de Toma de Asistencia)
+------------------------------------------------------------------------
+* Línea 1: @model IEnumerable<ISFDyT124.Models.Usuario>
+  - Explicación: La vista recibe un listado de estudiantes (modelo físico).
+* Línea 24: Formulario de cambio de fecha (`dateFilterForm`)
+  - Recibe el cambio de fecha y mediante Javascript `onchange="this.form.submit()"`
+    envía el formulario automáticamente para recargar la planilla para ese día.
+* Línea 85: <input type="hidden" id="presente_@alumno.UsId" name="asistencias[@alumno.UsId].AsPresente" value="..." />
+  - Explicación: Input oculto que contiene el estado booleano real ("true" o "false")
+    de la asistencia del alumno. Se mapea mediante corchetes para estructurar el
+    diccionario `Dictionary<int, AsistenciaCrearDto>` en la acción POST del controlador.
+* Líneas 88-94: Checkboxes dinámicos por Módulo
+  - Itera de `1` a `cantModulos` para renderizar tantos checkboxes como horas tenga la materia.
+    Al cambiar su valor, dispara la función Javascript `updatePresente(@alumno.UsId)`.
+* Sección Scripts (Líneas 117-149): Javascript de reglas de interfaz
+  - updatePresente(alumnoId): Busca los checkboxes de módulos de ese alumno. Si al menos uno
+    está marcado, se define que el alumno asistió a clase (`AsPresente = true`).
+    - Regla de Negocio: Si está presente, desmarca la justificación, la deshabilita
+      físicamente (`disabled = true`) y establece su input oculto en `false`.
+  - updateJustificacion(alumnoId): Sincroniza el checkbox de justificación de inasistencia
+    con su input oculto que se enviará al servidor.
+
+------------------------------------------------------------------------
+C. HistorialAsistencias.cshtml (Historial de Planillas)
+------------------------------------------------------------------------
+* Línea 1: @model IEnumerable<ISFDyT124.Models.Asistencia>
+  - Recibe los registros de asistencia históricos cargados.
+* Línea 55: color y background semánticos según asistencia
+  - `color: @(esPresente ? "#155724" : "#721c24")`
+  - Renderiza celdas verdes (éxito) para alumnos Presentes y celdas rojas (alerta)
+    para alumnos Ausentes, dándole una estética profesional al historial.
+
+========================================================================
+PARTE 4: VISTAS DEL CRUD DE ALUMNOS (ADMINISTRACIÓN)
+========================================================================
+
+------------------------------------------------------------------------
+A. Index.cshtml (Listado General de Alumnos)
+------------------------------------------------------------------------
+* Línea 1: @model IEnumerable<ISFDyT124.DTO.UsuarioDetalleDto>
+  - Recibe el listado de alumnos mapeado a DTO.
+* Líneas 22-25: Buscador instantáneo en la cabecera
+* Sección Scripts (Buscador con JavaScript del lado del Cliente) (Líneas 75-100)
+  - Escucha el evento `input` en el cuadro de búsqueda en tiempo real.
+  - Recorre las filas (`tr`) del cuerpo de la tabla.
+  - Convierte los textos a minúsculas y realiza un `.includes()`. Si coincide,
+    muestra la fila; si no coincide, oculta la fila mediante estilos CSS (`display = 'none'`).
+  - Defensa: "Elegimos hacer el filtro del lado del cliente mediante Javascript puro
+    (Vanilla JS) porque permite búsquedas instantáneas y fluidas sin recargar la página,
+    ahorrando peticiones de red hacia el servidor".
+
+------------------------------------------------------------------------
+B. Create.cshtml y Edit.cshtml (Formularios de Alta y Edición)
+------------------------------------------------------------------------
+* Líneas de Modelos: `@model UsuarioCrearDto` en Create y `@model UsuarioDetalleDto` en Edit.
+* Línea 15: Formulario con Tag Helpers de enrutamiento
+  - `<form asp-controller="Alumnos" asp-action="Create" method="post" ...>`
+  - Tag Helpers de ASP.NET Core: `asp-controller` y `asp-action` generan la URL de destino
+    de manera automática al compilar la aplicación, independientemente de la ruta física.
+* Tag Helpers de Enlace y Validación:
+  - `asp-for="UsApellido"`: Vincula el input al campo del modelo, asignándole el 'id', 'name'
+    y el valor actual del campo de forma automática.
+  - `asp-validation-for="UsApellido"`: Genera dinámicamente un span contenedor que
+    mostrará el mensaje de error de validación definido en las anotaciones del DTO si falla.
+* Dropdown Select:
+  - `asp-items="@(new SelectList(ViewBag.CarreraCohortesList, "CaCoId", "Denominacion"))"`
+  - Crea las opciones `<option>` asignando como valor el ID `CaCoId` y como texto visible
+    la descripción formateada "Carrera - Año Cohorte".
+* Scripts de Validación del lado del Cliente (Líneas 62-64):
+  - `Html.RenderPartialAsync("_ValidationScriptsPartial")`
+  - Inserta las bibliotecas de jQuery Validation. Permite validar campos obligatorios,
+    formatos de emails y expresiones regulares en el navegador ANTES de enviar el formulario.
+  - Defensa: "Garantiza una validación rápida en el cliente y al mismo tiempo mantenemos
+    la validación del lado del servidor en el controlador para máxima seguridad".
+
+========================================================================
+PARTE 5: DIRECTRICES DE ARQUITECTURA Y PREGUNTAS CLAVE PARA LA DEFENSA
+========================================================================
+
+1. P: ¿Por qué hay un archivo de vistas en Views/Alumnos si el controlador está dentro de AdminController.cs?
+   R: "ASP.NET Core resuelve las vistas buscando en la carpeta `Views/[NombreControlador]/`. 
+      Como la clase controladora se llama `AlumnosController`, las vistas deben estar en 
+      `Views/Alumnos/`. Al colocar la clase `AlumnosController` al final del archivo 
+      `AdminController.cs`, mantuvimos el orden lógico de los controladores y al mismo tiempo 
+      conservamos las vistas y las rutas `/Alumnos` intactas sin alterar el enrutamiento existente."
+
+2. P: ¿Cómo funciona el paso de datos mediante ViewBag, ViewData y TempData?
+   R: - 'ViewData' y 'ViewBag' transfieren datos efímeramente desde el controlador hacia la vista
+        en la misma petición HTTP. (ViewBag es dinámico; ViewData usa diccionarios tipados).
+      - 'TempData' almacena los datos de forma temporal en la sesión del servidor y sobrevive a 
+        una redirección (RedirectToAction). Se autodestruye una vez que es leído en la vista
+        (ej. para mostrar el mensaje exitoso 'Alumno registrado con éxito').
+
+3. P: ¿Por qué no usamos Identity para los roles y claves de usuario?
+   R: "Se implementó un esquema de autenticación por cookies personalizado acoplado a la 
+      estructura de base de datos existente del instituto. Esto nos dio control total sobre las 
+      tablas de usuarios y asignación de roles sin el peso adicional de las tablas por defecto
+      de ASP.NET Core Identity".
+
+4. P: ¿Cómo garantizamos la seguridad en los formularios ante ataques externos?
+   R: "Mediante el uso de `@Html.AntiForgeryToken()` en las vistas y el decorador 
+      `[ValidateAntiForgeryToken]` en los métodos POST de los controladores. Esto inyecta un token 
+      oculto de un solo uso en la vista y en la cookie; al hacer POST, el servidor los compara y 
+      verifica que provengan de nuestra web, mitigando ataques de falsificación de petición en 
+      sitios cruzados (CSRF)".
+========================================================================

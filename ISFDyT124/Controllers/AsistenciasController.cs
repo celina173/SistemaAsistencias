@@ -1,28 +1,23 @@
-﻿//using ISFDyT124.Data;
-//using ISFDyT124.Models;
+﻿//using ISFDyT124.Models;
 //using Microsoft.AspNetCore.Mvc;
-//using Microsoft.EntityFrameworkCore;
 
 //namespace ISFDyT124.Controllers
 //{
 //    public class AsistenciasController : Controller
 //    {
-//        private readonly AsistenciaGRContext _context;
-
-//        public AsistenciasController(AsistenciaGRContext context)
+//        private readonly InstitutoDbContext _context;
+//
+//        public AsistenciasController(InstitutoDbContext context)
 //        {
 //            _context = context;
 //        }
-
-
-
-
+//
 //        // GET: Asistencias
 //        public async Task<IActionResult> Index()
 //        {
-//            var asistencias = _context.Asistencia
+//            var asistencias = _context.Asistencias
 //                .Include(a => a.Usuario)
-//                .Include(a => a.Materias);
+//                .Include(a => a.Materia);
 //            return View(await asistencias.ToListAsync());
 //        }
 
@@ -40,10 +35,6 @@
 //            return View();
 //        }
 
-
-
-
-
 //        // GET: Asistencias/Details/5
 //        public async Task<IActionResult> Details(int? id)
 //        {
@@ -52,7 +43,7 @@
 //                return NotFound();
 //            }
 
-//            var asistencia = await _context.Asistencia
+//            var asistencia = await _context.Asistencias
 //                .FirstOrDefaultAsync(m => m.AsId == id);
 //            if (asistencia == null)
 //            {
@@ -62,22 +53,15 @@
 //            return View(asistencia);
 //        }
 
-
-
 //        // GET: Asistencias/Create
 //        public IActionResult Create()
 //        {
 //            return View();
 //        }
 
-
-
-
 //        // POST: Asistencias/Create
 //        // To protect from overposting attacks, enable the specific properties you want to bind to.
 //        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-
-
 
 //        [HttpPost]
 //        [ValidateAntiForgeryToken]
@@ -91,8 +75,6 @@
 //            {
 //                asistencia.AsFecha = DateTime.Now;
 //            }
-
-
 
 //            // 2. Validación: Fecha no futura, No permitimos registros en fechas futuras
 //            if (asistencia.AsFecha > DateTime.Now)
@@ -108,14 +90,10 @@
 //            } // 4. Aplicamos flexibilidad en ausencias: Si marca 'Ausente' (AsPresente = false), 
 //              // el sistema permite al usuario decidir libremente si el estudiante justifica o no.
 
-
 //            else
 //            {
 //                // No aplicamos restricciones adicionales, se respeta la decisión del usuario.
 //            }
-
-
-
 
 //            if (ModelState.IsValid)
 //            {
@@ -127,9 +105,6 @@
 //            return View(asistencia);
 //        }
 
-
-
-
 //        // GET: Asistencias/Edit/5
 //        public async Task<IActionResult> Edit(int? id)
 //        {
@@ -138,16 +113,13 @@
 //                return NotFound();
 //            }
 
-//            var asistencia = await _context.Asistencia.FindAsync(id);
+//            var asistencia = await _context.Asistencias.FindAsync(id);
 //            if (asistencia == null)
 //            {
 //                return NotFound();
 //            }
 //            return View(asistencia);
 //        }
-
-
-
 
 //        // POST: Asistencias/Edit/5
 //        // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -218,7 +190,7 @@
 //                return NotFound();
 //            }
 
-//            var asistencia = await _context.Asistencia
+//            var asistencia = await _context.Asistencias
 //                .FirstOrDefaultAsync(m => m.AsId == id);
 //            if (asistencia == null)
 //            {
@@ -233,10 +205,10 @@
 //        [ValidateAntiForgeryToken]
 //        public async Task<IActionResult> DeleteConfirmed(int id)
 //        {
-//            var asistencia = await _context.Asistencia.FindAsync(id);
+//            var asistencia = await _context.Asistencias.FindAsync(id);
 //            if (asistencia != null)
 //            {
-//                _context.Asistencia.Remove(asistencia);
+//                _context.Asistencias.Remove(asistencia);
 //            }
 
 //            await _context.SaveChangesAsync();
@@ -245,7 +217,15 @@
 
 //        private bool AsistenciaExists(int id)
 //        {
-//            return _context.Asistencia.Any(e => e.AsId == id);
+//            return _context.Asistencias.Any(e => e.AsId == id);
 //        }
 //    }
 //}
+
+//"Este controlador gestiona la asistencia asegurando la integridad
+//de los datos mediante tres reglas principales:
+
+//-1.Automatización: Si la fecha viene vacía, se asigna DateTime.Now.
+//-2. Validación: Se bloquea el registro de fechas futuras para evitar errores de carga.
+//-3. Consistencia: Si se marca 'Presente', se limpia automáticamente
+//cualquier estado de justificación previo, evitando datos contradictorios en la base de datos."
