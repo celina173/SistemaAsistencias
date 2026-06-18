@@ -6,17 +6,21 @@ namespace ISFDyT124.Models
     public class CarreraCohorte
     {
         [Key]
+        [Display(Name = "ID Relación")]
         public int CaCoId { get; set; }
 
+        [Required(ErrorMessage = "Debe seleccionar una carrera.")]
+        [Display(Name = "Carrera")]
+        [ForeignKey("Carrera")]
         public int CaId { get; set; }
+
+        [Required(ErrorMessage = "Debe seleccionar una cohorte.")]
+        [Display(Name = "Cohorte")]
+        [ForeignKey("Cohorte")]
         public int CoId { get; set; }
 
-        [ForeignKey("CaId")]
-        public virtual Carrera Carrera { get; set; } = null!;
-
-        [ForeignKey("CoId")]
-        public virtual Cohorte Cohorte { get; set; } = null!;
-
-        public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        // Navegación
+        public virtual Carrera? Carrera { get; set; }
+        public virtual Cohorte? Cohorte { get; set; }
     }
 }
