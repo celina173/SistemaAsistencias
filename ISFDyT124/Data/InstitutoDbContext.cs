@@ -97,6 +97,16 @@ namespace ISFDyT124.Data
                 .WithMany(m => m.Asistencias)
                 .HasForeignKey(a => a.MaId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación muchos a muchos Usuario <-> CarreraMateria usando la tabla UsuarioCarreraMateria
+            modelBuilder.Entity<Usuario>()
+                .HasMany(u => u.CarreraMaterias)
+                .WithMany(cm => cm.Usuarios)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UsuarioCarreraMateria",
+                    j => j.HasOne<CarreraMateria>().WithMany().HasForeignKey("CarreraMateriasCaMaId"),
+                    j => j.HasOne<Usuario>().WithMany().HasForeignKey("UsuariosUsId")
+                );
         }
     }
 }

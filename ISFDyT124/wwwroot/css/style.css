@@ -581,7 +581,8 @@ body {
     flex-direction: column;
 }
 
-.main-container-global {
+.main-container-global,
+.main-container-gestion {
     width: 100%;
     margin: 0;
     padding: 0;
@@ -591,7 +592,8 @@ body {
 }
 
 /* Contenedor adaptativo premium con control de desborde */
-.global-table-container {
+.global-table-container,
+.crud-table-container {
     width: 100%;
     max-width: 1150px;
     margin: 30px auto;
@@ -616,7 +618,8 @@ body {
     }
 
 /* Estructura limpia de la Matriz de Datos */
-.global-table {
+.global-table,
+.crud-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 900px;
@@ -624,7 +627,9 @@ body {
 }
 
     .global-table th,
-    .global-table td {
+    .global-table td,
+    .crud-table th,
+    .crud-table td {
         padding: 14px 10px;
         text-align: center;
         font-size: 0.9rem;
@@ -632,7 +637,8 @@ body {
         border-bottom: 1px solid #e2e8f0;
     }
 
-    .global-table th {
+    .global-table th,
+    .crud-table th {
         font-weight: 700;
         background-color: #f8fafc;
     }
