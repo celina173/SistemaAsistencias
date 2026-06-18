@@ -1,25 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Drawing.Drawing2D;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using System.Drawing.Drawing2D;
 
-namespace ISFDyT124.Models
+namespace ISFDyT124.Data
 {
     public class InstitutoDbContext : DbContext
     {
         public InstitutoDbContext(DbContextOptions<InstitutoDbContext> options)
-            : base(options)
-        {
-        }
+            : base(options) { }
 
         // Definición de DbSets para cada una de las tablas del SQL
         public DbSet<Rol> Roles { get; set; } = null!;
         public DbSet<Usuario> Usuarios { get; set; } = null!;
+
         //public DbSet<UsuarioRol> UsuarioRoles { get; set; } = null!;
         public DbSet<Login> Logins { get; set; } = null!;
         public DbSet<Materia> Materias { get; set; } = null!;
         public DbSet<Carrera> Carreras { get; set; } = null!;
+
         //public DbSet<Cohorte> Cohortes { get; set; } = null!;
         public DbSet<Asistencia> Asistencias { get; set; } = null!;
+
         //public DbSet<CarreraCohorte> CarreraCohortes { get; set; } = null!;
         public DbSet<CarrerasMaterias> CarrerasMaterias { get; set; } = null!;
         public DbSet<Inscripciones> Inscripciones { get; set; } = null!;
@@ -38,12 +39,13 @@ namespace ISFDyT124.Models
             //modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
             modelBuilder.Entity<Asistencia>().Property(a => a.AsId).ValueGeneratedNever();
             //modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
-            modelBuilder.Entity<CarrerasMaterias>().Property(cm => cm.CaMaId).ValueGeneratedNever();
+            modelBuilder
+                .Entity<CarrerasMaterias>()
+                .Property(cm => cm.CaMaId)
+                .ValueGeneratedNever();
 
             // Configurar DNI único de la tabla USUARIOS
-            modelBuilder.Entity<Usuario>()
-                .HasIndex(u => u.UsDNI)
-                .IsUnique();
+            modelBuilder.Entity<Usuario>().HasIndex(u => u.UsDNI).IsUnique();
 
             // Configuración de las Relaciones y Claves Foráneas
 
@@ -81,13 +83,15 @@ namespace ISFDyT124.Models
             //    .OnDelete(DeleteBehavior.Cascade);
 
             // Relación CARRERAS_MATERIAS -> CARRERAS y MATERIAS
-            modelBuilder.Entity<CarrerasMaterias>()
+            modelBuilder
+                .Entity<CarrerasMaterias>()
                 .HasOne(cm => cm.Carrera)
                 .WithMany(c => c.CarrerasMaterias)
                 .HasForeignKey(cm => cm.CaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<CarrerasMaterias>()
+            modelBuilder
+                .Entity<CarrerasMaterias>()
                 .HasOne(cm => cm.Materia)
                 .WithMany(m => m.CarrerasMaterias)
                 .HasForeignKey(cm => cm.MaId)
