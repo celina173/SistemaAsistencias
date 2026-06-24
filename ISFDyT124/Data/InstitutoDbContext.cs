@@ -1,4 +1,5 @@
 ﻿using System.Drawing.Drawing2D;
+using ISFDyT124.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 
