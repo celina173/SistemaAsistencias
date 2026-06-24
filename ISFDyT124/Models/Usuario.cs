@@ -58,6 +58,7 @@ namespace ISFDyT124.Models
 
         // CarreraCohorte asignado (solo para Alumnos)
         [Display(Name = "Carrera / Cohorte")]
+        [ForeignKey("CarreraCohorte")]
         public int? CaCoId { get; set; }
 
 
