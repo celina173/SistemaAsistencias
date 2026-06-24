@@ -1,0 +1,32 @@
+@model ISFDyT124.Models.Carrera
+
+@{
+    ViewData["Title"] = "Eliminar Carrera";
+}
+
+<div class="admin-banner">
+    CARRERAS
+</div>
+
+<main class="main-container-agregar">
+    <div class="form-card-agregar">
+        <h2 class="form-title"><u>Eliminar Carrera</u></h2>
+        <h3>¿Está seguro de eliminar esta carrera?</h3>
+
+        <dl class="row">
+            <dt class="col-sm-2">ID</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.CaId)</dd>
+
+            <dt class="col-sm-2">Denominación</dt>
+            <dd class="col-sm-10">@Html.DisplayFor(model => model.CaDenominacion)</dd>
+        </dl>
+
+        <form asp-action="Delete" class="form-grid">
+            <input type="hidden" asp-for="CaId" />
+            <div class="button-container">
+                <button type="submit" class="btn-eliminar">Eliminar</button>
+                <a asp-action="Index" class="btn-cancelar">Volver</a>
+            </div>
+        </form>
+    </div>
+</main>

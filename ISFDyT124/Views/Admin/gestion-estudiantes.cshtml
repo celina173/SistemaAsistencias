@@ -1,0 +1,111 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="gestion-page gestion-estudiantes">
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">PANEL DE CONTROL</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">ADMINISTRADOR</p>
+        </div>
+    </div>
+
+    <div class="page-title-container">
+        <h2 class="page-main-title">Gestión Estudiantes</h2>
+    </div>
+
+    <main class="main-container-global">
+
+        <div class="toolbar-container" style="max-width: 1100px; width: 100%; padding: 0 1.5rem; margin-top: 40px; margin-bottom: 10px; display: flex; justify-content: flex-end; align-items: center; gap: 20px; box-sizing: border-box;">
+
+            <!-- Buscador tipo línea plano y minimalista -->
+            <div class="search-box">
+                <input type="text" id="inputBusqueda" placeholder="Buscar estudiante...">
+                <button class="btn-search" id="btnBuscar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </div>
+
+            <div class="add-btn-container">
+                <button class="btn-add" id="btnAgregar">+</button>
+            </div>
+        </div>
+
+        <div class="global-table-container" style="margin-top: 15px;">
+            <table class="global-table">
+                <thead>
+                    <tr>
+                        <th class="align-left" style="border-top: 2px solid var(--primary-color);">APELLIDO Y NOMBRE</th>
+                        <th style="border-top: 2px solid var(--primary-color);">DNI</th>
+                        <th class="align-left" style="border-top: 2px solid var(--primary-color);">CARRERA</th>
+                        <th style="border-top: 2px solid var(--primary-color);">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="align-left">Albornoz Celina</td>
+                        <td>39.123.456</td>
+                        <td class="align-left">Tec. Sup. en Desarrollo de Software</td>
+                        <td class="action-cell">
+                            <button class="icon-btn btn-edit" title="Editar">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-left">Medina Roselen</td>
+                        <td>44.987.654</td>
+                        <td class="align-left">Tec. Sup. en Desarrollo de Software</td>
+                        <td class="action-cell">
+                            <button class="icon-btn btn-edit" title="Editar">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+@model ISFDyT124.DTO.UsuarioDetalleDto
+@{
+    ViewData["Title"] = "Editar Usuario";
+    ViewData["BodyClass"] = "editar-page";
+    var materiasActuales = (Model.MateriasDenominacion ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+}
+
+<div class="admin-banner">
+    ADMIN
+</div>
+
+<main class="main-container-agregar">
+    <div class="form-card-agregar">
+        <h2 class="form-title"><u>Editar Usuario</u></h2>
+
+        <form asp-controller="Admin" asp-action="UsuarioEditar" method="post" id="formEditarUsuario" class="form-grid">
+            <input type="hidden" asp-for="UsId" />
+
+            <div class="input-group">
+                <label asp-for="UsApellido">Apellidos</label>
+                <input asp-for="UsApellido" required>
+                <span asp-validation-for="UsApellido" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsNombre">Nombres</label>
+                <input asp-for="UsNombre" required>
+                <span asp-validation-for="UsNombre" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsDni">DNI</label>
+                <input asp-for="UsDni" required>
+                <span asp-validation-for="UsDni" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="UsEmail">Email</label>
+                <input asp-for="UsEmail" required>
+                <span asp-validation-for="UsEmail" class="text-danger"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="selectedRoleId">Rol del Usuario</label>
+                <select id="selectedRoleId" name="selectedRoleId" class="custom-select" required
+                        asp-items="@(new SelectList(ViewBag.RolesList, "RoId", "RoDenominacion"))">
+                    <option value="" disabled>Seleccione un Rol</option>
+                </select>
+            </div>
+
+            <div id="carreraCohorteGroup" class="input-group" style="display:none;">
+                <label asp-for="CaCoId">Carrera / Cohorte</label>
+                <select asp-for="CaCoId" class="custom-select">
+                    <option value="">Seleccione Carrera / Cohorte</option>
+                    @foreach (var cc in ViewBag.CarreraCohortesList)
+                    {
+                        <option value="@cc.CaCoId">@cc.Denominacion</option>
+                    }
+                </select>
+            </div>
+
+            <div id="materiasGroup" class="input-group" style="display:none;">
+                <label>Materias Asignadas</label>
+                <select name="selectedCaMaIds" multiple class="custom-select" style="height:150px;">
+                    @foreach (var cm in ViewBag.CarreraMateriasList)
+                    {
+                        if (materiasActuales.Contains(cm.CaMaId))
+                        {
+                            <option value="@cm.CaMaId" selected>@cm.Denominacion</option>
+                        }
+                        else
+                        {
+                            <option value="@cm.CaMaId">@cm.Denominacion</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="btn-guardar-estudiante">Guardar</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        var roleSelect = document.getElementById('selectedRoleId');
+        function toggleFields() {
+            var val = parseInt(roleSelect.value);
+            document.getElementById('carreraCohorteGroup').style.display = (val === 3) ? 'block' : 'none';
+            document.getElementById('materiasGroup').style.display = (val === 2) ? 'block' : 'none';
+        }
+        roleSelect.addEventListener('change', toggleFields);
+        toggleFields();
+    </script>
+}
