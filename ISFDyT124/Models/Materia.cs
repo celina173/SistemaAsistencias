@@ -34,7 +34,7 @@ namespace ISFDyT124.Models
         public int? MaCantModulos { get; set; }
 
         // RELACION
-        public virtual ICollection<CarreraMateria>? CarreraMaterias { get; set; }
+        public virtual ICollection<CarreraMateria>? CarrerasMaterias { get; set; }
         public virtual ICollection<Asistencia>? Asistencias { get; set; }
     }
 }

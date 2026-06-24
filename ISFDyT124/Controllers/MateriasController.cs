@@ -24,7 +24,7 @@ public class MateriasController : Controller
                 MaDenominacion = m.MaDenominacion,
                 MaModalidad = m.MaModalidad,
                 MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+                CarreraMateriasCount = m.CarrerasMaterias != null ? m.CarrerasMaterias.Count : 0
             })
             .ToListAsync();
 
@@ -47,7 +47,7 @@ public class MateriasController : Controller
                 MaDenominacion = m.MaDenominacion,
                 MaModalidad = m.MaModalidad,
                 MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+                CarreraMateriasCount = m.CarrerasMaterias != null ? m.CarrerasMaterias.Count : 0
             })
             .FirstOrDefaultAsync();
 
@@ -173,7 +173,7 @@ public class MateriasController : Controller
                 MaDenominacion = m.MaDenominacion,
                 MaModalidad = m.MaModalidad,
                 MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
+                CarreraMateriasCount = m.CarrerasMaterias != null ? m.CarrerasMaterias.Count : 0
             })
             .FirstOrDefaultAsync();
 

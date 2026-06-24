@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using ISFDyT124.Data;
+using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using ISFDyT124.Models;
 
 namespace ISFDyT124.Controllers
 {
@@ -29,59 +30,59 @@ namespace ISFDyT124.Controllers
         }
 
         // POST: Account/Login
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(LoginViewModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(model);
+        //    }
 
-            if (!int.TryParse(model.Usuario, out int dniEntero))
-            {
-                ModelState.AddModelError(string.Empty, "El usuario ingresado debe ser un número de DNI válido.");
-                return View(model);
-            }
-
-
-            var usuarioBD = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsPassword == model.Contrasena);
-
-            if (usuarioBD != null)
-            {
-
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, usuarioBD.UsId.ToString()),
-                    new Claim(ClaimTypes.Name, $"{usuarioBD.UsNombre} {usuarioBD.UsApellido}"),
-                    new Claim(ClaimTypes.Email, usuarioBD.UsEmail ?? "")
-                };
-
-                if (usuarioBD.Rol != null && !string.IsNullOrEmpty(usuarioBD.Rol.RoDenominacion))
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, usuarioBD.Rol.RoDenominacion));
-                }
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        //    if (!int.TryParse(model.Usuario, out int dniEntero))
+        //    {
+        //        ModelState.AddModelError(string.Empty, "El usuario ingresado debe ser un número de DNI válido.");
+        //        return View(model);
+        //    }
 
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+        //    var usuarioBD = await _context.Usuarios
+        //        .Include(u => u.Rol)
+        //        .FirstOrDefaultAsync(u => u.UsDNI == dniEntero && u.UsContrasena == model.Contrasena);
+
+            //if (usuarioBD != null)
+            //{
+
+            //    var claims = new List<Claim>
+            //    {
+            //        new Claim(ClaimTypes.NameIdentifier, usuarioBD.UsId.ToString()),
+            //        new Claim(ClaimTypes.Name, $"{usuarioBD.UsNombre} {usuarioBD.UsApellido}"),
+            //        new Claim(ClaimTypes.Email, usuarioBD.UsEmail ?? "")
+            //    };
+
+            //    if (usuarioBD.Rol != null && !string.IsNullOrEmpty(usuarioBD.Rol.RoDenominacion))
+            //    {
+            //        claims.Add(new Claim(ClaimTypes.Role, usuarioBD.Rol.RoDenominacion));
+            //    }
+
+            //    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
 
-                return RedirectToAction("Index", "Home");
-            }
+            //    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            ModelState.AddModelError(string.Empty, "El DNI o la contraseña son incorrectos.");
-            return View(model);
-        }
 
-        // GET: Account/Logout
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login", "Account");
-        }
+            //    return RedirectToAction("Index", "Home");
+            //}
+
+        //    ModelState.AddModelError(string.Empty, "El DNI o la contraseña son incorrectos.");
+        //    return View(model);
+        //}
+
+        //// GET: Account/Logout
+        //public async Task<IActionResult> Logout()
+        //{
+        //    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //    return RedirectToAction("Login", "Account");
+        //}
     }
 }

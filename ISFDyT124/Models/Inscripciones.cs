@@ -9,7 +9,7 @@ namespace ISFDyT124.Models
         public int UsId { get; set; }
         public int CaMaId { get; set; }
         public virtual Usuario? Usuarios { get; set; }
-        public virtual CarrerasMaterias? CarrerasMaterias { get; set; }
+        public virtual CarreraMateria? CarrerasMaterias { get; set; }
 
     }
 }
