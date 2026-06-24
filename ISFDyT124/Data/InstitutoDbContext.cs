@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ISFDyT124.Models;
 
 namespace ISFDyT124.Data
