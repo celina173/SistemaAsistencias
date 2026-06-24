@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using ISFDyT124.Data;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
@@ -21,7 +21,6 @@ namespace ISFDyT124.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
@@ -41,23 +40,24 @@ namespace ISFDyT124.Controllers
 
             if (!int.TryParse(model.Usuario, out int dniEntero))
             {
-                ModelState.AddModelError(string.Empty, "El usuario ingresado debe ser un número de DNI válido.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "El usuario ingresado debe ser un número de DNI válido."
+                );
                 return View(model);
             }
 
-
-            var usuarioBD = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsPassword == model.Contrasena);
+            var usuarioBD = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsContrasena == model.Contrasena);
 
             if (usuarioBD != null)
             {
-
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, usuarioBD.UsId.ToString()),
                     new Claim(ClaimTypes.Name, $"{usuarioBD.UsNombre} {usuarioBD.UsApellido}"),
-                    new Claim(ClaimTypes.Email, usuarioBD.UsEmail ?? "")
+                    new Claim(ClaimTypes.Email, usuarioBD.UsEmail ?? ""),
                 };
 
                 if (usuarioBD.Rol != null && !string.IsNullOrEmpty(usuarioBD.Rol.RoDenominacion))
@@ -65,11 +65,15 @@ namespace ISFDyT124.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, usuarioBD.Rol.RoDenominacion));
                 }
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme
+                );
 
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity)
+                );
 
                 return RedirectToAction("Index", "Home");
             }
