@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ISFDyT124.Models;
+using ISFDyT124.Data;
 
 namespace ISFDyT124.Controllers
 {
@@ -78,7 +79,7 @@ namespace ISFDyT124.Controllers
 
             // Obtener información descriptiva para el encabezado de la vista
             ViewBag.CarreraNombre = (await _context.Carreras.FindAsync(caId))?.CaDenominacion ?? "Carrera";
-            //ViewBag.CohorteNombre = (await _context.Cohortes.FindAsync(coId))?.CoDenominacion ?? "Cohorte";
+           // ViewBag.CohorteNombre = (await _context.Cohortes.FindAsync(coId))?.CoDenominacion ?? "Cohorte";
             ViewBag.MateriaNombre = (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
 
             // 1. OBTENCIÓN DE ALUMNOS (Lógica unificada):
