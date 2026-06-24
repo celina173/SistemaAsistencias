@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ISFDyT124.Data;
 
 namespace ISFDyT124.Controllers
 {
