@@ -1,18 +1,32 @@
-﻿namespace ISFDyT124.Models
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ISFDyT124.Models
 {
     public class CarrerasMaterias
     {
         [Key]
-        public int id { get; set; }
+        [Display(Name = "ID Relación")]
+        public int CaMaId { get; set; }
+        
 
+        [Display(Name = "Carrera")]
+        [Required(ErrorMessage = "Debe seleccionar una carrera.")]
         [ForeignKey("Carrera")]
-        public int ca_id { get; set; }
+        public int CaId { get; set; }
 
+        [Display(Name = "Materia")]
+        [Required(ErrorMessage = "Debe seleccionar una materia.")]
         [ForeignKey("Materia")]
-        public int ma_id { get; set; }
+        public int MaId { get; set; }
+        
 
-        public Carrera? Carrera { get; set; }
 
-        public Materia? Materia { get; set; }
+
+      
+        public virtual Carrera? Carrera { get; set; }
+
+
+        public virtual Materia? Materia { get; set; }
     }
 }

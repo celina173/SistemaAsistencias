@@ -3,69 +3,134 @@
     ViewData["BodyClass"] = "asistencia-page";
 }
 
-<main class="main-container-asistencia">
-    <div class="info-banner">
-        <div class="info-col-left">
-            <p>30/04/2026 12:32hs</p>
-            <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
-        </div>
-        <div class="info-col-right">
-            <p class="info-bold">Magali Bobet</p>
-            <p class="info-bold">Practicas Profesionalizantes III</p>
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="asistencia-page">
 
-    <div class="table-container">
-        <table class="attendance-table">
-            <thead>
-                <tr>
-                    <th>Apellido y Nombre</th>
-                    <th>Modulos</th>
-                    <th>Justificacion</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Albornoz Celina</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                        <input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Distasio Ignacio</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Medina Roselen</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Alarcon Nicolas</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-                <tr>
-                    <td>Terraza Nahuel</td>
-                    <td class="modules-cell">
-                        <input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox"><input type="checkbox" class="custom-checkbox">
-                    </td>
-                    <td class="justification-cell"><input type="checkbox" class="custom-checkbox"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
 
-    <button class="btn-guardar" id="btnGuardar">Guardar</button>
-</main>
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <main class="main-container-asistencia">
+
+        <div class="info-banner">
+            <div class="info-col-left">
+                <p>30/04/2026 12:32hs</p>
+                <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+            </div>
+            <div class="info-col-right">
+                <p class="info-bold">Magali Bobet</p>
+                <p class="info-bold">Prácticas Profesionalizantes III</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Apellido y Nombre</th>
+                        <th style="width: 40%; text-align: center;">Módulos</th>
+                        <th style="width: 20%; text-align: center;">Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Albornoz Celina</td>
+                        <td class="modules-cell" style="text-align: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                        <td class="justification-cell" style="text-align: center;">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Distasio Ignacio</td>
+                        <td class="modules-cell" style="text-align: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                        <td class="justification-cell" style="text-align: center;">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Medina Roselen</td>
+                        <td class="modules-cell" style="text-align: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                        <td class="justification-cell" style="text-align: center;">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Alarcon Nicolas</td>
+                        <td class="modules-cell" style="text-align: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                        <td class="justification-cell" style="text-align: center;">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Terraza Nahuel</td>
+                        <td class="modules-cell" style="text-align: center; gap: 8px;">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                        <td class="justification-cell" style="text-align: center;">
+                            <input type="checkbox" class="custom-checkbox">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-guardar" id="btnGuardar">Guardar Asistencia</button>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

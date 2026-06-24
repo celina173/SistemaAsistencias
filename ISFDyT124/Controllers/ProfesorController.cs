@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using ISFDyT124.Data;
 using ISFDyT124.Models;
 
 namespace ISFDyT124.Controllers
