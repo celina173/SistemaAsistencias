@@ -1,4 +1,5 @@
-﻿using ISFDyT124.Models;
+﻿using ISFDyT124.Data;
+using ISFDyT124.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
