@@ -48,7 +48,7 @@ namespace ISFDyT124.Controllers
 
             var usuarioBD = await _context.Usuarios
                 .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsPassword == model.Contrasena);
+                .FirstOrDefaultAsync(u => u.UsDNI == dniEntero && u.UsPassword == model.Contrasena);
 
             if (usuarioBD != null)
             {
