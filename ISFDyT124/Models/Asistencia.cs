@@ -31,16 +31,10 @@ namespace ISFDyT124.Models
         // Clave foránea que conecta con la a materia
         public int? MaId { get; set; }
 
-        // Clave foránea que conecta con Carreras_Materias (opcional)
-        public int? CaMaId { get; set; }
-
         // Conexión hacia el modelo Usuarios.
         public virtual Usuario? Usuario { get; set; } // Por el momento no se utiliza
 
         // Conexión hacia el modelo Materias.
         public virtual Materia? Materias { get; set; } // Por el momento no se utiliza
-
-        // Relación opcional hacia Carreras_Materias cuando la asistencia se vincula a una carrera/materia
-        public virtual CarrerasMaterias? CarreraMateria { get; set; }
     }
 }
