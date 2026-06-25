@@ -38,6 +38,20 @@ namespace ISFDyT124.Controllers
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.UsEmail == model.Usuario);
 
+            if (!int.TryParse(model.Usuario, out int dniEntero))
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "El usuario ingresado debe ser un número de DNI válido."
+                );
+                return View(model);
+            }
+
+            var usuarioBD = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsContrasena == model.Contrasena);
+
+
             // 5. VALIDAR CREDENCIALES: Verificamos que el usuario exista Y que la contraseña coincida.
             if (usuario == null || usuario.UsContrasena != model.Contrasena)
             {
