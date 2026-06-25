@@ -7,7 +7,7 @@ namespace ISFDyT124.DTO
         public string? UsNombre { get; set; }
         public string? UsEmail { get; set; }
         public string NombreCompleto => $"{UsApellido}, {UsNombre}";
-        public int UsDni { get; set; }
+        public int UsDNI { get; set; }
         public int RoId { get; set; }
         public string? RoDenominacion { get; set; }
         public int? CaCoId { get; set; }
