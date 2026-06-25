@@ -47,16 +47,11 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-<<<<<<< HEAD
-
-            var usuarioBD = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDNI == dniEntero && u.UsPassword == model.Contrasena);
-=======
             var usuarioBD = await _context
                 .Usuarios.Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsContrasena == model.Contrasena);
->>>>>>> 95849d277246745e42f82c54f1e80d6380ddafd5
+                .FirstOrDefaultAsync(u =>
+                    u.UsDni == dniEntero && u.UsContrasena == model.Contrasena
+                );
 
             if (usuarioBD != null)
             {
