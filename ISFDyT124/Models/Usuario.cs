@@ -15,6 +15,7 @@ namespace ISFDyT124.Models
         public int UsId { get; set; }
 
 
+
         //APELLIDO
         [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un apellido válido.")] 
         [MaxLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")] // Limita longitud a 100 caracteres 
