@@ -97,7 +97,6 @@ namespace ISFDyT124.Controllers
                     AsPresente = presente,
                     AsJustificacion = row.AsJustificacion,
                     UsId = row.UsId,
-                    CaMaId = model.CaMaId,
                 };
 
                 _context.Asistencias.Add(entity);
