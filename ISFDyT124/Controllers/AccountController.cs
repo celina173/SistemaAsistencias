@@ -85,7 +85,7 @@ namespace ISFDyT124.Controllers
             {
                 case "ADMIN":
                     return RedirectToAction("Index", "Admin");
-                case "DOCENTE":
+                case "PROFESOR":
                     return RedirectToAction("Index", "Profesor");
                 default:
                     return RedirectToAction("Index", "Home");

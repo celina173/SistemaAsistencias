@@ -1,0 +1,73 @@
+================================================================================
+  PEDIDO DE REVISIÓN — FRONTEND
+  Vistas nuevas del MÓDULO PROFESOR (rama: grupo2-010726-Gustavo)
+================================================================================
+
+Hola equipo de front 👋
+
+Se creó el módulo Profesor en el backend (ProfesorController) y se armaron 3
+vistas nuevas REPLICANDO el estilo/diseño de las maquetas existentes de Home.
+Necesitamos que revisen que el diseño quede fiel y prolijo.
+
+--------------------------------------------------------------------------------
+ARCHIVOS NUEVOS A REVISAR
+--------------------------------------------------------------------------------
+  1) ISFDyT124/Views/Profesor/Index.cshtml
+     - Dashboard: lista las cátedras (Carrera-Materia) del docente.
+     - Estilo tomado de: Views/Admin/UsuariosABM.cshtml
+       (clases: main-container-gestion, crud-table, action-buttons, btn-edit).
+
+  2) ISFDyT124/Views/Profesor/Asistencia.cshtml
+     - Planilla para tomar/editar la asistencia del día.
+     - Estilo tomado de: Views/Home/Asistencia.cshtml
+       (clases: main-container-asistencia, info-banner, attendance-table,
+        modules-cell, custom-checkbox, justification-cell, btn-guardar).
+
+  3) ISFDyT124/Views/Profesor/HistorialAsistencias.cshtml
+     - Histórico (solo lectura) de asistencias de una materia.
+     - Estilo tomado de: Views/Home/AsistenciaGlobal.cshtml
+       (clases: main-container-global, global-table, title-cell, align-left).
+
+--------------------------------------------------------------------------------
+QUÉ CAMBIÓ RESPECTO DE LAS MAQUETAS DE HOME (y por qué)
+--------------------------------------------------------------------------------
+  - Las maquetas de Home eran HTML estático autónomo (traían su propio <head>,
+    header y sidebar, y datos hardcodeados). Las vistas nuevas se integraron al
+    _Layout.cshtml (header/sidebar/CSS/JS ya vienen del layout) y son DINÁMICAS
+    (reciben datos por @model con DTOs). Por eso NO llevan <html>/<head>.
+  - Se reutilizaron EXACTAMENTE las mismas clases CSS del proyecto para mantener
+    el diseño. No se agregó CSS nuevo.
+
+--------------------------------------------------------------------------------
+PUNTOS QUE NECESITAMOS QUE REVISEN / DEFINAN  ⚠️
+--------------------------------------------------------------------------------
+  [1] MÓDULOS vs PRESENTE (importante):
+      La maqueta Home/Asistencia mostraba 4 checkboxes de "Módulos" por alumno,
+      pero el modelo de datos actual guarda UN solo estado Presente/Ausente por
+      (alumno, materia, día) — no hay asistencia por módulo en la base.
+      => En la vista nueva se dejó UNA sola casilla "Presente" (+ "Justificación").
+      ¿Confirman que alcanza con Presente/Ausente, o el diseño requiere asistencia
+      por módulo? (eso implicaría cambiar el modelo de datos y el backend).
+
+  [2] HISTORIAL como lista simple:
+      La maqueta AsistenciaGlobal mostraba una grilla pivote (alumnos x fechas
+      con %). La vista nueva muestra una LISTA de registros (Fecha, Alumno,
+      Presente, Justificación). Si quieren la grilla con porcentajes, avisen
+      (requiere cálculo de agregados en el backend).
+
+  [3] Verificar responsividad y que las clases rindan igual dentro del _Layout
+      (las maquetas se veían fuera del layout).
+
+  [4] Menú lateral: falta agregar el acceso "Profesor" en _Layout.cshtml para el
+      rol Profesor (hoy solo hay Inicio / Calendario / Panel Admin). ¿Lo agregan
+      uds. o lo hacemos del lado backend?
+
+--------------------------------------------------------------------------------
+NOTA DE ESTADO
+--------------------------------------------------------------------------------
+  El proyecto en esta rama todavía NO compila por errores heredados de master
+  (rename UsDni/UsDNI y DbSets), ajenos a estas vistas. Una vez destrabado el
+  build se puede probar el flujo completo en /Profesor.
+
+  Gracias!  — Gustavo
+================================================================================

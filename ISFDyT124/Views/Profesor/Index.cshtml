@@ -1,0 +1,67 @@
+@model IEnumerable<ISFDyT124.DTO.CarreraMateriaDetalleDto>
+@{
+    ViewData["Title"] = "Mis Cátedras";
+    ViewData["BodyClass"] = "gestion-page";
+}
+
+@* Réplica del estilo de gestión del sistema (crud-table / main-container-gestion) para el
+   dashboard del profesor: lista SOLO las cátedras (Carrera-Materia) que tiene asignadas. *@
+
+<main class="main-container-gestion">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="info-banner"><div class="info-col-left"><p class="info-bold">@TempData["SuccessMessage"]</p></div></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="info-banner"><div class="info-col-left"><p class="info-bold">@TempData["ErrorMessage"]</p></div></div>
+    }
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">Mis Cátedras</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">@User.Identity?.Name</p>
+        </div>
+    </div>
+
+    <div class="crud-table-container">
+        <table class="crud-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Carrera</th>
+                    <th style="width: 35%;">Materia</th>
+                    <th style="width: 30%;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var catedra in Model)
+                    {
+                        <tr>
+                            <td>@catedra.CarreraDenominacion</td>
+                            <td>@catedra.MateriaDenominacion</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Asistencia" asp-route-caMaId="@catedra.CaMaId"
+                                       class="btn-edit" style="text-decoration:none;">Tomar asistencia</a>
+                                    <a asp-action="HistorialAsistencias" asp-route-maId="@catedra.MaId"
+                                       class="btn-edit" style="text-decoration:none;">Historial</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3" style="text-align:center;">No tenés cátedras asignadas.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>
