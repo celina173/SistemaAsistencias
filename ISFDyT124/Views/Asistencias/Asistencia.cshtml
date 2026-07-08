@@ -1,0 +1,103 @@
+﻿@model ISFDyT124.Models.AsistenciaFormViewModel
+
+@{
+    ViewData["Title"] = "Toma de Asistencia";
+}
+
+<main class="main-container-global">
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">Profesor</p>
+            <p class="info-bold">@ViewData["CaMaDenominacion"]</p>
+        </div>
+    </div>
+
+    <form asp-action="Asistencia" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="CaMaId" />
+
+        <div style="display:flex;justify-content:center;">
+            <table style="border-collapse:collapse;border:2px solid #083c8a;width:720px;text-align:left;">
+                <thead>
+                    <tr>
+                        <th style="padding:10px;border:1px solid #083c8a;width:40%">Apellido y Nombre</th>
+                        <th style="padding:10px;border:1px solid #083c8a;width:40%">Modulos</th>
+                        <th style="padding:10px;border:1px solid #083c8a;width:20%">Justificacion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Rows.Count; i++)
+                    {
+                        <tr>
+                            <td style="padding:8px;border:1px solid #083c8a;">@Model.Rows[i].FullName
+                                <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
+                            </td>
+                            <td style="padding:8px;border:1px solid #083c8a;">
+                                @{
+                                    var moduleCount = ViewData["MaCantModulos"] as int? ?? Model.ModuleCount;
+                                }
+                                @for (int m = 0; m < moduleCount; m++)
+                                {
+                                    var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
+                                    <input type="checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") style="margin-right:6px;" />
+                                }
+                                @{
+                                    var mc = moduleCount > 0 ? moduleCount : 1;
+                                    var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
+                                    var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
+                                }
+                                <span class="row-pct" data-row="@i" style="margin-left:8px;font-weight:bold;">@pct%</span>
+                            </td>
+                            <td style="padding:8px;border:1px solid #083c8a;text-align:center;">
+                                <input type="checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
+                                <input type="hidden" name="Rows[@i].AsPresente" value="@(Model.Rows[i].AsPresente ? "true" : "false")" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align:center;margin-top:24px;display:flex;justify-content:center;gap:12px;">
+            <button type="submit" class="btn btn-primary" style="background:#083c8a;border-radius:26px;padding:12px 40px;border:none;">Guardar</button>
+            <a asp-action="Index" asp-controller="Asistencias" class="btn btn-secondary" style="border-radius:26px;padding:12px 28px;align-self:center;">Cancelar</a>
+        </div>
+    </form>
+</main>
+
+<script>
+    (function(){
+        // actualizar porcentaje cuando cambian checkboxes de módulos
+        function updateRowPct(rowIndex, moduleCount){
+            var checkboxes = document.querySelectorAll('input[name^="Rows['+rowIndex+'].Modulos["]');
+            var checked = 0;
+            for(var i=0;i<checkboxes.length;i++) if(checkboxes[i].checked) checked++;
+            var pct = 0;
+            if(moduleCount > 0) pct = Math.round((checked/moduleCount)*100*10)/10; // 1 decimal
+            var span = document.querySelector('.row-pct[data-row="'+rowIndex+'"]');
+            if(span) span.textContent = pct + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            // find moduleCount from ViewData or default
+            var moduleCount = parseInt('@(ViewData["MaCantModulos"] ?? Model.ModuleCount)');
+            // attach listeners for each checkbox
+            var inputs = document.querySelectorAll('input[type=checkbox][name*=".Modulos["]');
+            inputs.forEach(function(ch){
+                ch.addEventListener('change', function(e){
+                    // extract row index from name like Rows[0].Modulos[1]
+                    var name = e.target.getAttribute('name');
+                    var m = name.match(/^Rows\[(\d+)\]\.Modulos\[/);
+                    if(m){
+                        var rowIndex = parseInt(m[1]);
+                        updateRowPct(rowIndex, moduleCount);
+                    }
+                });
+            });
+        });
+    })();
+</script>

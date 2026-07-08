@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering
+@model ISFDyT124.Models.Inscripciones
+@{
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Inscripción - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="agregar-page gestion-page modificar-inscripcion">
+
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li><a asp-controller="Home" asp-action="Index">Inicio</a></li>
+            <li><a asp-controller="Asistencias" asp-action="AsistenciaGlobal">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li><a asp-controller="Inscripciones" asp-action="GestionInscripcionesMaterias">Volver a Gestión</a></li>
+            <li class="logout"><a asp-controller="Home" asp-action="Logout">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">GESTIÓN DE INSCRIPCIONES</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">MODIFICAR REGISTRO</p>
+        </div>
+    </div>
+
+    <main class="main-container-form">
+        <div class="form-card">
+            <div class="form-header">
+                <h2 class="form-main-title">MODIFICAR INSCRIPCION A MATERIA</h2>
+                <div class="form-title-divider"></div>
+            </div>
+
+            <form asp-action="ModificarInscripcionMateria" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="InId" />
+                <input type="hidden" asp-for="UsId" />
+                <div class="form-grid">
+                    <div class="input-field">
+                        <label>Alumno</label>
+                        <input type="text" value="@(Model.Usuarios != null ? (Model.Usuarios.UsApellido + " " + Model.Usuarios.UsNombre) : "")" readonly>
+                    </div>
+
+                    <div class="input-field">
+                        <label for="CaMaId">Carrera - Materia</label>
+                        <select asp-for="CaMaId" asp-items='@(ViewData["CaMaId"] as SelectList)' id="CaMaId" required>
+                            <option value="">-- Seleccione Carrera - Materia --</option>
+                        </select>
+                    </div>
+
+@*                     <div class="input-field">
+                        <label for="fecha">Fecha de Alta</label>
+                        <input type="date" asp-for="InFechaAlta" id="fecha" />
+                    </div> *@
+                </div>
+
+                <div class="form-buttons">
+                    <a asp-controller="Inscripciones" asp-action="GestionInscripcionesMaterias" class="btn-cancel">Cancelar</a>
+                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
