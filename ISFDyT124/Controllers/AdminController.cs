@@ -53,7 +53,7 @@ namespace ISFDyT124.Controllers
                     UsApellido = u.UsApellido,
                     UsNombre = u.UsNombre,
                     UsEmail = u.UsEmail,
-                    UsDNI = u.UsDNI,
+                    UsDni = u.UsDni,
                     RoId = u.RoId,
                     RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null,
                     CaCoId = u.CaCoId,
@@ -73,7 +73,7 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> UsuarioAgregar()
         {
             ViewBag.RolesList = await _context.Roles.ToListAsync();
-            ViewBag.CarreraCohortesList = await _context.CarreraCohorte
+            ViewBag.CarreraCohortesList = await _context.CarreraCohortes
                 .Include(cc => cc.Carrera)
                 .Include(cc => cc.Cohorte)
                 .Select(cc => new
@@ -82,7 +82,7 @@ namespace ISFDyT124.Controllers
                     Denominacion = cc.Carrera.CaDenominacion + " - " + cc.Cohorte.CoAnio
                 })
                 .ToListAsync();
-            ViewBag.CarreraMateriasList = await _context.CarreraMateria
+            ViewBag.CarreraMateriasList = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new
@@ -104,7 +104,7 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            if (await _context.Usuarios.AnyAsync(u => u.UsDNI == model.UsDNI))
+            if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
             {
                 ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
                 ViewBag.RolesList = await _context.Roles.ToListAsync();
@@ -119,9 +119,9 @@ namespace ISFDyT124.Controllers
                 UsId = nuevoUsId,
                 UsApellido = model.UsApellido,
                 UsNombre = model.UsNombre,
-                UsDNI = model.UsDNI,
+                UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                UsContrasena = model.UsDNI.ToString(),
+                UsContrasena = model.UsDni.ToString(),
                 RoId = selectedRoleId,
                 CaCoId = selectedRoleId == 3 ? model.CaCoId : null
             };
@@ -131,7 +131,7 @@ namespace ISFDyT124.Controllers
 
             if (selectedRoleId == 2 && model.SelectedCaMaIds != null)
             {
-                var materias = await _context.CarreraMateria
+                var materias = await _context.CarreraMaterias
                     .Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
                     .ToListAsync();
                 foreach (var cm in materias)
@@ -156,7 +156,7 @@ namespace ISFDyT124.Controllers
                 return NotFound();
 
             ViewBag.RolesList = await _context.Roles.ToListAsync();
-            ViewBag.CarreraCohortesList = await _context.CarreraCohorte
+            ViewBag.CarreraCohortesList = await _context.CarreraCohortes
                 .Include(cc => cc.Carrera)
                 .Include(cc => cc.Cohorte)
                 .Select(cc => new
@@ -165,7 +165,7 @@ namespace ISFDyT124.Controllers
                     Denominacion = cc.Carrera.CaDenominacion + " - " + cc.Cohorte.CoAnio
                 })
                 .ToListAsync();
-            ViewBag.CarreraMateriasList = await _context.CarreraMateria
+            ViewBag.CarreraMateriasList = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new
@@ -181,7 +181,7 @@ namespace ISFDyT124.Controllers
                 UsApellido = usuario.UsApellido,
                 UsNombre = usuario.UsNombre,
                 UsEmail = usuario.UsEmail,
-                UsDNI = usuario.UsDNI,
+                UsDni = usuario.UsDni,
                 RoId = usuario.RoId,
                 RoDenominacion = usuario.Rol?.RoDenominacion,
                 CaCoId = usuario.CaCoId,
@@ -213,7 +213,7 @@ namespace ISFDyT124.Controllers
 
             usuario.UsApellido = model.UsApellido;
             usuario.UsNombre = model.UsNombre;
-            usuario.UsDNI = model.UsDNI;
+            usuario.UsDni = model.UsDni;
             usuario.UsEmail = model.UsEmail;
             usuario.RoId = selectedRoleId;
             usuario.CaCoId = selectedRoleId == 3 ? model.CaCoId : null;
@@ -223,7 +223,7 @@ namespace ISFDyT124.Controllers
                 usuario.CarreraMaterias.Clear();
                 if (selectedCaMaIds != null)
                 {
-                    var materias = await _context.CarreraMateria
+                    var materias = await _context.CarreraMaterias
                         .Where(cm => selectedCaMaIds.Contains(cm.CaMaId))
                         .ToListAsync();
                     foreach (var cm in materias)
