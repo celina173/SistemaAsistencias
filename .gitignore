@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # Application Settings (local configuration files with sensitive data)
 appsettings.json
 appsettings.*.json
+
+# Nota personal de Gustavo (local, no versionar). La version .txt SI se versiona.
+READMEGUSTAVO.md
