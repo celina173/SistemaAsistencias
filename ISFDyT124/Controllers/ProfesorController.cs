@@ -41,16 +41,16 @@ namespace ISFDyT124.Controllers
 
             // Cátedras del docente vía Inscripciones -> CarrerasMaterias, proyectadas al DTO.
             var catedras = await _context.Inscripciones
-                .Where(i => i.UsId == docenteId && i.CarrerasMaterias != null)
-                .Include(i => i.CarrerasMaterias!).ThenInclude(cm => cm.Carrera)
-                .Include(i => i.CarrerasMaterias!).ThenInclude(cm => cm.Materia)
+                .Where(i => i.UsId == docenteId && i.CarreraMateria != null)
+                .Include(i => i.CarreraMateria!).ThenInclude(cm => cm.Carrera)
+                .Include(i => i.CarreraMateria!).ThenInclude(cm => cm.Materia)
                 .Select(i => new CarreraMateriaDetalleDto
                 {
-                    CaMaId = i.CarrerasMaterias!.CaMaId,
-                    CaId = i.CarrerasMaterias.CaId,
-                    MaId = i.CarrerasMaterias.MaId,
-                    CarreraDenominacion = i.CarrerasMaterias.Carrera != null ? i.CarrerasMaterias.Carrera.CaDenominacion : "-",
-                    MateriaDenominacion = i.CarrerasMaterias.Materia != null ? i.CarrerasMaterias.Materia.MaDenominacion : "-"
+                    CaMaId = i.CarreraMateria!.CaMaId,
+                    CaId = i.CarreraMateria.CaId,
+                    MaId = i.CarreraMateria.MaId,
+                    CarreraDenominacion = i.CarreraMateria.Carrera != null ? i.CarreraMateria.Carrera.CaDenominacion : "-",
+                    MateriaDenominacion = i.CarreraMateria.Materia != null ? i.CarreraMateria.Materia.MaDenominacion : "-"
                 })
                 .ToListAsync();
 
