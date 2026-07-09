@@ -1,0 +1,63 @@
+﻿@model ISFDyT124.DTO.HomeIndexDto
+
+@{
+    ViewData["Title"] = "Inicio";
+    ViewData["BodyClass"] = "inicio-page";
+}
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Gestión de Asistencia</h2>
+    <p class="page-subtitle" style="text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-top: 5px;">Seleccione la carrera y materia para continuar</p>
+</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <form asp-controller="Asistencias" asp-action="Index" method="get" class="form-grid">
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="carrera">Carrera</label>
+                <select asp-for="SelectedCarreraId" id="carrera" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Carrera</option>
+                    @foreach (var carrera in Model.Carreras)
+                    {
+                        <option value="@carrera.CaId">@carrera.CaDenominacion</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="materia">Materia</label>
+                <select asp-for="SelectedMateriaId" id="materia" class="custom-select" required>
+                    <option value="" disabled selected>Seleccione una Materia</option>
+                    @foreach (var materia in Model.Materias)
+                    {
+                        <option value="@materia.MaId">@materia.MaDenominacion</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-buttons" style="grid-column: span 2; justify-content: center; margin-top: 15px;">
+                <button type="submit" class="btn-save" id="btnSiguiente" style="width: 100%; padding: 14px;">Configurar Asistencia</button>
+            </div>
+            <div class="form-buttons" style="grid-column: span 2; justify-content: center; margin-top: 8px;">
+              
+                <button type="button" id="btnGlobal" class="btn-save-secondary" style="width:100%; padding:12px;">Ir a Asistencia Global</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    (function(){
+        document.getElementById('btnGlobal').addEventListener('click', function(){
+            var ca = document.getElementById('carrera').value;
+            var ma = document.getElementById('materia').value;
+            if(!ca || !ma){
+                alert('Seleccione Carrera y Materia antes de ir a Asistencia Global.');
+                return;
+            }
+            var qs = '?selectedCarreraId=' + encodeURIComponent(ca) + '&selectedMateriaId=' + encodeURIComponent(ma) + '&_global=1';
+            window.location.href = '/Asistencias/Index' + qs;
+        });
+    })();
+</script>
+

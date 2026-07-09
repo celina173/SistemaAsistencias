@@ -1,0 +1,56 @@
+QUÉ HICE EN EL MÓDULO PROFESOR
+(explicado con mis palabras - Gustavo)
+================================================
+
+El problema que encontré
+------------------------
+El módulo del profesor estaba desordenado y no funcionaba:
+- El archivo se llamaba "ProfesorController.cs" pero la clase adentro se
+  llamaba "DocenteController". No coincidían.
+- Pedía un rol llamado "Docente", pero ese rol no existe. El rol que sí
+  existe en la base se llama "Profesor".
+- No tenía vistas (las pantallas), así que no se podía ver nada.
+- Mandaba los datos a la pantalla de forma "cruda", sin usar los DTOs que
+  ya estaban hechos en la carpeta DTO.
+
+Qué cambié
+----------
+1) Renombré la clase a "ProfesorController" para que coincida con el archivo.
+
+2) Puse el rol correcto: ahora pide el rol "Profesor" (el que de verdad
+   existe). También arreglé el login para que, cuando entra un profesor,
+   lo mande a su panel.
+
+3) Usé los DTOs que ya estaban hechos, en vez de mandar los datos crudos:
+   - Para listar las materias del profesor: CarreraMateriaDetalleDto
+   - Para la lista de alumnos: UsuarioDetalleDto
+   - Para guardar la asistencia: AsistenciaCrearDto
+   - Para el historial: AsistenciaDetalleDto
+
+4) Hice las 3 pantallas del profesor (en Views/Profesor/), copiando el
+   mismo estilo/diseño de las pantallas que ya existían en Home:
+   - Index: le muestra al profesor SUS materias (cátedras).
+   - Asistencia: la planilla para marcar presente/ausente y justificación,
+     y guardar. Si ya cargó ese día, la deja editar.
+   - HistorialAsistencias: la lista de todas las asistencias de una materia.
+
+Qué hace ahora el profesor (para qué sirve)
+-------------------------------------------
+- Entra y ve solo las materias que tiene asignadas.
+- Elige una materia y toma la asistencia del día (o la corrige).
+- Puede ver el historial de asistencias de esa materia.
+Nada más, porque ese es su alcance: tomar asistencia de sus materias y
+ver el historial.
+
+Cómo probarlo
+-------------
+- El proyecto compila (0 errores) y arranca conectando a la base.
+- La ruta del módulo es /Profesor y está protegida: si no estás logueado
+  como profesor, te manda al login.
+
+Nota
+----
+Para que el panel del profesor muestre datos, el profesor tiene que tener
+materias/inscripciones cargadas. Si no tiene, la lista sale vacía (eso es
+lo correcto, no es un error).
+================================================
