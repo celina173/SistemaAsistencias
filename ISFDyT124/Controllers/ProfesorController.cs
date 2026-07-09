@@ -1,194 +1,238 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ISFDyT124.Data;
+using ISFDyT124.DTO;
 using ISFDyT124.Models;
-using ISFDyT124.Data;
 
 namespace ISFDyT124.Controllers
 {
-    /// Controlador responsable del flujo de trabajo de los Docentes.
-    /// Contiene la lógica para seleccionar asignaturas, tomar asistencia diaria y consultar historial.
-    [Authorize(Roles = "Docente")] // Protegemos todo el controlador
-    public class DocenteController : Controller
+    /// <summary>
+    /// Controlador del módulo Profesor: el docente ve sus cátedras (materias que tiene),
+    /// toma/edita la asistencia diaria y consulta el historial de asistencias.
+    /// Usa exactamente el rol "Profesor" (tal como está sembrado en la tabla ROLES).
+    /// Trabaja con los DTOs de la carpeta /DTO en lugar de exponer las entidades.
+    /// </summary>
+    [Authorize(Roles = "Profesor")]
+    public class ProfesorController : Controller
     {
         private readonly InstitutoDbContext _context;
 
-        // Constantes del sistema para mapear con los IDs de la tabla ROLES
-        private const int ROL_ALUMNO_ID = 3;  // ID del rol Alumno en la base de datos
-
-        public DocenteController(InstitutoDbContext context)
+        public ProfesorController(InstitutoDbContext context)
         {
             _context = context;
         }
 
-        #region SECTION 1: DASHBOARD DEL DOCENTE (SELECCIÓN DE CLASE)
+        // ─────────────────────────────────────────────────────────────────────
+        #region SECCIÓN 1: DASHBOARD — CÁTEDRAS DEL DOCENTE
+        // ─────────────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Vista de inicio del docente.
-        /// Carga los datos de las materias asignadas al docente logueado para que seleccione su curso actual.
+        /// Pantalla de inicio del profesor: lista SOLO las cátedras (Carrera-Materia)
+        /// que tiene asignadas, para que elija con cuál trabajar.
         /// </summary>
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // 1. Obtenemos el ID del docente logueado desde los Claims
             var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(docenteIdClaim, out int docenteId)) return Unauthorized();
+            if (!int.TryParse(docenteIdClaim, out int docenteId))
+                return Unauthorized();
 
-            // 2. Buscamos las materias/carreras asignadas específicamente a este docente
-            var materiasDelDocente = await _context.Inscripciones
-                .Include(i => i.CarrerasMaterias)
-                    .ThenInclude(cm => cm.Materia)
-                .Include(i => i.CarrerasMaterias)
-                    .ThenInclude(cm => cm.Carrera)
-                .Where(i => i.UsId == docenteId)
-                .Select(i => i.CarrerasMaterias) // Nos quedamos solo con la relación Carrera-Materia
+            // Cátedras del docente vía Inscripciones -> CarrerasMaterias, proyectadas al DTO.
+            var catedras = await _context.Inscripciones
+                .Where(i => i.UsId == docenteId && i.CarrerasMaterias != null)
+                .Include(i => i.CarrerasMaterias!).ThenInclude(cm => cm.Carrera)
+                .Include(i => i.CarrerasMaterias!).ThenInclude(cm => cm.Materia)
+                .Select(i => new CarreraMateriaDetalleDto
+                {
+                    CaMaId = i.CarrerasMaterias!.CaMaId,
+                    CaId = i.CarrerasMaterias.CaId,
+                    MaId = i.CarrerasMaterias.MaId,
+                    CarreraDenominacion = i.CarrerasMaterias.Carrera != null ? i.CarrerasMaterias.Carrera.CaDenominacion : "-",
+                    MateriaDenominacion = i.CarrerasMaterias.Materia != null ? i.CarrerasMaterias.Materia.MaDenominacion : "-"
+                })
                 .ToListAsync();
 
-            // Mantenemos la estructura de ViewBags original, pero ahora filtrada por el docente
-            ViewBag.Carreras = materiasDelDocente.Select(cm => cm.Carrera).Distinct().ToList();
-            ViewBag.Materias = materiasDelDocente.Select(cm => cm.Materia).Distinct().ToList();
-            //ViewBag.Cohortes = await _context.Cohortes.ToListAsync();
+            // Deduplicar por cátedra (un docente podría tener varias inscripciones a la misma).
+            catedras = catedras
+                .GroupBy(c => c.CaMaId)
+                .Select(g => g.First())
+                .OrderBy(c => c.CarreraDenominacion)
+                .ThenBy(c => c.MateriaDenominacion)
+                .ToList();
 
-            // Pasamos la relación completa a la vista
-            return View(materiasDelDocente);
+            return View(catedras);
         }
 
         #endregion
 
-        #region SECTION 2: TOMA DE ASISTENCIA DIARIA (CARGA MASIVA Y EDICIÓN)
+        // ─────────────────────────────────────────────────────────────────────
+        #region SECCIÓN 2: TOMA Y EDICIÓN DE ASISTENCIA DIARIA
+        // ─────────────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Acción GET que renderiza la planilla de asistencia de los alumnos para una carrera, cohorte, materia y fecha determinadas.
-        /// Respeta las relaciones y propiedades del esquema SQL.
+        /// Renderiza la planilla de alumnos de una cátedra para tomar asistencia en una fecha.
+        /// Si ya se cargó asistencia ese día, la precarga para poder editarla.
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> CargarAsistencia(int caId, int coId, int maId, DateTime? fecha)
+        public async Task<IActionResult> Asistencia(int caMaId, DateTime? fecha)
         {
-            // Verificamos identidad nuevamente por seguridad
-            var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(docenteIdClaim, out int docenteId)) return Unauthorized();
+            var fechaFiltro = fecha ?? DateTime.Today;
 
-            // Si no se especifica fecha, se asume el día de hoy
-            var fechaSeleccionada = fecha ?? DateTime.Today;
+            // No permitir cargar asistencia de fechas futuras.
+            if (fechaFiltro.Date > DateTime.Today)
+            {
+                TempData["ErrorMessage"] = "No se puede registrar asistencia de fechas futuras.";
+                return RedirectToAction(nameof(Index));
+            }
 
-            // Almacenamos los parámetros de búsqueda en el ViewBag para mantener el estado en la vista
-            ViewBag.CarreraId = caId;
-            ViewBag.CohorteId = coId;
+            var catedra = await _context.CarrerasMaterias
+                .Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == caMaId);
+
+            if (catedra == null)
+                return NotFound();
+
+            int maId = catedra.MaId;
+
+            // Datos de encabezado / columnas de módulos.
+            ViewBag.CaMaId = caMaId;
             ViewBag.MateriaId = maId;
-            ViewBag.Fecha = fechaSeleccionada;
+            ViewBag.Fecha = fechaFiltro;
+            ViewBag.CarreraNombre = catedra.Carrera?.CaDenominacion ?? "Carrera";
+            ViewBag.MateriaNombre = catedra.Materia?.MaDenominacion ?? "Materia";
+            ViewBag.CantModulos = catedra.Materia?.MaCantModulos ?? 1;
 
-            // Obtener información descriptiva para el encabezado de la vista
-            ViewBag.CarreraNombre = (await _context.Carreras.FindAsync(caId))?.CaDenominacion ?? "Carrera";
-           // ViewBag.CohorteNombre = (await _context.Cohortes.FindAsync(coId))?.CoDenominacion ?? "Cohorte";
-            ViewBag.MateriaNombre = (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
-
-            // 1. OBTENCIÓN DE ALUMNOS (Lógica unificada):
-            // Buscamos a los alumnos inscriptos en la misma combinación de Carrera-Materia
-            var idCarreraMateria = await _context.CarrerasMaterias
-                .Where(cm => cm.CaId == caId && cm.MaId == maId)
-                .Select(cm => cm.CaMaId)
-                .FirstOrDefaultAsync();
-
+            // Alumnos inscriptos en esa cátedra (Carrera-Materia), proyectados al DTO.
             var alumnos = await _context.Inscripciones
-                .Include(i => i.Usuarios)
-                    .ThenInclude(u => u.Rol)
-                .Where(i => i.CaMaId == idCarreraMateria && i.Usuarios.Rol.RoDenominacion == "Alumno")
-                .Select(i => i.Usuarios) // Extraemos los objetos Usuario (Alumnos)
+                .Where(i => i.CaMaId == caMaId
+                            && i.Usuarios != null
+                            && i.Usuarios.Rol != null
+                            && i.Usuarios.Rol.RoDenominacion == "Alumno")
+                .Include(i => i.Usuarios!).ThenInclude(u => u.Rol)
+                .Select(i => new UsuarioDetalleDto
+                {
+                    UsId = i.Usuarios!.UsId,
+                    UsApellido = i.Usuarios.UsApellido,
+                    UsNombre = i.Usuarios.UsNombre,
+                    UsEmail = i.Usuarios.UsEmail,
+                    RoDenominacion = i.Usuarios.Rol != null ? i.Usuarios.Rol.RoDenominacion : null
+                })
                 .OrderBy(u => u.UsApellido)
                 .ThenBy(u => u.UsNombre)
                 .ToListAsync();
 
-            // 2. RECUPERAR REGISTROS DE ASISTENCIA EXISTENTES:
-            // Si el docente ya tomó asistencia el día de hoy para esta materia, recuperamos esos registros
-            // de la tabla ASISTENCIAS para que pueda editarlos o ver qué marcó antes.
-            var asistenciasRegistradas = await _context.Asistencias
-                .Where(a => a.MaId == maId && a.AsFecha.Value.Date == fechaSeleccionada.Date) 
-                .ToDictionaryAsync(a => a.UsId ?? 0);
+            // Asistencias ya registradas ese día (para precargar/editar), como dict UsId -> DTO.
+            var existentes = await _context.Asistencias
+                .Where(a => a.MaId == maId && a.AsFecha != null && a.AsFecha.Value.Date == fechaFiltro.Date)
+                .Select(a => new AsistenciaDetalleDto
+                {
+                    AsId = a.AsId,
+                    UsId = a.UsId,
+                    MaId = a.MaId,
+                    AsFecha = a.AsFecha,
+                    AsPresente = a.AsPresente,
+                    AsJustificacion = a.AsJustificacion
+                })
+                .ToListAsync();
 
-            ViewBag.AsistenciasExistentes = asistenciasRegistradas;
+            ViewBag.AsistenciasExistentes = existentes.ToDictionary(a => a.UsId ?? 0);
 
             return View(alumnos);
         }
 
         /// <summary>
-        /// Acción POST que procesa y guarda la asistencia masiva de los alumnos.
-        /// Realiza un insert en lote si no existe el registro de asistencia del día, o un update en lote si ya existía.
+        /// Guarda o actualiza (upsert) la asistencia del día en lote, usando AsistenciaCrearDto.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CargarAsistencia(int caId, int coId, int maId, DateTime fecha, Dictionary<int, bool> asistenciasDic)
+        public async Task<IActionResult> Asistencia(int maId, DateTime fecha, List<AsistenciaCrearDto> asistencias)
         {
-            if (asistenciasDic == null || asistenciasDic.Count == 0)
+            if (asistencias == null || asistencias.Count == 0)
             {
-                TempData["ErrorMessage"] = "No se recibieron registros de asistencia para procesar.";
+                TempData["ErrorMessage"] = "No se recibieron datos de asistencia para procesar.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Variable para llevar el control del cálculo de la clave primaria manual de la tabla ASISTENCIAS (AsId)
-            int proximoAsId = _context.Asistencias.Any() ? await _context.Asistencias.MaxAsync(a => a.AsId) + 1 : 1;
+            // La PK de ASISTENCIAS no es autoincremental: se calcula manualmente.
+            int proximoAsId = _context.Asistencias.Any()
+                ? await _context.Asistencias.MaxAsync(a => a.AsId) + 1
+                : 1;
 
-            // Recorremos cada registro de asistencia del diccionario (Key: UsId, Value: Presente/Ausente)
-            foreach (var kvp in asistenciasDic)
+            foreach (var dto in asistencias)
             {
-                int alumnoId = kvp.Key;
-                bool estaPresente = kvp.Value;
+                if (dto.UsId == null) continue;
 
-                // 1. Buscamos si el registro de asistencia para este alumno en este día y materia ya existe
-                var asistenciaExistente = await _context.Asistencias
-                    .FirstOrDefaultAsync(a => a.UsId == alumnoId && a.MaId == maId && a.AsFecha.Value.Date == fecha.Date); // Manejo nullable
+                bool presente = dto.AsPresente;
+                // Regla de negocio: si asistió, no corresponde justificación de falta.
+                bool justificado = presente ? false : dto.AsJustificacion;
 
-                if (asistenciaExistente != null)
+                var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
+                    a.UsId == dto.UsId && a.MaId == maId &&
+                    a.AsFecha != null && a.AsFecha.Value.Date == fecha.Date);
+
+                if (existente != null)
                 {
-                    // ACTUALIZACIÓN (UPDATE): Si el registro ya existe, actualizamos el estado de presente
-                    asistenciaExistente.AsPresente = estaPresente;
-                    _context.Update(asistenciaExistente);
+                    existente.AsPresente = presente;
+                    existente.AsJustificacion = justificado;
+                    _context.Update(existente);
                 }
                 else
                 {
-                    // INSERCIÓN (INSERT): Si es una asistencia nueva, creamos un registro
-                    var nuevaAsistencia = new Asistencia
+                    _context.Asistencias.Add(new Asistencia
                     {
-                        AsId = proximoAsId++, // Asignamos el ID manual y lo incrementamos para el siguiente alumno
+                        AsId = proximoAsId++,
                         AsFecha = fecha.Date,
-                        AsPresente = estaPresente,
-                        AsJustificacion = false, // Por defecto al tomar asistencia no está justificada la falta
-                        UsId = alumnoId,
+                        AsPresente = presente,
+                        AsJustificacion = justificado,
+                        UsId = dto.UsId,
                         MaId = maId
-                    };
-                    _context.Asistencias.Add(nuevaAsistencia);
+                    });
                 }
             }
 
-            // Guardamos todos los cambios transaccionalmente en la base de datos
             await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Las asistencias del día han sido registradas correctamente.";
-
+            TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
         #endregion
 
-        #region SECTION 3: CONSULTA DE HISTORIAL DE ASISTENCIAS
+        // ─────────────────────────────────────────────────────────────────────
+        #region SECCIÓN 3: HISTORIAL DE ASISTENCIAS
+        // ─────────────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Permite consultar el historial completo de planillas de asistencia registradas para una Materia.
+        /// Historial (solo lectura) de todas las asistencias registradas para una materia.
         /// </summary>
+        [HttpGet]
         public async Task<IActionResult> HistorialAsistencias(int maId)
         {
-            ViewBag.MateriaNombre = (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
             ViewBag.MateriaId = maId;
+            ViewBag.MateriaNombre = (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
 
-            // Buscamos todas las asistencias vinculadas con esta materia, incluyendo al Alumno y sus Roles para justificaciones
-            var asistencias = await _context.Asistencias
+            var historial = await _context.Asistencias
                 .Where(a => a.MaId == maId)
                 .Include(a => a.Usuario)
+                .Include(a => a.Materias)
                 .OrderByDescending(a => a.AsFecha)
-                .ThenBy(a => a.Usuario.UsApellido)
+                .ThenBy(a => a.Usuario!.UsApellido)
+                .Select(a => new AsistenciaDetalleDto
+                {
+                    AsId = a.AsId,
+                    UsId = a.UsId,
+                    MaId = a.MaId,
+                    AsFecha = a.AsFecha,
+                    AsPresente = a.AsPresente,
+                    AsJustificacion = a.AsJustificacion,
+                    UsuarioNombre = a.Usuario != null ? a.Usuario.UsApellido + ", " + a.Usuario.UsNombre : "-",
+                    MateriaDenominacion = a.Materias != null ? a.Materias.MaDenominacion : "-"
+                })
                 .ToListAsync();
 
-            return View(asistencias);
+            return View(historial);
         }
 
         #endregion
