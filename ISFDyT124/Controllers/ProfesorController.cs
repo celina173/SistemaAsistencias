@@ -30,7 +30,7 @@ namespace ISFDyT124.Controllers
 
         /// <summary>
         /// Pantalla de inicio del profesor: lista SOLO las cátedras (Carrera-Materia)
-        /// que tiene asignadas, para que elija con cuál trabajar.
+        /// que tiene asignadas (relación muchos a muchos con CarreraMateria).
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -39,28 +39,20 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            // Cátedras del docente vía Inscripciones -> CarrerasMaterias, proyectadas al DTO.
-            var catedras = await _context.Inscripciones
-                .Where(i => i.UsId == docenteId && i.CarreraMateria != null)
-                .Include(i => i.CarreraMateria!).ThenInclude(cm => cm.Carrera)
-                .Include(i => i.CarreraMateria!).ThenInclude(cm => cm.Materia)
-                .Select(i => new CarreraMateriaDetalleDto
+            var catedras = await _context.Usuarios
+                .Where(u => u.UsId == docenteId)
+                .SelectMany(u => u.CarreraMaterias)
+                .Select(cm => new CarreraMateriaDetalleDto
                 {
-                    CaMaId = i.CarreraMateria!.CaMaId,
-                    CaId = i.CarreraMateria.CaId,
-                    MaId = i.CarreraMateria.MaId,
-                    CarreraDenominacion = i.CarreraMateria.Carrera != null ? i.CarreraMateria.Carrera.CaDenominacion : "-",
-                    MateriaDenominacion = i.CarreraMateria.Materia != null ? i.CarreraMateria.Materia.MaDenominacion : "-"
+                    CaMaId = cm.CaMaId,
+                    CaId = cm.CaId,
+                    MaId = cm.MaId,
+                    CarreraDenominacion = cm.Carrera != null ? cm.Carrera.CaDenominacion : "-",
+                    MateriaDenominacion = cm.Materia != null ? cm.Materia.MaDenominacion : "-"
                 })
-                .ToListAsync();
-
-            // Deduplicar por cátedra (un docente podría tener varias inscripciones a la misma).
-            catedras = catedras
-                .GroupBy(c => c.CaMaId)
-                .Select(g => g.First())
                 .OrderBy(c => c.CarreraDenominacion)
                 .ThenBy(c => c.MateriaDenominacion)
-                .ToList();
+                .ToListAsync();
 
             return View(catedras);
         }
@@ -73,6 +65,7 @@ namespace ISFDyT124.Controllers
 
         /// <summary>
         /// Renderiza la planilla de alumnos de una cátedra para tomar asistencia en una fecha.
+        /// Los alumnos se obtienen por la Carrera de la cátedra (vía CarreraCohorte).
         /// Si ya se cargó asistencia ese día, la precarga para poder editarla.
         /// </summary>
         [HttpGet]
@@ -87,7 +80,7 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var catedra = await _context.CarrerasMaterias
+            var catedra = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .FirstOrDefaultAsync(cm => cm.CaMaId == caMaId);
@@ -97,7 +90,6 @@ namespace ISFDyT124.Controllers
 
             int maId = catedra.MaId;
 
-            // Datos de encabezado / columnas de módulos.
             ViewBag.CaMaId = caMaId;
             ViewBag.MateriaId = maId;
             ViewBag.Fecha = fechaFiltro;
@@ -105,20 +97,24 @@ namespace ISFDyT124.Controllers
             ViewBag.MateriaNombre = catedra.Materia?.MaDenominacion ?? "Materia";
             ViewBag.CantModulos = catedra.Materia?.MaCantModulos ?? 1;
 
-            // Alumnos inscriptos en esa cátedra (Carrera-Materia), proyectados al DTO.
-            var alumnos = await _context.Inscripciones
-                .Where(i => i.CaMaId == caMaId
-                            && i.Usuarios != null
-                            && i.Usuarios.Rol != null
-                            && i.Usuarios.Rol.RoDenominacion == "Alumno")
-                .Include(i => i.Usuarios!).ThenInclude(u => u.Rol)
-                .Select(i => new UsuarioDetalleDto
+            // Carrera-Cohortes de la carrera de esta cátedra.
+            var caCoIds = await _context.CarreraCohortes
+                .Where(cc => cc.CaId == catedra.CaId)
+                .Select(cc => cc.CaCoId)
+                .ToListAsync();
+
+            // Alumnos de esa carrera (rol Alumno), proyectados al DTO.
+            var alumnos = await _context.Usuarios
+                .Include(u => u.Rol)
+                .Where(u => u.Rol != null && u.Rol.RoDenominacion == "Alumno"
+                            && u.CaCoId != null && caCoIds.Contains(u.CaCoId.Value))
+                .Select(u => new UsuarioDetalleDto
                 {
-                    UsId = i.Usuarios!.UsId,
-                    UsApellido = i.Usuarios.UsApellido,
-                    UsNombre = i.Usuarios.UsNombre,
-                    UsEmail = i.Usuarios.UsEmail,
-                    RoDenominacion = i.Usuarios.Rol != null ? i.Usuarios.Rol.RoDenominacion : null
+                    UsId = u.UsId,
+                    UsApellido = u.UsApellido,
+                    UsNombre = u.UsNombre,
+                    UsEmail = u.UsEmail,
+                    RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null
                 })
                 .OrderBy(u => u.UsApellido)
                 .ThenBy(u => u.UsNombre)
