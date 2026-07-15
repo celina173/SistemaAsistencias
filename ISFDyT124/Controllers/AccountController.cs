@@ -33,11 +33,7 @@ namespace ISFDyT124.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // 4. BUSCAR AL USUARIO: Buscamos por email e incluimos el Rol.
-            var usuario = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsEmail == model.Usuario);
-
+            // 4. VALIDAR FORMATO: el usuario se identifica con su número de DNI.
             if (!int.TryParse(model.Usuario, out int dniEntero))
             {
                 ModelState.AddModelError(
@@ -47,13 +43,12 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            var usuarioBD = await _context
-                .Usuarios.Include(u => u.Rol)
+            // 5. BUSCAR Y VALIDAR CREDENCIALES: por DNI + contraseña, incluyendo el Rol.
+            var usuario = await _context.Usuarios
+                .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsContrasena == model.Contrasena);
 
-
-            // 5. VALIDAR CREDENCIALES: Verificamos que el usuario exista Y que la contraseña coincida.
-            if (usuario == null || usuario.UsContrasena != model.Contrasena)
+            if (usuario == null)
             {
                 ModelState.AddModelError(string.Empty, "Usuario o contraseña incorrectos.");
                 return View(model);

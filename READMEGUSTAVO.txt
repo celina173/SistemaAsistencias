@@ -8,8 +8,6 @@
 --------------------------------------------------------------------------------
 - Se creó la rama grupo2-010726-Gustavo a partir del master remoto (origin/master),
   que es la única rama tomada como fuente de verdad.
-- El master local estaba desactualizado (33 commits atrás); se sincronizó con
-  origin/master por fast-forward.
 - Luego se trajeron a esta rama los últimos cambios de master.
 
 Cadena de conexión: se usa siempre la de Grupo-2 (servidor MUCHI) en appsettings.json,
@@ -29,7 +27,7 @@ El módulo docente venía desalineado. Antes -> Ahora:
   - Vistas:                no existían         ->  Views/Profesor/ creadas
   - Datos hacia la vista:  entidades + ViewBag ->  DTOs
 
-Se eligió la Opción B: un ProfesorController dedicado (convención MVC), en vez de
+un ProfesorController dedicado, en vez de
 mezclarlo en un UsuarioController.
 
 --------------------------------------------------------------------------------
