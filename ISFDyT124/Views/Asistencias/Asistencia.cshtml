@@ -7,8 +7,7 @@
 <main class="main-container-global">
     <div class="info-banner">
         <div class="info-col-left">
-            <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+            <p>@(ViewData["AsistenciaFecha"] ?? DateTime.Now.ToString("dd/MM/yyyy HH:mm"))</p>
         </div>
         <div class="info-col-right">
             <p class="info-bold">Profesor</p>
@@ -19,6 +18,7 @@
     <form asp-action="Asistencia" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="CaMaId" />
+        <input type="hidden" name="ModuleCount" value="@(ViewData["MaCantModulos"] ?? Model.ModuleCount)" />
 
         <div style="display:flex;justify-content:center;">
             <table style="border-collapse:collapse;border:2px solid #083c8a;width:720px;text-align:left;">
@@ -33,7 +33,8 @@
                     @for (int i = 0; i < Model.Rows.Count; i++)
                     {
                         <tr>
-                            <td style="padding:8px;border:1px solid #083c8a;">@Model.Rows[i].FullName
+                            <td style="padding:8px;border:1px solid #083c8a;">
+                                @Model.Rows[i].FullName
                                 <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
                             </td>
                             <td style="padding:8px;border:1px solid #083c8a;">
@@ -42,12 +43,13 @@
                                 }
                                 @for (int m = 0; m < moduleCount; m++)
                                 {
-                                    var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
+                                    var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m)
+                                                    ? Model.Rows[i].Modulos[m] == "true" : false;
                                     <input type="checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") style="margin-right:6px;" />
                                 }
                                 @{
                                     var mc = moduleCount > 0 ? moduleCount : 1;
-                                    var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
+                                    var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x == "true") : 0;
                                     var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
                                 }
                                 <span class="row-pct" data-row="@i" style="margin-left:8px;font-weight:bold;">@pct%</span>
@@ -71,29 +73,25 @@
 
 <script>
     (function(){
-        // actualizar porcentaje cuando cambian checkboxes de módulos
         function updateRowPct(rowIndex, moduleCount){
-            var checkboxes = document.querySelectorAll('input[name^="Rows['+rowIndex+'].Modulos["]');
+            var checkboxes = document.querySelectorAll('input[type=checkbox][name^="Rows['+rowIndex+'].Modulos["]');
             var checked = 0;
             for(var i=0;i<checkboxes.length;i++) if(checkboxes[i].checked) checked++;
             var pct = 0;
-            if(moduleCount > 0) pct = Math.round((checked/moduleCount)*100*10)/10; // 1 decimal
+            if(moduleCount > 0) pct = Math.round((checked/moduleCount)*100*10)/10;
             var span = document.querySelector('.row-pct[data-row="'+rowIndex+'"]');
             if(span) span.textContent = pct + '%';
         }
 
         document.addEventListener('DOMContentLoaded', function(){
-            // find moduleCount from ViewData or default
             var moduleCount = parseInt('@(ViewData["MaCantModulos"] ?? Model.ModuleCount)');
-            // attach listeners for each checkbox
             var inputs = document.querySelectorAll('input[type=checkbox][name*=".Modulos["]');
             inputs.forEach(function(ch){
                 ch.addEventListener('change', function(e){
-                    // extract row index from name like Rows[0].Modulos[1]
                     var name = e.target.getAttribute('name');
-                    var m = name.match(/^Rows\[(\d+)\]\.Modulos\[/);
-                    if(m){
-                        var rowIndex = parseInt(m[1]);
+                    var match = name.match(/^Rows\[(\d+)\]\.Modulos\[/);
+                    if(match){
+                        var rowIndex = parseInt(match[1]);
                         updateRowPct(rowIndex, moduleCount);
                     }
                 });

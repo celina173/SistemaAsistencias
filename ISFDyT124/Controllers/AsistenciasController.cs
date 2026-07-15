@@ -100,6 +100,25 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
+            // Load carrera/materia display for header
+            var caMaInfo = await _context.CarrerasMaterias
+                .Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
+
+            if (caMaInfo != null)
+            {
+                var carreraText = caMaInfo.Carrera != null ? (caMaInfo.Carrera.CaDenominacion ?? string.Empty) : string.Empty;
+                var materiaText = caMaInfo.Materia != null ? (caMaInfo.Materia.MaDenominacion ?? string.Empty) : string.Empty;
+                ViewData["CaMaDenominacion"] = string.IsNullOrWhiteSpace(carreraText) ? materiaText : carreraText + " - " + materiaText;
+            }
+            else
+            {
+                ViewData["CaMaDenominacion"] = string.Empty;
+            }
+
+            ViewData["AsistenciaFecha"] = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+
             // find role 'Estudiante' (case-insensitive)
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion.ToLower() == "estudiante");
             if (role == null)
@@ -138,7 +157,7 @@ namespace ISFDyT124.Controllers
             {
                 var row = new AsistenciaRowViewModel { UsId = s.UsId, FullName = s.FullName };
                 // initialize Modulos list according to MaCantModulos
-                row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
+                row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => "false").ToList();
                 model.Rows.Add(row);
             }
 
@@ -146,9 +165,24 @@ namespace ISFDyT124.Controllers
             model.ModuleCount = maCantModulos;
 
             var caMaName = await _context.CarrerasMaterias
+                .Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
                 .Where(cm => cm.CaMaId == CaMaId)
                 .FirstOrDefaultAsync();
-            ViewData["CaMaDenominacion"] = caMaName;
+
+            // prepare a friendly display string for the selected carrera/materia
+            if (caMaName != null)
+            {
+                var carreraText = caMaName.Carrera != null ? (caMaName.Carrera.CaDenominacion ?? "") : "";
+                var materiaText = caMaName.Materia != null ? (caMaName.Materia.MaDenominacion ?? "") : "";
+                ViewData["CaMaDenominacion"] = string.IsNullOrWhiteSpace(carreraText) ? materiaText : carreraText + " - " + materiaText;
+            }
+            else
+            {
+                ViewData["CaMaDenominacion"] = string.Empty;
+            }
+
+            ViewData["AsistenciaFecha"] = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
             return View(model);
         }
@@ -164,28 +198,27 @@ namespace ISFDyT124.Controllers
             }
 
             var carreraMateria = await _context.CarrerasMaterias.FindAsync(model.CaMaId.Value);
-
             int moduleCount = model.ModuleCount > 0 ? model.ModuleCount : 1;
+
             foreach (var row in model.Rows)
             {
-                var checkedCount = row.Modulos != null ? row.Modulos.Count(x => x) : 0;
-                var presente = checkedCount > 0;
-                decimal porcentaje = 0;
-                if (moduleCount > 0)
+                for (int i = 0; i < moduleCount; i++)
                 {
-                    porcentaje = Math.Round((decimal)checkedCount / moduleCount * 100, 1);
+                    bool moduloPresente = row.Modulos != null
+                                          && i < row.Modulos.Count
+                                          && row.Modulos[i] == "true";
+
+                    var entity = new Asistencia
+                    {
+                        AsFecha = DateTime.Now,
+                        AsPresente = moduloPresente,
+                        AsJustificacion = row.AsJustificacion,
+                        UsId = row.UsId,
+                        CaMaId = model.CaMaId,
+                    };
+
+                    _context.Asistencias.Add(entity);
                 }
-
-                var entity = new Asistencia
-                {
-                    AsFecha = DateTime.Now,
-                    AsPresente = presente,
-                    AsJustificacion = row.AsJustificacion,
-                    UsId = row.UsId,
-                    CaMaId = model.CaMaId,
-                };
-
-                _context.Asistencias.Add(entity);
             }
 
             await _context.SaveChangesAsync();
@@ -205,35 +238,32 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
-            // Buscar el rol Estudiante (case-insensitive)
+            // Buscar el rol Estudiante
             var role = await _context.Roles
-                .FirstOrDefaultAsync(r => r.RoDenominacion.ToLower() == "estudiante");
+                .FirstOrDefaultAsync(r => r.RoDenominacion == "Estudiante");
 
             if (role == null)
             {
                 return View(model);
             }
 
-            // Traer alumnos inscriptos en esa materia
+            // Buscar los alumnos inscriptos en esa materia
             var estudiantes = await (from i in _context.Inscripciones
                                      join u in _context.Usuarios on i.UsId equals u.UsId
                                      where i.CaMaId == CaMaId && u.RoId == role.RoId
                                      select u)
-                                    .Distinct()
-                                    .ToListAsync();
+                        .ToListAsync();
 
-            var usIdsInscritos = estudiantes.Select(u => u.UsId).ToList();
+            var usIdsInscritos = estudiantes
+                .Select(u => u.UsId)
+                .ToList();
 
-            // Traer asistencias relacionadas a esta materia y a esos alumnos.
-            // Algunos registros históricos pueden no tener CaMaId (se guardaron antes de asignarlo).
-            // Para mostrar el histórico como primario, incluimos también registros con CaMaId NULL
-            // siempre que pertenezcan a alumnos inscriptos en esta materia.
+            // Traer las asistencias de esos alumnos
             var todasLasAsistencias = await _context.Asistencias
-                .Where(a => a.UsId.HasValue && usIdsInscritos.Contains(a.UsId.Value)
-                            && (a.CaMaId == CaMaId || a.CaMaId == null))
+                .Where(a => a.UsId.HasValue && usIdsInscritos.Contains(a.UsId.Value))
                 .ToListAsync();
 
-            // Columnas (fechas)
+            // Fechas distintas en que hubo clase
             model.Fechas = todasLasAsistencias
                 .Where(a => a.AsFecha.HasValue)
                 .Select(a => a.AsFecha.Value.Date)
@@ -241,47 +271,38 @@ namespace ISFDyT124.Controllers
                 .OrderBy(f => f)
                 .ToList();
 
-            // Armar filas por alumno usando AsPorcentaje si existe, sino AsPresente como 100/0
+            // Armar una fila por alumno
             foreach (var alumno in estudiantes)
             {
                 var asistenciasAlumno = todasLasAsistencias
                     .Where(a => a.UsId == alumno.UsId)
                     .ToList();
 
-                var asistenciaPorFecha = new Dictionary<DateTime, decimal>();
-                decimal sumaPorcentajes = 0m;
-                foreach (var fecha in model.Fechas)
-                {
-                    var registro = asistenciasAlumno.FirstOrDefault(a => a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha);
-                    decimal pct = 0m;
-                    if (registro != null)
-                    {
-                        // Si existe AsPorcentaje en el registro, usarlo; si no, fallback a AsPresente (100/0)
-                        var prop = registro.GetType().GetProperty("AsPorcentaje");
-                        if (prop != null)
+                // Porcentaje por día (módulos presentes / total módulos ese día)
+                var asistenciaPorFecha = model.Fechas
+                    .ToDictionary(
+                        fecha => fecha,
+                        fecha =>
                         {
-                            var val = prop.GetValue(registro);
-                            if (val is decimal d) pct = d;
-                            else if (val is decimal?) pct = ((decimal?)val) ?? 0m;
+                            var modulosDia = asistenciasAlumno
+                                .Where(a => a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha)
+                                .ToList();
+                            if (!modulosDia.Any()) return 0m;
+                            return Math.Round((decimal)modulosDia.Count(a => a.AsPresente) / modulosDia.Count * 100, 1);
                         }
-                        else
-                        {
-                            pct = registro.AsPresente ? 100m : 0m;
-                        }
-                    }
-                    asistenciaPorFecha[fecha] = pct;
-                    sumaPorcentajes += pct;
-                }
+                    );
 
-                int totalFechas = model.Fechas.Count;
-                decimal promedio = totalFechas > 0 ? Math.Round(sumaPorcentajes / totalFechas, 1) : 0m;
+                // Porcentaje global (módulos presentes / total módulos de todas las clases)
+                int presentes = asistenciasAlumno.Count(a => a.AsPresente);
+                int total = asistenciasAlumno.Count;
+                decimal porcentaje = total > 0 ? Math.Round((decimal)presentes / total * 100, 1) : 0;
 
                 model.Rows.Add(new AsistenciaGlobalRowViewModel
                 {
                     UsId = alumno.UsId,
                     FullName = $"{alumno.UsApellido} {alumno.UsNombre}",
                     AsistenciaPorFecha = asistenciaPorFecha,
-                    PorcentajeAsistencia = promedio
+                    PorcentajeAsistencia = porcentaje
                 });
             }
 

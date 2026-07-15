@@ -11,9 +11,8 @@
     public class AsistenciaGlobalRowViewModel
     {
         public int UsId { get; set; }
-        public string FullName { get; set; } = string.Empty;
-        // fecha → porcentaje de asistencia en esa fecha (0-100)
-        public Dictionary<DateTime, decimal> AsistenciaPorFecha { get; set; } = new();
+        public string FullName { get; set; }
+        public Dictionary<DateTime, decimal> AsistenciaPorFecha { get; set; } = new(); // ← decimal en lugar de bool
         public decimal PorcentajeAsistencia { get; set; }
     }
 }
