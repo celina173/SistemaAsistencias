@@ -1,0 +1,48 @@
+Módulo Profesor y arreglo del login - Gustavo Olivera
+
+
+Dejo anotado lo que estuve haciendo para que quede claro qué toqué y por qué.
+
+
+EL PROBLEMA DEL LOGIN
+
+Cuando me puse a probar el sistema me di cuenta de que no podía entrar con ningún
+usuario, ni siquiera con el admin. Me metí en el AccountController a ver qué pasaba y
+el tema era que la validación del login estaba mal armada: primero buscaba a la
+persona por el email, pero después pedía que lo que vos escribías fuera un número de
+DNI. Se contradecía solo. Si ponías el DNI no te encontraba (porque lo buscaba como
+si fuera un email) y si ponías el email te saltaba que tenía que ser un DNI. Por eso
+nunca dejaba pasar a nadie.
+
+Lo que hice fue dejar el login de una sola manera: entrás con tu DNI y tu contraseña.
+Ahora el código busca al usuario por DNI y contraseña juntos, y si coincide te deja
+entrar. Ya lo probé: entra el admin, entra el profesor, y si le errás a la contraseña
+te lo rechaza como corresponde.
+
+De paso arreglé que la pantalla del login se veía toda fea, sin el diseño. Eso pasaba
+porque el archivo estaba buscando el css y el logo en la carpeta equivocada. Le
+corregí las rutas y ahora carga bien el estilo.
+
+
+EL MÓDULO DEL PROFESOR
+
+El módulo del profesor se rompía apenas entrabas, tiraba un error 500. Estuve
+revisando y el problema era que iba a buscar los datos a una tabla que se llama
+"Inscripciones" que en nuestra base de datos no existe. Nuestra base guarda la
+relación del profesor con sus materias en otra tabla distinta.
+
+Así que cambié las consultas para que usen las tablas que sí tenemos: las materias
+del profesor las saca de la relación que ya está entre el usuario y la cátedra, y a
+los alumnos los busca por la carrera y el cohorte. Con eso el profesor ya puede
+entrar, ver las materias que tiene asignadas, tomar la asistencia del día (marcar
+presente o ausente y la justificación) y también ver el historial de asistencias.
+
+Lo probé con la profesora que está cargada en la base y anduvo todo bien: le aparece
+su materia y la lista de alumnos.
+
+
+ACLARACIÓN
+
+No toqué nada del módulo de Asistencias ni de Inscripciones que armó el otro
+compañero, tampoco el archivo de configuración de la base. Solamente cambié lo del
+login y lo del módulo del profesor.
