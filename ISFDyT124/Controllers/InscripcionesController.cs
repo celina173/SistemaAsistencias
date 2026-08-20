@@ -100,7 +100,7 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
 
             // populate Carreras_Materias using concatenated Carrera - Materia as display text (fallback/reference)
-            var cam = await _context.CarrerasMaterias
+            var cam = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new { cm.CaMaId, Display = (cm.Carrera != null ? cm.Carrera.CaDenominacion : "") + " - " + (cm.Materia != null ? cm.Materia.MaDenominacion : "") })
@@ -130,7 +130,7 @@ namespace ISFDyT124.Controllers
 
             if (SelectedCaId.HasValue && SelectedMaId.HasValue)
             {
-                var caMa = await _context.CarrerasMaterias.FirstOrDefaultAsync(cm => cm.CaId == SelectedCaId.Value && cm.MaId == SelectedMaId.Value);
+                var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm => cm.CaId == SelectedCaId.Value && cm.MaId == SelectedMaId.Value);
                 if (caMa != null)
                 {
                     inscripciones.CaMaId = caMa.CaMaId;
@@ -173,7 +173,7 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
             ViewData["UsId"] = new SelectList(estudiantes, "UsId", "FullName", inscripciones.UsId);
 
-            var cam = await _context.CarrerasMaterias
+            var cam = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new { cm.CaMaId, Display = (cm.Carrera != null ? cm.Carrera.CaDenominacion : "") + " - " + (cm.Materia != null ? cm.Materia.MaDenominacion : "") })
@@ -235,7 +235,7 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
             ViewData["UsId"] = new SelectList(estudiantes, "UsId", "FullName", inscripciones.UsId);
 
-            var cam = await _context.CarrerasMaterias
+            var cam = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new { cm.CaMaId, Display = (cm.Carrera != null ? cm.Carrera.CaDenominacion : "") + " - " + (cm.Materia != null ? cm.Materia.MaDenominacion : "") })
@@ -285,7 +285,7 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
             ViewData["UsId"] = new SelectList(estudiantes, "UsId", "FullName", inscripciones.UsId);
 
-            var cam = await _context.CarrerasMaterias
+            var cam = await _context.CarreraMaterias
                 .Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .Select(cm => new { cm.CaMaId, Display = (cm.Carrera != null ? cm.Carrera.CaDenominacion : "") + " - " + (cm.Materia != null ? cm.Materia.MaDenominacion : "") })

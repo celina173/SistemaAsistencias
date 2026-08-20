@@ -4,6 +4,7 @@ using ISFDyT124.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ISFDyT124.Migrations
 {
     [DbContext(typeof(InstitutoDbContext))]
-    partial class InstitutoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260819165114_AgregarInscripcionesYCarrerasMaterias")]
+    partial class AgregarInscripcionesYCarrerasMaterias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,10 +28,7 @@ namespace ISFDyT124.Migrations
             modelBuilder.Entity("ISFDyT124.Models.Asistencia", b =>
                 {
                     b.Property<int>("AsId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AsId"));
 
                     b.Property<DateTime?>("AsFecha")
                         .IsRequired()
@@ -66,10 +66,7 @@ namespace ISFDyT124.Migrations
             modelBuilder.Entity("ISFDyT124.Models.Carrera", b =>
                 {
                     b.Property<int>("CaId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaId"));
 
                     b.Property<string>("CaDenominacion")
                         .IsRequired()
@@ -169,10 +166,7 @@ namespace ISFDyT124.Migrations
             modelBuilder.Entity("ISFDyT124.Models.Materia", b =>
                 {
                     b.Property<int>("MaId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaId"));
 
                     b.Property<int?>("MaCantModulos")
                         .IsRequired()

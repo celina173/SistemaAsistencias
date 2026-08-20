@@ -67,7 +67,7 @@ namespace ISFDyT124.Controllers
             // If both Carrera and Materia were selected, resolve the corresponding CaMaId
             if (selectedCarreraId.HasValue && selectedMateriaId.HasValue)
             {
-                var caMa = await _context.CarrerasMaterias
+                var caMa = await _context.CarreraMaterias
                     .FirstOrDefaultAsync(cm => cm.CaId == selectedCarreraId.Value && cm.MaId == selectedMateriaId.Value);
 
                 if (caMa != null)
@@ -117,7 +117,7 @@ namespace ISFDyT124.Controllers
 
             // determine number of modules for this materia
             int maCantModulos = 1; // default
-            var caMa = await _context.CarrerasMaterias.FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
+            var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
             if (caMa != null)
             {
                 var materia = await _context.Materias.FindAsync(caMa.MaId);
@@ -145,7 +145,7 @@ namespace ISFDyT124.Controllers
             ViewData["MaCantModulos"] = maCantModulos;
             model.ModuleCount = maCantModulos;
 
-            var caMaName = await _context.CarrerasMaterias
+            var caMaName = await _context.CarreraMaterias
                 .Where(cm => cm.CaMaId == CaMaId)
                 .FirstOrDefaultAsync();
             ViewData["CaMaDenominacion"] = caMaName;
@@ -163,7 +163,7 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            var carreraMateria = await _context.CarrerasMaterias.FindAsync(model.CaMaId.Value);
+            var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
 
             int moduleCount = model.ModuleCount > 0 ? model.ModuleCount : 1;
             foreach (var row in model.Rows)

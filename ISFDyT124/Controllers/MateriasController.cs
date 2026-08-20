@@ -1,9 +1,8 @@
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ISFDyT124.Models;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
+using ISFDyT124.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 public class MateriasController : Controller
 {
@@ -17,18 +16,7 @@ public class MateriasController : Controller
     // GET: MATERIAS
     public async Task<IActionResult> Index()
     {
-        var materias = await _context.Materias
-            .Select(m => new MateriaDetalleDto
-            {
-                MaId = m.MaId,
-                MaDenominacion = m.MaDenominacion,
-                MaModalidad = m.MaModalidad,
-                MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
-            })
-            .ToListAsync();
-
-        return View(materias);
+        return View(await _context.Materias.Include(m => m.CarreraMaterias).ToListAsync());
     }
 
     // GET: MATERIAS/Details/5
@@ -38,53 +26,37 @@ public class MateriasController : Controller
         {
             return NotFound();
         }
-
         var materia = await _context.Materias
-            .Where(m => m.MaId == MaId)
-            .Select(m => new MateriaDetalleDto
-            {
-                MaId = m.MaId,
-                MaDenominacion = m.MaDenominacion,
-                MaModalidad = m.MaModalidad,
-                MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
-            })
-            .FirstOrDefaultAsync();
-
+            .Include(m => m.CarreraMaterias)
+            .FirstOrDefaultAsync(m => m.MaId == MaId);
         if (materia == null)
         {
             return NotFound();
         }
-
         return View(materia);
     }
 
     // GET: MATERIAS/Create
     public IActionResult Create()
     {
-        return View(new MateriaCrearDto());
+        return View();
     }
 
     // POST: MATERIAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(MateriaCrearDto materiaDto)
+    public async Task<IActionResult> Create(
+        [Bind("MaDenominacion, MaModalidad, MaCantModulos")] Materia materia
+    )
     {
         if (ModelState.IsValid)
         {
-            var materia = new Materia
-            {
-                MaDenominacion = materiaDto.MaDenominacion ?? string.Empty,
-                MaModalidad = materiaDto.MaModalidad,
-                MaCantModulos = materiaDto.MaCantModulos
-            };
-
             _context.Add(materia);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        return View(materiaDto);
+        return View(materia);
     }
 
     // GET: MATERIAS/Edit/5
@@ -101,60 +73,43 @@ public class MateriasController : Controller
             return NotFound();
         }
 
-        var materiaDto = new MateriaCrearDto
-        {
-            MaId = materia.MaId,
-            MaDenominacion = materia.MaDenominacion,
-            MaModalidad = materia.MaModalidad,
-            MaCantModulos = materia.MaCantModulos
-        };
-
-        return View(materiaDto);
+        return View(materia);
     }
 
     // POST: MATERIAS/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? MaId, MateriaCrearDto materiaDto)
+    public async Task<IActionResult> Edit(
+        int? MaId,
+        [Bind("MaId,MaDenominacion, MaModalidad , MaCantModulos")] Materia materia
+    )
     {
-        if (MaId != materiaDto.MaId)
+        if (MaId != materia.MaId)
         {
             return NotFound();
         }
 
-        if (!ModelState.IsValid)
+        if (ModelState.IsValid)
         {
-            return View(materiaDto);
-        }
-
-        var materia = await _context.Materias.FindAsync(MaId);
-        if (materia == null)
-        {
-            return NotFound();
-        }
-
-        materia.MaDenominacion = materiaDto.MaDenominacion ?? string.Empty;
-        materia.MaModalidad = materiaDto.MaModalidad;
-        materia.MaCantModulos = materiaDto.MaCantModulos;
-
-        try
-        {
-            _context.Update(materia);
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!MateriaExists(materia.MaId))
+            try
             {
-                return NotFound();
+                _context.Update(materia);
+                await _context.SaveChangesAsync();
             }
-            else
+            catch (DbUpdateConcurrencyException)
             {
-                throw;
+                if (!MateriaExists(materia.MaId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
+            return RedirectToAction(nameof(Index));
         }
-
-        return RedirectToAction(nameof(Index));
+        return View(materia);
     }
 
     // GET: MATERIAS/Delete/5
@@ -166,16 +121,8 @@ public class MateriasController : Controller
         }
 
         var materia = await _context.Materias
-            .Where(m => m.MaId == MaId)
-            .Select(m => new MateriaDetalleDto
-            {
-                MaId = m.MaId,
-                MaDenominacion = m.MaDenominacion,
-                MaModalidad = m.MaModalidad,
-                MaCantModulos = m.MaCantModulos,
-                CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count : 0
-            })
-            .FirstOrDefaultAsync();
+            .Include(m => m.CarreraMaterias)
+            .FirstOrDefaultAsync(m => m.MaId == MaId);
 
         if (materia == null)
         {
@@ -194,9 +141,8 @@ public class MateriasController : Controller
         if (materia != null)
         {
             _context.Materias.Remove(materia);
-            await _context.SaveChangesAsync();
         }
-
+        await _context.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
     }
 

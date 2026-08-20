@@ -23,7 +23,6 @@ namespace ISFDyT124.Data
         public DbSet<CarreraCohorte> CarreraCohortes { get; set; } = null!;
         public DbSet<CarreraMateria> CarreraMaterias { get; set; } = null!;
         public DbSet<UsuarioRol> UsuarioRoles { get; set; } = null!;
-        public DbSet<CarrerasMaterias> CarrerasMaterias { get; set; } = null!;
         public DbSet<Inscripciones> Inscripciones { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -35,12 +34,10 @@ namespace ISFDyT124.Data
             modelBuilder.Entity<Usuario>().Property(u => u.UsId).ValueGeneratedNever();
             //modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();
             //modelBuilder.Entity<Login>().Property(l => l.LoId).ValueGeneratedNever();
-            modelBuilder.Entity<Materia>().Property(m => m.MaId).ValueGeneratedNever();
-            modelBuilder.Entity<Carrera>().Property(c => c.CaId).ValueGeneratedNever();
+            // Materia, Carrera y Asistencia pasaron a IDENTITY (columna autoincremental en SQL Server)
             //modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
-            modelBuilder.Entity<Asistencia>().Property(a => a.AsId).ValueGeneratedNever();
             //modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
-            modelBuilder.Entity<CarrerasMaterias>().Property(cm => cm.CaMaId).ValueGeneratedNever();
+            modelBuilder.Entity<CarreraMateria>().ToTable("CarreraMateria");
             modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedNever();
             modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
             modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
@@ -84,20 +81,7 @@ namespace ISFDyT124.Data
                 .HasForeignKey(cc => cc.CoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación CARRERAS_MATERIAS (old) -> CARRERAS y MATERIAS
-            modelBuilder.Entity<CarrerasMaterias>()
-                .HasOne(cm => cm.Carrera)
-                .WithMany()
-                .HasForeignKey(cm => cm.CaId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<CarrerasMaterias>()
-                .HasOne(cm => cm.Materia)
-                .WithMany()
-                .HasForeignKey(cm => cm.MaId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Relación CARRERA_MATERIA (new) -> CARRERAS y MATERIAS
+            // Relación CARRERA_MATERIA -> CARRERAS y MATERIAS
             modelBuilder.Entity<CarreraMateria>()
                 .HasOne(cm => cm.Carrera)
                 .WithMany(c => c.CarreraMaterias)
