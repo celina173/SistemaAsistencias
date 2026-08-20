@@ -1,0 +1,338 @@
+================================================================================
+  INFORME DE ANALISIS - SISTEMA DE ASISTENCIAS ISFDyT 124
+  Proyecto integrador - Carrera Desarrollador de Software
+================================================================================
+
+  1. RESUMEN DEL SISTEMA
+  2. LO QUE YA FUNCIONA
+  3. LO QUE ESTA INCOMPLETO O CON ERRORES
+  4. LO QUE FALTA IMPLEMENTAR
+  5. PRIORIDADES Y RECOMENDACIONES
+  6. ARQUITECTURA TECNICA
+  7. MODELO DE DATOS
+  8. RUTAS DEL SISTEMA
+
+================================================================================
+1. RESUMEN DEL SISTEMA
+================================================================================
+
+  Stack: ASP.NET Core 8.0 MVC + Entity Framework Core 8 + SQL Server (Docker)
+  Frontend: Razor Views + CSS personalizado + JavaScript vanilla
+  Autenticacion: Cookies con ClaimsPrincipal (30 min, sliding expiration)
+
+  Proposito: Digitalizar el registro de asistencias del ISFDyT Nro 124.
+  Organizado en 4 grupos de trabajo:
+    Grupo 1 - Login y recuperacion de contrasena
+    Grupo 2 - ABM Usuarios y panel administrativo
+    Grupo 3 - ABM Carreras y ABM Materias
+    Grupo 4 - Asistencias y Asistencia Global
+
+================================================================================
+2. LO QUE YA FUNCIONA
+================================================================================
+
+  [OK] Autenticacion por cookies (login/logout)
+  [OK] Login con validacion de credenciales
+  [OK] Forzar cambio de contrasena cuando contrasena == DNI (primer ingreso)
+  [OK] CRUD de Carreras (con restriccion de rol Admin)
+  [OK] CRUD de Materias (Index, Create, Edit, Details, Delete)
+  [OK] ABM completo de Usuarios (crear, editar, eliminar, listar)
+  [OK] Dashboard Admin con metricas (alumnos, docentes, materias, carreras, asistencias)
+  [OK] Asignacion de carrera/cohorte a alumnos al crear/editar usuarios
+  [OK] Asignacion de materias a profesores al crear/editar usuarios
+  [OK] Seed de roles (Admin, Profesor, Alumno) y usuario admin por defecto
+  [OK] Menu lateral con navegacion
+  [OK] Relaciones y FK correctamente configuradas en DbContext
+  [OK] DTOs completos para todas las entidades (20 DTOs)
+  [OK] Validaciones del lado servidor con DataAnnotations
+  [OK] jQuery Validation incluido en librerias
+  [OK] Migraciones de Entity Framework (InitialCreate + UsuarioRelationships)
+  [OK] Manejo de errores global con ExceptionHandler -> /Home/Error
+
+================================================================================
+3. LO QUE ESTA INCOMPLETO O CON ERRORES
+================================================================================
+
+  3.1. ASISTENCIAS (Grupo 4) - PRIORIDAD ALTA
+  -------------------------------------------
+  - AsistenciasController.cs: 100% comentado. Ninguna accion funcional.
+  - Views/Home/Asistencia.cshtml: maqueta estatica con datos hardcodeados.
+    Los checkboxes de modulos y justificacion no se conectan a la DB.
+    El boton "Guardar" solo muestra un alert() y redirige sin persistir.
+  - Views/Home/AsistenciaGlobal.cshtml: maqueta estatica con porcentajes
+    hardcodeados. Sin calculos reales desde la DB.
+  - Sin logica de negocio para tomar asistencia (presente/ausente/justificado).
+
+  3.2. SEGURIDAD - CONTRASENAS - PRIORIDAD ALTA
+  ---------------------------------------------
+  - Las contrasenas se almacenan en TEXTO PLANO (sin hashing).
+  - Login compara strings directamente: usuario.UsContrasena != model.Contrasena
+  - Seed data: UsContrasena = "12345678"
+  - Al crear usuario: UsContrasena = model.UsDni.ToString()
+  - No hay hashing (ni BCrypt, ni PBKDF2, ni ASP.NET Identity PasswordHasher).
+  - No hay politica de complejidad de contrasenas.
+
+  3.3. IDs AUTO-INCREMENTALES - PRIORIDAD ALTA
+  --------------------------------------------
+  - DbContext usa ValueGeneratedNever() en TODAS las entidades.
+  - NO se usa IDENTITY en SQL Server para las PKs.
+  - AdminController asigna UsId manualmente (Max(UsId) + 1) -> OK.
+  - MateriasController.Create() NO asigna MaId -> CRASH asegurado.
+  - CarrerasController.Create() NO asigna CaId -> CRASH asegurado.
+  - El modelo acepta CaId desde el formulario via [Bind], pero la vista
+    no tiene campo para CaId -> el valor default es 0 -> viola PK.
+
+  3.4. MATERIAS CONTROLLER - PRIORIDAD MEDIA
+  ------------------------------------------
+  - No tiene [Authorize(Roles = "Admin")]. Cualquier usuario autenticado
+    puede acceder al CRUD de materias.
+  - Las vistas de Materias usan clases Bootstrap default (form-control,
+    btn btn-primary, table) que NO coinciden con el diseno personalizado
+    del sistema (clases custom como custom-select, btn-guardar, crud-table).
+
+  3.5. PAGINA DE ACCESO DENEGADO - PRIORIDAD ALTA
+  -----------------------------------------------
+  - Program.cs configura: AccessDeniedPath = "/Home/Privacy"
+  - Home/Privacy.cshtml NO EXISTE -> causa error 404 cuando un usuario
+    sin permisos accede a una pagina restringida.
+
+  3.6. CAMBIO DE CONTRASENA - PRIORIDAD MEDIA
+  -------------------------------------------
+  - No se verifica la contrasena actual antes de cambiarla.
+  - No se valida que la nueva contrasena sea diferente a la anterior.
+  - Las vistas de Login y CambiarContrasena NO usan el layout principal
+    y NO incluyen validacion del lado cliente (jQuery Validation).
+
+  3.7. MENSAJES DE EXITO/ERROR - PRIORIDAD MEDIA
+  ----------------------------------------------
+  - No hay TempData["Success"] ni TempData["Error"] en ningun controller.
+  - No hay notificaciones visuales (toast, alert, banner) tras operaciones
+    exitosas.
+  - Solo se usa alert() de JavaScript en algunas vistas.
+
+  3.8. CARRERAS CONTROLLER - PRIORIDAD BAJA
+  -----------------------------------------
+  - Usa el modelo directamente con [Bind] en lugar de DTOs.
+  - [Bind] expone propiedades de navegacion (CarrerasCohortes,
+    CarrerasMaterias) a overposting.
+  - No hay validacion de unicidad en denominacion.
+
+  3.9. ERRORES EN ARCHIVOS ESTATICOS - PRIORIDAD BAJA
+  ----------------------------------------------------
+  - wwwroot/css/style.css: regla ::-webkit-scrollbar-thumb anidada
+    incorrectamente dentro de ::-webkit-scrollbar-track (llaves mal cerradas).
+  - wwwroot/js/script.js: intenta cargar datos de usuarios desde
+    localStorage con IDs que NO coinciden con los nombres de campo reales
+    del formulario (ej: busca "apellidos" pero el input es "UsApellido").
+
+================================================================================
+4. LO QUE FALTA IMPLEMENTAR
+================================================================================
+
+  4.1. MODULO DE ASISTENCIAS COMPLETO
+  -----------------------------------
+  - Descomentar y desarrollar AsistenciasController:
+    * Index: listar asistencias con filtros (materia, fecha, alumno)
+    * Create (GET): formulario para tomar asistencia, seleccionando
+      materia, fecha, y mostrando lista de alumnos inscriptos
+    * Create (POST): guardar asistencia (presente/ausente/justificado)
+      para cada alumno en la DB
+    * Edit: modificar una asistencia existente
+    * Delete: eliminar una asistencia
+  - Desarrollar logica de negocio en HomeController (o AsistenciasController):
+    * Asistencia: mostrar alumnos de una materia para tomar asistencia
+    * AsistenciaGlobal: calcular y mostrar porcentajes de asistencia
+      por alumno/materia desde datos reales de la DB
+  - Conectar vistas de Asistencia y AsistenciaGlobal con datos reales.
+
+  4.2. HASHING DE CONTRASENAS
+  ---------------------------
+  - Implementar ASP.NET Core Identity PasswordHasher o BCrypt.
+  - Hashear contrasena al crear usuario (AdminController.UsuarioAgregar).
+  - Hashear contrasena al cambiar contrasena (AccountController.CambiarContrasena).
+  - Hashear contrasena en seed data (Program.cs).
+  - Verificar contrasena hasheada en Login.
+
+  4.3. RECUPERACION DE CONTRASENA
+  -------------------------------
+  - Implementar ForgotPassword (GET/POST): formulario para ingresar email.
+  - Envio de email con token de recuperacion.
+  - Implementar ResetPassword (GET/POST): formulario para nueva contrasena.
+  - El link "Olvide mi Contrasena" en Login.cshtml actualmente apunta a "#".
+
+  4.4. VERIFICACION EN CAMBIO DE CONTRASENA
+  -----------------------------------------
+  - Agregar campo "Contrasena actual" en el formulario de cambio.
+  - Verificar que la contrasena actual ingresada coincida con la almacenada.
+  - Validar que la nueva contrasena sea diferente a la actual.
+
+  4.5. PAGINA DE ACCESO DENEGADO
+  ------------------------------
+  - Crear Views/Home/Privacy.cshtml (o la pagina que corresponda).
+  - O cambiar AccessDeniedPath en Program.cs a una ruta valida.
+
+  4.6. PAGINA 404 PERSONALIZADA
+  -----------------------------
+  - Crear una vista amigable para errores 404.
+  - Configurar UseStatusCodePagesWithReExecute en Program.cs.
+
+  4.7. CORREGIR IDs AUTO-INCREMENTALES
+  ------------------------------------
+  - Opcion A: Cambiar ValueGeneratedNever() por ValueGeneratedOnAdd()
+    en DbContext y configurar las PKs como IDENTITY en SQL Server.
+  - Opcion B: Asignar manualmente el ID en todos los Create (como ya
+    se hace en AdminController). Aplicar a MateriasController y
+    CarrerasController.
+  - Opcion C (recomendada): Migrar a IDENTITY generado por BD.
+
+  4.8. RESTRINGIR MATERIAS CONTROLLER A ADMIN
+  -------------------------------------------
+  - Agregar [Authorize(Roles = "Admin")] a MateriasController.
+  - Unificar estilo de vistas de Materias con el diseno personalizado.
+
+  4.9. MENSAJES DE FEEDBACK
+  -------------------------
+  - Implementar TempData con mensajes success/error en todos los controllers.
+  - Agregar partial view para mostrar notificaciones en el layout.
+  - Reemplazar alert() de JavaScript por notificaciones visuales.
+
+  4.10. LOGGING Y AUDITORIA
+  -------------------------
+  - Registrar intentos de login exitosos y fallidos.
+  - Registrar operaciones CRUD de usuarios, carreras, materias.
+  - Usar ILogger en los controllers.
+
+  4.11. MEJORAS UX/UI
+  --------------------
+  - Paginacion en listados de usuarios, carreras, materias.
+  - Filtros de busqueda por backend (no solo del lado cliente).
+  - Graficos en dashboard admin.
+
+  4.12. CONTROLLERS ADICIONALES (BAJA PRIORIDAD)
+  -----------------------------------------------
+  - Existen DTOs para Cohorte, CarreraCohorte, CarreraMateria, UsuarioRol
+    pero no hay controllers para gestionarlos directamente.
+
+================================================================================
+5. PRIORIDADES Y RECOMENDACIONES
+================================================================================
+
+  PRIORIDAD ALTA (IMPIDEN EL FUNCIONAMIENTO BASICO):
+  ---------------------------------------------------
+  1. AsistenciasController descomentar y desarrollar (logica completa)
+  2. Vistas de Asistencia y AsistenciaGlobal con datos reales
+  3. Hashing de contrasenas (BCrypt o PasswordHasher)
+  4. Corregir IDs auto-incrementales (Materias/Carreras Create crashean)
+  5. Pagina de acceso denegado (Home/Privacy.cshtml no existe -> 404)
+
+  PRIORIDAD MEDIA (AFECTAN SEGURIDAD O EXPERIENCIA):
+  ---------------------------------------------------
+  6. Agregar [Authorize(Roles = "Admin")] a MateriasController
+  7. Verificar contrasena actual en cambio de contrasena
+  8. Mensajes de exito/error con TempData
+  9. Recuperacion de contrasena (Forgot/Reset Password)
+  10. Pagina 404 personalizada
+  11. Unificar estilo de vistas de Materias
+
+  PRIORIDAD BAJA (MEJORAS A FUTURO):
+  -----------------------------------
+  12. Logging y auditoria
+  13. Graficos en dashboard
+  14. Paginacion en listados
+  15. Filtros de busqueda por backend
+  16. Controllers para Cohorte, CarreraCohorte, etc.
+  17. Corregir errores en CSS y script.js
+
+================================================================================
+6. ARQUITECTURA TECNICA
+================================================================================
+
+  Lenguaje: C# 12 (.NET 8)
+  Framework: ASP.NET Core 8.0 MVC
+  ORM: Entity Framework Core 8.0.27
+  BD: SQL Server (localhost:1433, Docker)
+  Autenticacion: Cookies con ClaimsPrincipal
+  Frontend: Razor Views + CSS + JavaScript vanilla + jQuery
+
+  Estructura de directorios:
+  -------------------------
+  ISFDyT124/
+    |- Controllers/   (6 controladores)
+    |- Models/        (10 modelos de dominio)
+    |- DTO/           (20 objetos de transferencia de datos)
+    |- Views/         (vistas Razor por controlador)
+    |- Data/          (DbContext con Fluent API)
+    |- Migrations/    (2 migraciones + snapshot)
+    |- wwwroot/       (css, js, images, lib)
+    |- Properties/    (launchSettings)
+    |- Program.cs     (punto de entrada y configuracion)
+
+================================================================================
+7. MODELO DE DATOS
+================================================================================
+
+  Tablas (9):
+
+  Roles (RoId PK, RoDenominacion)
+  Usuarios (UsId PK, UsApellido, UsNombre, UsDni UNIQUE, UsEmail,
+            UsContrasena, RoId FK->Roles, CaCoId FK->CarreraCohorte nullable)
+  UsuarioRoles (UsRoId PK, UsId FK->Usuarios, RoId FK->Roles)
+  Carreras (CaId PK, CaDenominacion)
+  Cohortes (CoId PK, CoAnio)
+  Materias (MaId PK, MaDenominacion, MaModalidad, MaCantModulos)
+  CarreraCohortes (CaCoId PK, CaId FK->Carreras, CoId FK->Cohortes)
+  CarreraMaterias (CaMaId PK, CaId FK->Carreras, MaId FK->Materias)
+  Asistencias (AsId PK, AsFecha, AsPresente, AsJustificacion,
+               UsId FK->Usuarios, MaId FK->Materias)
+  UsuarioCarreraMateria (tabla intermedia M:N Usuario <-> CarreraMateria)
+
+  Nota: Ninguna PK usa auto-incremento IDENTITY. Se asignan manualmente.
+
+================================================================================
+8. RUTAS DEL SISTEMA
+================================================================================
+
+  Account:
+    GET  /Account/Login
+    POST /Account/Login
+    GET  /Account/CambiarContrasena
+    POST /Account/CambiarContrasena
+    GET  /Account/Salir
+
+  Home:
+    GET  /  o  /Home/Index
+    GET  /Home/Asistencia          (vista estatica)
+    GET  /Home/AsistenciaGlobal    (vista estatica)
+
+  Admin (requiere rol Admin):
+    GET  /Admin
+    GET  /Admin/UsuariosABM
+    GET  /Admin/UsuarioAgregar
+    POST /Admin/UsuarioAgregar
+    GET  /Admin/UsuarioEditar/{id}
+    POST /Admin/UsuarioEditar/{id}
+    POST /Admin/UsuarioEliminar/{id}
+
+  Carreras (requiere rol Admin):
+    GET  /Carreras
+    GET  /Carreras/Create
+    POST /Carreras/Create
+    GET  /Carreras/Edit/{id}
+    POST /Carreras/Edit/{id}
+    GET  /Carreras/Details/{id}
+    GET  /Carreras/Delete/{id}
+    POST /Carreras/Delete/{id}
+
+  Materias (requiere solo autenticacion - DEBERIA requerir Admin):
+    GET  /Materias
+    GET  /Materias/Create
+    POST /Materias/Create
+    GET  /Materias/Edit/{id}
+    POST /Materias/Edit/{id}
+    GET  /Materias/Details/{id}
+    GET  /Materias/Delete/{id}
+    POST /Materias/Delete/{id}
+
+================================================================================
+FIN DEL INFORME
+================================================================================

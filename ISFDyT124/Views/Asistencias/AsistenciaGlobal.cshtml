@@ -1,0 +1,108 @@
+﻿@model ISFDyT124.Models.AsistenciaGlobalViewModel
+
+@{
+    ViewData["Title"] = "Asistencia Global";
+    ViewData["BodyClass"] = "global-page";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia Global - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="global-page">
+
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <main class="main-container-global">
+
+        <div class="info-banner">
+            <div class="info-col-left">
+                <p>30/04/2026 12:32hs</p>
+                <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+            </div>
+            <div class="info-col-right">
+                <p class="info-bold">Magali Bobet</p>
+                <p class="info-bold">Prácticas Profesionalizantes III</p>
+            </div>
+        </div>
+
+        <div class="global-table-container">
+            <table class="global-table">
+                <thead>
+                    <tr>
+                        <th colspan="@((Model.Fechas?.Count ?? 0) + 2)" class="title-cell">Asistencia Global</th>
+                    </tr>
+                    <tr>
+                        <th class="align-left">Alumnos</th>
+                        @if (Model.Fechas != null)
+                        {
+                            foreach (var f in Model.Fechas)
+                            {
+                                <th>@f.ToString("dd/MM")</th>
+                            }
+                        }
+                        <th class="icon-cell" style="border-left: 2px solid #e2e8f0;">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Rows != null && Model.Rows.Count > 0)
+                    {
+                        foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td class="align-left">@row.FullName</td>
+                                @if (Model.Fechas != null)
+                                {
+                                    foreach (var f in Model.Fechas)
+                                    {
+                                        <td>@(row.AsistenciaPorFecha.ContainsKey(f) ? (row.AsistenciaPorFecha[f].ToString("0.#") + "%") : "0%")</td>
+                                    }
+                                }
+                                <td class="total-col">@row.PorcentajeAsistencia.ToString("0.#")%</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@((Model.Fechas?.Count ?? 0) + 2)">No hay registros para la materia seleccionada.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
