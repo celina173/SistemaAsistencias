@@ -84,6 +84,14 @@ namespace ISFDyT124.Data
                 .HasForeignKey(cc => cc.CoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Relación USUARIOS -> CARRERA_COHORTE (alumno inscripto en carrera/cohorte, opcional):
+            // coincide con el comportamiento SET NULL ya existente en la base real.
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.CarreraCohorte)
+                .WithMany()
+                .HasForeignKey(u => u.CaCoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Relación CARRERAS_MATERIAS (old) -> CARRERAS y MATERIAS
             modelBuilder.Entity<CarrerasMaterias>()
                 .HasOne(cm => cm.Carrera)
@@ -121,7 +129,7 @@ namespace ISFDyT124.Data
                 .HasOne(ur => ur.Rol)
                 .WithMany(r => r.UsuarioRoles)
                 .HasForeignKey(ur => ur.RoId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
             modelBuilder.Entity<Asistencia>()
@@ -135,6 +143,28 @@ namespace ISFDyT124.Data
                 .WithMany(m => m.Asistencias)
                 .HasForeignKey(a => a.MaId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Relación ASISTENCIAS -> CARRERA_MATERIA (opcional): usa CaMaId como FK real
+            // en vez de dejar que EF invente una columna sombra (CarreraMateriaCaMaId).
+            modelBuilder.Entity<Asistencia>()
+                .HasOne(a => a.CarreraMateria)
+                .WithMany()
+                .HasForeignKey(a => a.CaMaId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Relación INSCRIPCIONES -> USUARIOS y CARRERA_MATERIA: usa UsId/CaMaId reales
+            // en vez de dejar que EF invente columnas sombra (UsuariosUsId, CarreraMateriaCaMaId).
+            modelBuilder.Entity<Inscripciones>()
+                .HasOne(i => i.Usuarios)
+                .WithMany()
+                .HasForeignKey(i => i.UsId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Inscripciones>()
+                .HasOne(i => i.CarreraMateria)
+                .WithMany()
+                .HasForeignKey(i => i.CaMaId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Muchos a muchos Usuario <-> CarreraMateria (docentes asignados a cátedras),
             // mapeada a la tabla existente UsuarioCarreraMateria (columnas CarreraMateriasCaMaId / UsuariosUsId).
