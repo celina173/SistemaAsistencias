@@ -152,11 +152,6 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // La PK de ASISTENCIAS no es autoincremental: se calcula manualmente.
-            int proximoAsId = _context.Asistencias.Any()
-                ? await _context.Asistencias.MaxAsync(a => a.AsId) + 1
-                : 1;
-
             foreach (var dto in asistencias)
             {
                 if (dto.UsId == null) continue;
@@ -179,7 +174,6 @@ namespace ISFDyT124.Controllers
                 {
                     _context.Asistencias.Add(new Asistencia
                     {
-                        AsId = proximoAsId++,
                         AsFecha = fecha.Date,
                         AsPresente = presente,
                         AsJustificacion = justificado,
