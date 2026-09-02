@@ -1498,6 +1498,14 @@ body {
             border-bottom-color: var(--primary-color);
         }
 
+/* Texto de error de validación (jQuery Unobtrusive Validation), ya que Bootstrap no está cargado */
+.text-danger {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+}
+
 /* Botones del Formulario */
 .form-buttons {
     display: flex;
@@ -1657,6 +1665,14 @@ body {
     .input-field select:focus {
         border-bottom-color: var(--primary-color);
     }
+
+/* Texto de error de validación (jQuery Unobtrusive Validation), ya que Bootstrap no está cargado */
+.text-danger {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: block;
+}
 
 /* Botones del Formulario */
 .form-buttons {

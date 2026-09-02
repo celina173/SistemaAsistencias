@@ -20,19 +20,25 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <dl class="row">
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaDenominacion)</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaDenominacion)</dd>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaDenominacion)</label>
+            <input value="@Model.MaDenominacion" readonly>
+        </div>
 
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaModalidad)</dt>
-            <dd class="col-sm-8">@(Model.MaModalidad ?? "-")</dd>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaModalidad)</label>
+            <input value="@(Model.MaModalidad ?? "-")" readonly>
+        </div>
 
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaCantModulos)</dt>
-            <dd class="col-sm-8">@(Model.MaCantModulos?.ToString() ?? "-")</dd>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaCantModulos)</label>
+            <input value="@(Model.MaCantModulos?.ToString() ?? "-")" readonly>
+        </div>
 
-            <dt class="col-sm-4">Carreras relacionadas</dt>
-            <dd class="col-sm-8">@(Model.CarreraMaterias?.Count ?? 0)</dd>
-        </dl>
+        <div class="input-field">
+            <label>Carreras relacionadas</label>
+            <input value="@(Model.CarreraMaterias?.Count ?? 0)" readonly>
+        </div>
 
         <div class="form-buttons">
             <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Volver</a>

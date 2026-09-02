@@ -22,16 +22,20 @@
     <div class="form-card">
         <h3>¿Está seguro de eliminar esta materia?</h3>
 
-        <dl class="row">
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaDenominacion)</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaDenominacion)</dd>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaDenominacion)</label>
+            <input value="@Model.MaDenominacion" readonly>
+        </div>
 
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaModalidad)</dt>
-            <dd class="col-sm-8">@(Model.MaModalidad ?? "-")</dd>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaModalidad)</label>
+            <input value="@(Model.MaModalidad ?? "-")" readonly>
+        </div>
 
-            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaCantModulos)</dt>
-            <dd class="col-sm-8">@(Model.MaCantModulos?.ToString() ?? "-")</dd>
-        </dl>
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaCantModulos)</label>
+            <input value="@(Model.MaCantModulos?.ToString() ?? "-")" readonly>
+        </div>
 
         <form asp-action="Delete">
             <input type="hidden" asp-for="MaId" />
