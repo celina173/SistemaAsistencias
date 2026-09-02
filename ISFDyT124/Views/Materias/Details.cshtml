@@ -1,48 +1,42 @@
 @model ISFDyT124.Models.Materia
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalle Materia";
+    ViewData["BodyClass"] = "agregar-page";
 }
 
-<h1>Details</h1>
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
+</div>
 
-<div>
-    <h4>Materia</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaDenominacion)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaDenominacion)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaModalidad)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaModalidad)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaCantModulos)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaCantModulos)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Carreras relacionadas
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.CarreraMaterias?.Count ?? 0)
-        </dd>
-    </dl>
+<div class="page-title-container">
+    <h2 class="page-main-title">Detalle Materia</h2>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-MaId="@Model?.MaId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <dl class="row">
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaDenominacion)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaDenominacion)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaModalidad)</dt>
+            <dd class="col-sm-8">@(Model.MaModalidad ?? "-")</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MaCantModulos)</dt>
+            <dd class="col-sm-8">@(Model.MaCantModulos?.ToString() ?? "-")</dd>
+
+            <dt class="col-sm-4">Carreras relacionadas</dt>
+            <dd class="col-sm-8">@(Model.CarreraMaterias?.Count ?? 0)</dd>
+        </dl>
+
+        <div class="form-buttons">
+            <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Volver</a>
+            <a asp-action="Edit" asp-route-MaId="@Model.MaId" class="btn-save" style="text-decoration:none; text-align:center;">Editar</a>
+        </div>
+    </div>
+</main>
