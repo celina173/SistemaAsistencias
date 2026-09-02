@@ -1,6 +1,13 @@
-# Vistas de Materias — el problema y cómo se solucionó
+# Vistas de Materias, Usuarios y Carreras — investigación y solución
 
-## El problema
+Se investigaron los tres módulos por el mismo motivo: sospecha de que el
+CRUD no estaba mostrando el diseño real hecho por el equipo. El resultado
+fue distinto en cada uno — **Materias sí estaba roto, Usuarios y Carreras
+ya estaban bien** — y acá queda documentado el porqué de cada caso.
+
+## Módulo Materias — tenía el problema
+
+### El problema
 
 Al entrar a **Materias** desde el panel Admin, no se veía el diseño del resto
 de la aplicación: aparecía una tabla pelada, sin estilos, con textos como
@@ -31,7 +38,7 @@ que **no existen en el modelo real** de `Materia` (código de materia, carrera,
 año/cuatrimestre, carga horaria en horas) — el modelo real solo tiene
 `MaDenominacion`, `MaModalidad` y `MaCantModulos`.
 
-## Cómo se solucionó
+### Cómo se solucionó
 
 Se tomó el diseño visual de esos tres archivos (mismas clases CSS, misma
 estructura, mismos íconos) y se convirtió en las 5 vistas Razor reales que
@@ -65,7 +72,7 @@ Los archivos de mockup originales (`gestion-materias.cshtml`,
 `agregar-materia.cshtml`, `modificar-materia.cshtml`) quedan sin usar en
 `Views/Admin/` — no se borraron, pero ya no hace falta tocarlos.
 
-## Verificación
+### Verificación
 
 Se probó el flujo completo como Admin, de punta a punta (no solo que
 compile): entrar al listado, dar de alta una materia nueva, verla en la
@@ -73,10 +80,48 @@ grilla, editarla, ver su detalle, y eliminarla — confirmando en cada paso
 que el dato quedaba bien guardado en la base y que la pantalla mostraba el
 diseño real, no la plantilla genérica.
 
-## Archivos modificados
+### Archivos modificados
 
 - `ISFDyT124/Views/Materias/Index.cshtml`
 - `ISFDyT124/Views/Materias/Create.cshtml`
 - `ISFDyT124/Views/Materias/Edit.cshtml`
 - `ISFDyT124/Views/Materias/Details.cshtml`
 - `ISFDyT124/Views/Materias/Delete.cshtml`
+
+## Módulo Usuarios — ya estaba bien, no se tocó
+
+Usuarios no tiene un controlador propio de scaffolding: se maneja todo desde
+`AdminController` (`UsuariosABM`, `UsuarioAgregar`, `UsuarioEditar`,
+`UsuarioEliminar`), con sus vistas en `Views/Admin/`. Se revisaron las tres
+vistas con contenido (`UsuariosABM.cshtml`, `UsuarioAgregar.cshtml`,
+`UsuarioEditar.cshtml`) y **ya usan el diseño real**: `.admin-banner`,
+`.crud-table-container` / `.crud-table` en el listado, y
+`.main-container-agregar` / `.form-card-agregar` / `.input-group` en los
+formularios, con `asp-for` conectado a los DTOs reales.
+
+Se probó en vivo (logueado como Admin): `/Admin/UsuariosABM` y
+`/Admin/UsuarioAgregar` cargan en `200` con las clases de diseño presentes,
+sin errores. No hizo falta ningún cambio.
+
+(`UsuarioEliminar` no tiene una pantalla de confirmación propia — se dispara
+por `confirm()` de JavaScript directo desde el botón de la lista. Es una
+decisión de diseño válida, no un problema de vista rota.)
+
+## Módulo Carreras — ya estaba bien, no se tocó
+
+`CarrerasController` sí tiene sus 5 vistas dedicadas en `Views/Carreras/`
+(`Index`, `Create`, `Edit`, `Details`, `Delete`), y las 5 **ya estaban
+migradas al diseño real** antes de esta revisión: usan `.admin-banner`,
+`.main-container-gestion` / `.crud-table` en el listado, y
+`.main-container-agregar` / `.form-card-agregar` / `.input-group` en los
+formularios — la misma familia de clases que terminó usando `Usuarios`.
+
+Se probó en vivo, de punta a punta: se dio de alta una carrera de prueba
+(`POST /Carreras/Create` → `302` a `/Carreras`, apareció en el listado con
+el diseño aplicado) y se eliminó después para no dejar datos sueltos. No
+hizo falta ningún cambio.
+
+(Sí quedan, sin usar, prototipos HTML sueltos análogos a los de Materias —
+`Views/Admin/gestion-carreras.cshtml`, `agregar-carrera.cshtml`,
+`modificar-carrera.cshtml` — pero como las vistas reales de `Carreras` ya
+tienen su propio diseño terminado y funcionando, no hace falta tocarlos.)
