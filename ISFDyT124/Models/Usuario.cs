@@ -40,6 +40,12 @@ namespace ISFDyT124.Models
         public int UsDni { get; set; }
 
 
+
+
+
+
+
+
         //EMAIL
         [Required]
         [EmailAddress(ErrorMessage = "Ingrese una dirección de mail válida")]
