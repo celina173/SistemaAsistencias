@@ -6,13 +6,13 @@ namespace ISFDyT124.DTO
     public class UsuarioCrearDto
     {
         //APELLIDO
-        [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un apellido válido.")] 
+        [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un apellido válido.")]
         [MaxLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")] // Limita longitud a 100 caracteres 
         [Required(ErrorMessage = "Debe ingresar un Apellido")] // Campo obligatorio
         [Display(Name = "Apellido")] // Etiqueta para vistas
         public string? UsApellido { get; set; } = null!; // Propiedad para el apellido - Negado nulo
 
-      
+
         //NOMBRE
         [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un nombre válido.")]// Valida que el nombre solo contenga letras y espacios 
         [MaxLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")] // Limita longitud a 100 caracteres 
@@ -26,7 +26,7 @@ namespace ISFDyT124.DTO
         [EmailAddress(ErrorMessage = "Ingrese una dirección de mail válida")]
         [Display(Name = "Email")]
         public string? UsEmail { get; set; }
-       
+
 
         //DNI
         [RegularExpression(@"^[1-9][0-9]*$", ErrorMessage = "Sólo se permiten números de DNI válidos.")]
@@ -36,7 +36,7 @@ namespace ISFDyT124.DTO
         public int UsDni { get; set; }
 
 
-      
+
 
         //Relacion de Usuario - Rol
         [ForeignKey("Rol")] // Indica que la propiedad RolId es clave foránea hacia la entidad Rol
@@ -50,7 +50,7 @@ namespace ISFDyT124.DTO
         [Display(Name = "Carrera / Cohorte")]
         [ForeignKey("CarreraCohorte")]
         public int? CaCoId { get; set; }
-        
+
 
 
 
