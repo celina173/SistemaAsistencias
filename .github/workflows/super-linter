@@ -1,0 +1,72 @@
+---
+name: Lint and Fix
+
+on:
+  push:
+    branches: [ "master", "Development" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  lint-and-fix:
+    name: Lint & Create Fix PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Super-linter
+        uses: super-linter/super-linter@v8.7.0
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true
+          DEFAULT_BRANCH: master
+
+          FILTER_REGEX_EXCLUDE: ^\.github/workflows/
+
+          # --- .NET Solution Checks & Fixes ---
+          VALIDATE_DOTNET_SLN_FORMAT_WHITESPACE: true
+          VALIDATE_DOTNET_SLN_FORMAT_STYLE: true
+          VALIDATE_DOTNET_SLN_FORMAT_ANALYZERS: true
+          VALIDATE_CSHARP: true
+          FIX_DOTNET_SLN_FORMAT_WHITESPACE: true
+          FIX_DOTNET_SLN_FORMAT_STYLE: true
+          FIX_DOTNET_SLN_FORMAT_ANALYZERS: true
+          FIX_CSHARP: true
+
+          # --- Config & Documentation Checks & Fixes ---
+          VALIDATE_JSON_PRETTIER: true
+          FIX_JSON_PRETTIER: true
+
+          VALIDATE_YAML_PRETTIER: true
+          FIX_YAML_PRETTIER: true
+
+          VALIDATE_MARKDOWN: true
+          FIX_MARKDOWN: true
+
+      - name: Fix ownership and remove linter output
+        if: always()
+        run: |
+          sudo chown -R $USER:$USER .
+          rm -rf super-linter-output
+          git checkout HEAD -- .github/workflows/
+
+      - name: Create Pull Request with Fixes
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Aplicar arreglos automaticos"
+          title: "Aplicar arreglos automaticos (${{ github.ref_name }})"
+          body: "Formateo y arreglos automaticos aplicados por Super-Linter."
+          base: ${{ github.ref_name }}
+          branch: super-linter-fixes-${{ github.ref_name }}
+          delete-branch: true
