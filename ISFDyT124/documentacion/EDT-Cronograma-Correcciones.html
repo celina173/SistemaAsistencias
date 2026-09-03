@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDT y Cronograma — Correcciones Sistema de Asistencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f3f1ec;
+    --surface: #ffffff;
+    --surface-2: #ece8de;
+    --ink: #23262b;
+    --ink-soft: #63676f;
+    --ink-faint: #92948d;
+    --border: #ddd7c8;
+    --border-strong: #c9c1ab;
+    --primary: #2f6e62;
+    --primary-strong: #1c4038;
+    --primary-tint: #e2ece9;
+    --accent-mvp: #b5721f;
+    --accent-mvp-tint: #f6ead6;
+    --danger: #a5423c;
+    --danger-tint: #f5e2e0;
+    --shadow: 0 1px 2px rgba(35,38,43,0.05), 0 10px 28px -16px rgba(35,38,43,0.22);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14181a;
+      --surface: #1c2124;
+      --surface-2: #22282b;
+      --ink: #e9e7e0;
+      --ink-soft: #a9ada6;
+      --ink-faint: #767b76;
+      --border: #313834;
+      --border-strong: #40483f;
+      --primary: #6fb3a1;
+      --primary-strong: #a3d3c5;
+      --primary-tint: #1d2d29;
+      --accent-mvp: #e0a352;
+      --accent-mvp-tint: #2f2417;
+      --danger: #d98680;
+      --danger-tint: #33201e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -16px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14181a;
+    --surface: #1c2124;
+    --surface-2: #22282b;
+    --ink: #e9e7e0;
+    --ink-soft: #a9ada6;
+    --ink-faint: #767b76;
+    --border: #313834;
+    --border-strong: #40483f;
+    --primary: #6fb3a1;
+    --primary-strong: #a3d3c5;
+    --primary-tint: #1d2d29;
+    --accent-mvp: #e0a352;
+    --accent-mvp-tint: #2f2417;
+    --danger: #d98680;
+    --danger-tint: #33201e;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 28px -16px rgba(0,0,0,0.55);
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img { max-width: 100%; }
+
+  .page { max-width: 920px; margin: 0 auto; padding: 52px 24px 100px; }
+
+  header.hero {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-strong);
+  }
+
+  h1 {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2rem, 4.6vw, 2.6rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .lede { font-size: 1.05rem; color: var(--ink-soft); max-width: 68ch; margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  .milestones { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  .milestone-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .milestone-chip.mvp { border-color: var(--accent-mvp); background: var(--accent-mvp-tint); }
+  .milestone-chip .m-date { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+  .milestone-chip .m-label { font-size: 0.85rem; color: var(--ink-soft); }
+
+  section { margin-bottom: 52px; }
+
+  .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .team-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .team-front { display: flex; align-items: baseline; gap: 8px; font-weight: 600; font-size: 0.92rem; margin-bottom: 8px; }
+  .team-front .code { font-family: "IBM Plex Mono", monospace; color: var(--primary-strong); background: var(--primary-tint); border-radius: 6px; padding: 1px 7px; font-size: 0.78rem; }
+  .team-members { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .team-members li { font-size: 0.9rem; color: var(--ink-soft); }
+  @media (max-width: 640px) { .team-grid { grid-template-columns: 1fr 1fr; } }
+
+  h2 {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 600;
+    font-size: 1.55rem;
+    color: var(--primary-strong);
+    margin: 0 0 8px;
+  }
+
+  .section-intro { color: var(--ink-soft); margin: 0 0 24px; max-width: 70ch; }
+  .section-intro code, td code, .assumptions code { font-family: "IBM Plex Mono", monospace; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; font-size: 0.9em; border: 1px solid var(--border); }
+
+  /* ---- EDT tree ---- */
+  .edt {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 8px 0;
+  }
+
+  .edt-root {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+  .edt-root .code { font-family: "IBM Plex Mono", monospace; color: var(--ink-faint); font-size: 0.85rem; }
+  .edt-root .name { font-family: "Newsreader", serif; font-weight: 600; font-size: 1.15rem; }
+
+  .edt-phase { border-bottom: 1px solid var(--border); }
+  .edt-phase:last-child { border-bottom: none; }
+
+  .edt-phase-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 13px 22px 13px 40px;
+    background: var(--surface-2);
+  }
+  .edt-phase-head .code { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--primary-strong); font-size: 0.85rem; min-width: 22px; }
+  .edt-phase-head .name { font-weight: 600; }
+
+  .edt-items { padding: 4px 0; }
+
+  .edt-item {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 9px 22px 9px 62px;
+  }
+  .edt-item:hover { background: var(--surface-2); }
+  .edt-item .code { font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; color: var(--ink-faint); }
+  .edt-item .name { font-size: 0.96rem; }
+  .edt-item .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    height: fit-content;
+  }
+  .tag.critico { background: var(--danger-tint); color: var(--danger); }
+  .tag.mvp { background: var(--accent-mvp-tint); color: var(--accent-mvp); }
+  .tag.normal { background: var(--primary-tint); color: var(--primary-strong); }
+
+  .edt-milestone {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 12px;
+    align-items: baseline;
+    padding: 13px 22px 13px 40px;
+    background: var(--accent-mvp-tint);
+  }
+  .edt-milestone .code { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--accent-mvp); font-size: 0.85rem; }
+  .edt-milestone .name { font-weight: 600; }
+  .edt-milestone .m-date { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; color: var(--ink-soft); }
+
+  /* ---- Cronograma / Gantt ---- */
+  .gantt-scroll { overflow-x: auto; border-radius: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+
+  .gantt {
+    min-width: 760px;
+    background: var(--surface);
+    border-radius: 12px;
+  }
+
+  .gantt-header {
+    display: grid;
+    grid-template-columns: 230px repeat(4, 1fr);
+    border-bottom: 2px solid var(--border-strong);
+  }
+  .gantt-header .corner { padding: 12px 16px; }
+  .gantt-header .week {
+    padding: 12px 10px;
+    text-align: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-left: 1px solid var(--border);
+  }
+  .gantt-header .week .range { display: block; font-size: 0.68rem; color: var(--ink-faint); margin-top: 2px; text-transform: none; letter-spacing: 0; }
+
+  .gantt-phase-row {
+    display: grid;
+    grid-template-columns: 230px repeat(4, 1fr);
+    background: var(--surface-2);
+  }
+  .gantt-phase-row .label { padding: 8px 16px; font-weight: 600; font-size: 0.8rem; color: var(--primary-strong); font-family: "IBM Plex Mono", monospace; }
+  .gantt-phase-row .cell { border-left: 1px solid var(--border); }
+
+  .gantt-row { display: grid; grid-template-columns: 230px repeat(4, 1fr); border-top: 1px solid var(--border); position: relative; }
+  .gantt-row .label { padding: 10px 16px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px; }
+  .gantt-row .label .code { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--ink-faint); flex: none; }
+  .gantt-row .track { position: relative; grid-column: 2 / 6; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .gantt-row .track .cell { border-left: 1px solid var(--border); }
+
+  .bar {
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    border-radius: 6px;
+    background: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .bar.critico { background: var(--danger); }
+  .bar.destacado { background: var(--accent-mvp); }
+
+  .gantt-legend { display: flex; gap: 22px; flex-wrap: wrap; padding: 14px 16px; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--ink-soft); }
+  .gantt-legend .item { display: flex; align-items: center; gap: 7px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+
+  .assumptions {
+    margin-top: 16px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px dashed var(--border-strong);
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .assumptions strong { color: var(--ink); }
+
+  /* ---- Diccionario table ---- */
+  .dict-scroll { overflow-x: auto; border-radius: 12px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  table.dict { width: 100%; border-collapse: collapse; min-width: 820px; background: var(--surface); }
+  table.dict th {
+    text-align: left;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: var(--surface-2);
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  table.dict td { padding: 13px 14px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: top; }
+  table.dict tr:last-child td { border-bottom: none; }
+  table.dict .code-cell { font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; color: var(--primary-strong); white-space: nowrap; }
+  table.dict .wp-name { font-weight: 600; }
+  table.dict .deliverable { color: var(--ink-soft); font-size: 0.85rem; }
+
+  .badge { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .badge.critico { background: var(--danger-tint); color: var(--danger); }
+  .badge.mvp { background: var(--accent-mvp-tint); color: var(--accent-mvp); }
+  .badge.normal { background: var(--primary-tint); color: var(--primary-strong); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-faint); font-size: 0.85rem; }
+
+  @media (max-width: 680px) {
+    .gantt-header, .gantt-row, .gantt-phase-row { grid-template-columns: 170px repeat(4, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="eyebrow">Sistema de Asistencias · ISFDyT124</div>
+    <h1>EDT y cronograma de correcciones</h1>
+    <p class="lede">Reunión con Magali: <strong>16 pedidos</strong> agrupados en 6 frentes de trabajo, con dos entregas confirmadas. Reordenados por lo que bloquea al resto primero (seguridad, roles, bugs) y lo que es feature nueva grande después (carga masiva, calendario).</p>
+    <div class="milestones">
+      <div class="milestone-chip mvp">
+        <span class="m-date">16/09</span>
+        <span class="m-label">Entrega MVP a Magali</span>
+      </div>
+      <div class="milestone-chip">
+        <span class="m-date">30/09</span>
+        <span class="m-label">Pre-entrega final</span>
+      </div>
+      <div class="milestone-chip">
+        <span class="m-date">10</span>
+        <span class="m-label">integrantes del equipo</span>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Equipo y reparto sugerido</h2>
+    <p class="section-intro">Los 10 integrantes del Grupo de Programación, con una propuesta de quién arranca en cada frente — es un punto de partida para la primera reunión, no una asignación fija. Ajustar según quién ya venía tocando cada módulo.</p>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-front"><span class="code">1</span>Navegación y UX</div>
+        <ul class="team-members"><li>Medina, Roselén</li><li>Britos, Lucas</li><li>Albornoz, Celina</li></ul>
+      </div>
+      <div class="team-card">
+        <div class="team-front"><span class="code">2</span>Autenticación y seguridad</div>
+        <ul class="team-members"><li>Casi, Santiago</li><li>Distasio, Ignacio</li></ul>
+      </div>
+      <div class="team-card">
+        <div class="team-front"><span class="code">3</span>Usuarios y roles</div>
+        <ul class="team-members"><li>Casi, Pablo</li><li>Bonifacio, Agustín</li></ul>
+      </div>
+      <div class="team-card">
+        <div class="team-front"><span class="code">4</span>Carreras y materias</div>
+        <ul class="team-members"><li>Sansoni, Ángel</li><li>Alarcón, Nicolás</li></ul>
+      </div>
+      <div class="team-card">
+        <div class="team-front"><span class="code">5</span>Asistencias</div>
+        <ul class="team-members"><li>Olivera, Gustavo</li></ul>
+      </div>
+      <div class="team-card">
+        <div class="team-front"><span class="code">6</span>Calidad transversal</div>
+        <ul class="team-members"><li>Todo el equipo, semana 4</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Estructura de Desglose del Trabajo (EDT)</h2>
+    <p class="section-intro">Seis frentes de trabajo más los dos hitos de entrega. La numeración es la que se usa después en el cronograma y el diccionario.</p>
+
+    <div class="edt">
+      <div class="edt-root"><span class="code">0</span><span class="name">Correcciones y mejoras — Sistema de Asistencias</span></div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">1</span><span class="name">Navegación y experiencia de usuario</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">1.1</span><span class="name">Botón "volver al home" en logos y panel lateral</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">1.2</span><span class="name">Corregir redirección del botón "Inicio" (panel lateral)</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">1.3</span><span class="name">Logo y nombre del header → home según rol</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">1.4</span><span class="name">Acomodar flechas del menú lateral</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">1.5</span><span class="name">Logo del sistema en el favicon</span><span class="tag mvp">MVP</span></div>
+        </div>
+      </div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">2</span><span class="name">Autenticación y seguridad</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">2.1</span><span class="name">Mensaje de error claro en el login</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">2.2</span><span class="name">Acomodar la vista "Olvidé mi contraseña"</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">2.3</span><span class="name">Encriptar las contraseñas (hash) en login</span><span class="tag critico">Crítico</span></div>
+        </div>
+      </div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">3</span><span class="name">Usuarios y roles</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">3.1</span><span class="name">Revisar la vista de alta de usuario</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">3.2</span><span class="name">Corregir roles sembrados: Admin / Dirección / Docente / Alumno</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">3.3</span><span class="name">Tarjeta "Alumnos" (ex-Docentes): alumnos por carrera</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos vía Excel</span><span class="tag normal">Post-MVP</span></div>
+        </div>
+      </div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">4</span><span class="name">Carreras y materias</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">4.1</span><span class="name">Corregir relación faltante carrera–materia</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.2</span><span class="name">Agregar campo "porcentaje" en Materia</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.3</span><span class="name">Permitir asignar más de una materia/carrera a un docente</span><span class="tag normal">Post-MVP</span></div>
+        </div>
+      </div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">5</span><span class="name">Asistencias</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">5.1</span><span class="name">Bug: rol "estudiante" inexistente → usar Inscripciones</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">5.2</span><span class="name">Popup de calendario en el panel de admin</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">5.3</span><span class="name">Ocultar calendario al docente hasta elegir carrera/materia</span><span class="tag normal">Post-MVP</span></div>
+        </div>
+      </div>
+
+      <div class="edt-phase">
+        <div class="edt-phase-head"><span class="code">6</span><span class="name">Calidad transversal</span></div>
+        <div class="edt-items">
+          <div class="edt-item"><span class="code">6.1</span><span class="name">Revisión de diseño responsive en todas las vistas</span><span class="tag normal">Post-MVP</span></div>
+        </div>
+      </div>
+
+      <div class="edt-milestone"><span class="code">M1</span><span class="name">Entrega MVP a Magali</span><span class="m-date">16/09</span></div>
+      <div class="edt-milestone" style="background: var(--surface-2);"><span class="code" style="color:var(--primary-strong)">M2</span><span class="name">Pre-entrega final</span><span class="m-date">30/09</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cronograma</h2>
+    <p class="section-intro">4 semanas, hoy es <strong>02/09</strong>. Los ítems críticos y de seguridad van primero porque atraviesan todo lo demás (roles, login) — no tiene sentido probar el resto del sistema con eso todavía roto. La carga masiva por Excel y las features de calendario quedan para después del MVP porque son trabajo nuevo grande, no arreglos.</p>
+
+    <div class="gantt-scroll">
+      <div class="gantt">
+        <div class="gantt-header">
+          <div class="corner"></div>
+          <div class="week">Semana 1<span class="range">02–08 sep</span></div>
+          <div class="week">Semana 2<span class="range">09–15 sep</span></div>
+          <div class="week">Semana 3<span class="range">16–22 sep</span></div>
+          <div class="week">Semana 4<span class="range">23–29 sep</span></div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">2 · Seguridad</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">2.3</span>Encriptar contraseñas</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:44%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">2.1–2.2</span>Login: error + recuperar clave</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">3 · Usuarios y roles</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.2</span>Corregir roles sembrados</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.1 / 3.3</span>Alta usuario + tarjeta Alumnos</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.4</span>Carga masiva por Excel</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">4 · Carreras y materias</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">4.1 / 4.2</span>Relación + campo porcentaje</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">4.3</span>Múltiples materias por docente</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">5 · Asistencias</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.1</span>Bug rol estudiante → Inscripciones</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.2 / 5.3</span>Calendario: popup + ocultar</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">1 · Navegación (UI)</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">1.1–1.5</span>Home, flechas, favicon, redirects</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:2%; width:44%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-phase-row"><div class="label">6 · Calidad</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">6.1</span>Revisión responsive</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:77%; width:21%;"></div>
+          </div>
+        </div>
+
+        <div class="gantt-legend">
+          <div class="item"><span class="swatch" style="background:var(--danger)"></span>Crítico / seguridad</div>
+          <div class="item"><span class="swatch" style="background:var(--primary)"></span>Arreglo puntual</div>
+          <div class="item"><span class="swatch" style="background:var(--accent-mvp)"></span>Feature nueva (post-MVP)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="assumptions">
+      <strong>Supuestos de este cronograma</strong>: con 10 personas repartidas en 6 frentes (de 1 a 3 por frente, más 6 · Calidad al final entre todos), hay margen de sobra para las duraciones de arriba — el riesgo real no es falta de gente, es <strong>pisarse el código</strong> si dos frentes tocan el mismo archivo (ej. <code>1.x</code> y <code>2.1</code> comparten <code>Login.cshtml</code> y el <code>_Layout</code>). Conviene coordinar quién toca qué archivo compartido antes de arrancar, y que cada frente pushee seguido para no acumular conflictos de merge grandes al final de la semana.
+    </div>
+  </section>
+
+  <section>
+    <h2>Diccionario del EDT</h2>
+    <p class="section-intro">Qué implica cada paquete de trabajo, para que cualquiera del equipo lo pueda tomar sin tener que preguntar qué se pidió exactamente.</p>
+
+    <div class="dict-scroll">
+      <table class="dict">
+        <thead>
+          <tr><th>Código</th><th>Paquete de trabajo</th><th>Alcance</th><th>Prioridad</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="code-cell">1.1</td>
+            <td><div class="wp-name">Botón volver al home</div><div class="deliverable">En logos y panel lateral</div></td>
+            <td>Agregar un control visible (logo o botón dedicado) que lleve al home correspondiente al rol logueado, tanto en el header como en el menú lateral.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">1.2</td>
+            <td><div class="wp-name">Redirección del botón "Inicio"</div></td>
+            <td>El botón "Inicio" del panel lateral hoy no lleva a donde debería — corregir el <code>asp-action</code>/URL de destino según el rol del usuario.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">1.3</td>
+            <td><div class="wp-name">Header → home por rol</div></td>
+            <td>El logo y el nombre "SISTEMA ASISTENCIAS" del header deben ser clickeables y llevar al home que le corresponde a cada rol (Admin → panel admin, Profesor → mis cátedras, Alumno → home general).</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">1.4</td>
+            <td><div class="wp-name">Flechas del menú lateral</div></td>
+            <td>Corregir el ícono/alineación de las flechas de navegación del sidebar — ajuste visual, sin lógica nueva.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">1.5</td>
+            <td><div class="wp-name">Favicon</div></td>
+            <td>Reemplazar el ícono por defecto de la pestaña del navegador por el logo del instituto.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">2.1</td>
+            <td><div class="wp-name">Mensaje de error en login</div></td>
+            <td>Cuando el usuario/contraseña son incorrectos, mostrar un mensaje claro y visible (hoy puede no distinguirse bien del resto del formulario).</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">2.2</td>
+            <td><div class="wp-name">Vista "Olvidé mi contraseña"</div></td>
+            <td>Hoy el link del login apunta a una página que no existe como ruta real de la app. Definir el flujo mínimo viable (aunque sea manual, vía Admin) y conectar la vista.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">2.3</td>
+            <td><div class="wp-name">Encriptar contraseñas</div></td>
+            <td>Hoy <code>UsContrasena</code> se guarda y compara en texto plano. Migrar a hash (ej. BCrypt/Identity) en el alta, la edición, el cambio de contraseña y la comparación del login. Requiere migrar los usuarios ya cargados.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.1</td>
+            <td><div class="wp-name">Revisar vista de alta de usuario</div></td>
+            <td>Repasar el formulario de <code>UsuarioAgregar</code>: validaciones, campos condicionales por rol, mensajes de error.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.2</td>
+            <td><div class="wp-name">Roles sembrados</div></td>
+            <td>El seed de <code>Program.cs</code> hoy crea Admin/Profesor/Alumno. Ajustar a los roles reales del instituto: Admin (desarrolladores), Dirección (directivos), Docente, Alumno — y revisar cada lugar del código que compara por nombre de rol.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.3</td>
+            <td><div class="wp-name">Tarjeta "Alumnos" (ex-Docentes)</div></td>
+            <td>Renombrar la tarjeta del panel Admin y reorientar su función: pasa a listar/gestionar alumnos asignados a cada carrera, no docentes.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.4</td>
+            <td><div class="wp-name">Carga masiva de alumnos (Excel)</div></td>
+            <td>Nueva pantalla: subir un Excel, mapear columnas, asignar todos los alumnos del archivo a una carrera específica. Incluye validación de filas inválidas y reporte de qué se cargó y qué no.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.1</td>
+            <td><div class="wp-name">Relación carrera–materia faltante</div></td>
+            <td>Completar la relación que falta en la vista de Carrera/Materia (a confirmar con el equipo cuál falta exactamente al tomar la tarea).</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.2</td>
+            <td><div class="wp-name">Campo "porcentaje" en Materia</div></td>
+            <td>Nueva columna en el modelo <code>Materia</code> (migración incluida) + campo en los formularios de alta/edición.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.3</td>
+            <td><div class="wp-name">Múltiples materias/carreras por docente</div></td>
+            <td>Ya existe la relación muchos a muchos en el modelo — falta la UI para que el Admin asigne más de una cátedra al mismo docente desde una sola pantalla.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.1</td>
+            <td><div class="wp-name">Bug: rol "estudiante" inexistente</div></td>
+            <td><code>AsistenciasController.Asistencia</code> filtra por un rol llamado "estudiante", que nunca se siembra (el real es "Alumno"). Cambiar el filtro para que use <code>Inscripciones</code> según corresponda — mismo bug ya diagnosticado antes.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.2</td>
+            <td><div class="wp-name">Popup de calendario (Admin)</div></td>
+            <td>Selector de fecha tipo popup/modal en el panel Admin para elegir el día a auditar, en vez de navegación por URL.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.3</td>
+            <td><div class="wp-name">Ocultar calendario sin carrera/materia</div></td>
+            <td>El docente no debería ver el calendario de asistencia hasta elegir qué carrera y materia está dictando en ese momento.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">6.1</td>
+            <td><div class="wp-name">Revisión responsive</div></td>
+            <td>Pasada general por todas las vistas en mobile/tablet — layout, tablas con scroll horizontal, menú lateral colapsable.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Armado a partir de la lista de correcciones de la reunión con Magali (<code>documentacion/DOCUMENTACIÓN - PROGRAMACIÓN.md</code>) y la planilla de integrantes. El orden y las duraciones son una propuesta — ajustar el cronograma según cuántas horas por semana pueda dedicarle cada uno realmente.
+  </footer>
+
+</div>
+</body>
+</html>

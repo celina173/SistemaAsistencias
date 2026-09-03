@@ -367,3 +367,6 @@ appsettings.json
 appsettings.*.json
 /ISFDyT124/appsettings.json
 /ISFDyT124/appsettings.json
+
+# Notas personales de Gustavo, no compartidas con el equipo
+Gustavo-*.md
