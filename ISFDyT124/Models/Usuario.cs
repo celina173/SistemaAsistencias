@@ -11,12 +11,12 @@ namespace ISFDyT124.Models
 
         //.
         //ID
-        [Key] 
+        [Key]
         public int UsId { get; set; }
 
 
         //APELLIDO
-        [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un apellido válido.")] 
+        [RegularExpression(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]*$", ErrorMessage = "Ingrese un apellido válido.")]
         [MaxLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")] // Limita longitud a 100 caracteres 
         [Required(ErrorMessage = "Debe ingresar un Apellido")] // Campo obligatorio
         [Display(Name = "Apellido")] // Etiqueta para vistas

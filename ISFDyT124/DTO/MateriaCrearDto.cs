@@ -12,16 +12,16 @@ namespace ISFDyT124.DTO
         //DENOMINACIÓN
         [Required(ErrorMessage = "Debe ingresar el nombre de la materia.")]
         [StringLength(30, ErrorMessage = "No se permiten más de 30 caracteres.")]
-        [RegularExpression(@"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s.,()-]*$",ErrorMessage = "Ingrese una materia válida.")]
+        [RegularExpression(@"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s.,()-]*$", ErrorMessage = "Ingrese una materia válida.")]
         [Display(Name = "Materia")]
         public string? MaDenominacion { get; set; } = null!;
 
 
-         //MODALIDAD   
+        //MODALIDAD   
         [Required(ErrorMessage = "Debe ingresar una modalidad.")]
         [StringLength(25, ErrorMessage = "No se permiten más de 25 caracteres.")]
-        [RegularExpression(@"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]*$",ErrorMessage = "Ingrese una modalidad válida.")]
-        [Display(Name = "Modalidad")]    
+        [RegularExpression(@"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]*$", ErrorMessage = "Ingrese una modalidad válida.")]
+        [Display(Name = "Modalidad")]
         public string? MaModalidad { get; set; }
 
         //CANTIDAD DE MÓDULOS
