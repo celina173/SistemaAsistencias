@@ -316,6 +316,25 @@
   @media (max-width: 680px) {
     .gantt-header, .gantt-row, .gantt-phase-row { grid-template-columns: 170px repeat(4, 1fr); }
   }
+
+  @media print {
+    @page { size: A4 landscape; margin: 14mm; }
+    html, body { width: 100%; }
+    body { font-size: 13px; }
+    .page { max-width: none; width: 100%; padding: 0; }
+    .gantt-scroll, .dict-scroll { overflow: visible; box-shadow: none; width: 100%; }
+    .gantt, table.dict { min-width: 0; width: 100%; }
+    table.dict { font-size: 0.78rem; table-layout: fixed; }
+    table.dict td, table.dict th { padding: 7px 8px; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; }
+    table.dict .code-cell { white-space: normal; }
+    table.dict col.col-codigo, table.dict th:nth-child(1), table.dict td:nth-child(1) { width: 7%; }
+    table.dict th:nth-child(2), table.dict td:nth-child(2) { width: 22%; }
+    table.dict th:nth-child(3), table.dict td:nth-child(3) { width: 58%; }
+    table.dict th:nth-child(4), table.dict td:nth-child(4) { width: 13%; }
+    .gantt-header, .gantt-row, .gantt-phase-row { grid-template-columns: 190px repeat(4, 1fr); }
+    section { break-inside: avoid; }
+    .edt-phase, .gantt-row, table.dict tr { break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
