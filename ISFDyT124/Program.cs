@@ -53,7 +53,7 @@ using (var scope = app.Services.CreateScope())
     if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
         context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
 
-    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
+    if (!await context.Usuarios.AnyAsync(u => u.UsId == 1 || u.UsEmail == "admin@instituto.edu.ar"))
     {
         context.Usuarios.Add(new Usuario
         {
