@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Dirección")]
     public class AdminController : Controller
     {
         private readonly InstitutoDbContext _context;

@@ -1,4 +1,3 @@
-
 using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
 using ISFDyT124.Models; // Importa los modelos
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
@@ -47,24 +46,35 @@ using (var scope = app.Services.CreateScope())
         context.Roles.Add(rolAdmin);
     }
 
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Profesor"))
-        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
+    var rolDocente = await context.Roles.FindAsync(2);
+    if (rolDocente == null)
+        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Docente" });
+    else if (rolDocente.RoDenominacion != "Docente")
+        rolDocente.RoDenominacion = "Docente";
 
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
-        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
+    var rolEstudiante = await context.Roles.FindAsync(3);
+    if (rolEstudiante == null)
+        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Estudiante" });
+    else if (rolEstudiante.RoDenominacion != "Estudiante")
+        rolEstudiante.RoDenominacion = "Estudiante";
+
+    if (!await context.Roles.AnyAsync(r => r.RoId == 4))
+        context.Roles.Add(new Rol { RoId = 4, RoDenominacion = "Dirección" });
 
     if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
     {
-        context.Usuarios.Add(new Usuario
-        {
-            UsId = 1,
-            UsNombre = "Admin",
-            UsApellido = "Sistema",
-            UsDni = 12345678,
-            UsEmail = "admin@instituto.edu.ar",
-            UsContrasena = "12345678",
-            RoId = rolAdmin.RoId
-        });
+        context.Usuarios.Add(
+            new Usuario
+            {
+                UsId = 1,
+                UsNombre = "Admin",
+                UsApellido = "Sistema",
+                UsDni = 12345678,
+                UsEmail = "admin@instituto.edu.ar",
+                UsContrasena = "12345678",
+                RoId = rolAdmin.RoId,
+            }
+        );
     }
 
     await context.SaveChangesAsync();

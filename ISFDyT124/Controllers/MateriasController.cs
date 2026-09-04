@@ -1,9 +1,11 @@
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+[Authorize(Roles = "Admin,Dirección")]
 public class MateriasController : Controller
 {
     private readonly InstitutoDbContext _context;

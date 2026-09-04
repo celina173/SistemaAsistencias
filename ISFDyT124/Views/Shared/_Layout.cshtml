@@ -36,7 +36,8 @@
                 <span class="menu-arrow">➔</span>
                 <a asp-controller="Asistencias" asp-action="AsistenciaGlobal">Calendario</a>
             </li>
-            @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            @if (User.Identity != null && User.Identity.IsAuthenticated
+                  && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
             {
                 <li>
                     <span class="menu-arrow">➔</span>
