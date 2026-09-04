@@ -55,8 +55,14 @@ using (var scope = app.Services.CreateScope())
 
     if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
     {
+        // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
+        int nuevoUsId = await context.Usuarios.AnyAsync()
+            ? await context.Usuarios.MaxAsync(u => u.UsId) + 1
+            : 1;
+
         context.Usuarios.Add(new Usuario
         {
+            UsId = nuevoUsId,
             UsNombre = "Admin",
             UsApellido = "Sistema",
             UsDni = 11111111,
