@@ -53,7 +53,12 @@ using (var scope = app.Services.CreateScope())
     if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
         context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
 
-    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
+    const int adminDni = 12345678;
+    const string adminEmail = "admin@instituto.edu.ar";
+
+    // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
+    // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
+    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
     {
         // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
         int nuevoUsId = await context.Usuarios.AnyAsync()
@@ -65,8 +70,8 @@ using (var scope = app.Services.CreateScope())
             UsId = nuevoUsId,
             UsNombre = "Admin",
             UsApellido = "Sistema",
-            UsDni = 12345678,
-            UsEmail = "admin@instituto.edu.ar",
+            UsDni = adminDni,
+            UsEmail = adminEmail,
             UsContrasena = "12345678",
             RoId = rolAdmin.RoId
         });
