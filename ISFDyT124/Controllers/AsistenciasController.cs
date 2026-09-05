@@ -1,13 +1,13 @@
-﻿using ISFDyT124.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using static ISFDyT124.Models.AsistenciaGlobalViewModel;
 
 namespace ISFDyT124.Controllers
@@ -27,32 +27,47 @@ namespace ISFDyT124.Controllers
             // Support alternate input names coming from the view/form (e.g. SelectedCarreraId/SelectedMateriaId)
             if (!selectedCarreraId.HasValue)
             {
-                var s = (Request.HasFormContentType ? Request.Form["SelectedCarreraId"].FirstOrDefault() : null) ?? Request.Query["SelectedCarreraId"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var v1)) selectedCarreraId = v1;
+                var s =
+                    (
+                        Request.HasFormContentType
+                            ? Request.Form["SelectedCarreraId"].FirstOrDefault()
+                            : null
+                    ) ?? Request.Query["SelectedCarreraId"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var v1))
+                    selectedCarreraId = v1;
             }
             if (!selectedMateriaId.HasValue)
             {
-                var s2 = (Request.HasFormContentType ? Request.Form["SelectedMateriaId"].FirstOrDefault() : null) ?? Request.Query["SelectedMateriaId"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(s2) && int.TryParse(s2, out var v2)) selectedMateriaId = v2;
+                var s2 =
+                    (
+                        Request.HasFormContentType
+                            ? Request.Form["SelectedMateriaId"].FirstOrDefault()
+                            : null
+                    ) ?? Request.Query["SelectedMateriaId"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(s2) && int.TryParse(s2, out var v2))
+                    selectedMateriaId = v2;
             }
-            var carreras = await _context.Carreras
-                .Select(c => new CarreraDetalleDto
+            var carreras = await _context
+                .Carreras.Select(c => new CarreraDetalleDto
                 {
                     CaId = c.CaId,
                     CaDenominacion = c.CaDenominacion,
-                    CarreraMateriasCount = c.CarreraMaterias != null ? c.CarreraMaterias.Count() : 0,
-                    CarreraCohortesCount = c.CarreraCohortes != null ? c.CarreraCohortes.Count() : 0,
+                    CarreraMateriasCount =
+                        c.CarreraMaterias != null ? c.CarreraMaterias.Count() : 0,
+                    CarreraCohortesCount =
+                        c.CarreraCohortes != null ? c.CarreraCohortes.Count() : 0,
                 })
                 .ToListAsync();
 
-            var materias = await _context.Materias
-                .Select(m => new MateriaDetalleDto
+            var materias = await _context
+                .Materias.Select(m => new MateriaDetalleDto
                 {
                     MaId = m.MaId,
                     MaDenominacion = m.MaDenominacion,
                     MaModalidad = m.MaModalidad,
                     MaCantModulos = m.MaCantModulos,
-                    CarreraMateriasCount = m.CarreraMaterias != null ? m.CarreraMaterias.Count() : 0
+                    CarreraMateriasCount =
+                        m.CarreraMaterias != null ? m.CarreraMaterias.Count() : 0,
                 })
                 .ToListAsync();
 
@@ -61,28 +76,37 @@ namespace ISFDyT124.Controllers
                 Carreras = carreras,
                 Materias = materias,
                 SelectedCarreraId = selectedCarreraId,
-                SelectedMateriaId = selectedMateriaId
+                SelectedMateriaId = selectedMateriaId,
             };
 
             // If both Carrera and Materia were selected, resolve the corresponding CaMaId
             if (selectedCarreraId.HasValue && selectedMateriaId.HasValue)
             {
-                var caMa = await _context.CarreraMaterias
-                    .FirstOrDefaultAsync(cm => cm.CaId == selectedCarreraId.Value && cm.MaId == selectedMateriaId.Value);
+                var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm =>
+                    cm.CaId == selectedCarreraId.Value && cm.MaId == selectedMateriaId.Value
+                );
 
                 if (caMa != null)
                 {
                     // if query contains _global=1, redirect to AsistenciaGlobal, otherwise to Asistencia
-                    var isGlobal = Request.Query.ContainsKey("_global") && Request.Query["_global"].ToString() == "1";
+                    var isGlobal =
+                        Request.Query.ContainsKey("_global")
+                        && Request.Query["_global"].ToString() == "1";
                     if (isGlobal)
                     {
-                        return RedirectToAction(nameof(AsistenciaGlobal), new { CaMaId = caMa.CaMaId });
+                        return RedirectToAction(
+                            nameof(AsistenciaGlobal),
+                            new { CaMaId = caMa.CaMaId }
+                        );
                     }
                     return RedirectToAction(nameof(Asistencia), new { CaMaId = caMa.CaMaId });
                 }
 
                 // if no matching CarreraMateria found, add model error and show index with message
-                ModelState.AddModelError(string.Empty, "No existe una relación Carrera-Materia para la selección realizada.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "No existe una relación Carrera-Materia para la selección realizada."
+                );
             }
 
             return View(modelDto);
@@ -100,24 +124,32 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
-            // find role 'Estudiante' (case-insensitive)
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion.ToLower() == "estudiante");
+            // Buscar rol Estudiante
+            var role = await _context.Roles.FirstOrDefaultAsync(r =>
+                r.RoDenominacion.ToLower() == "estudiante"
+            );
             if (role == null)
             {
-                // no role configured; return empty model
                 return View(model);
             }
 
             // find users inscribed to this Carreras_Materias via Inscripciones — ensure we load Usuario and its Rol
-            var estudiantes = await (from i in _context.Inscripciones
-                                     join u in _context.Usuarios on i.UsId equals u.UsId
-                                     where i.CaMaId == CaMaId && u.RoId == role.RoId
-                                     select new { u.UsId, FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim() })
-                                    .ToListAsync();
+            var estudiantes = await (
+                from i in _context.Inscripciones
+                join u in _context.Usuarios on i.UsId equals u.UsId
+                where i.CaMaId == CaMaId && u.RoId == role.RoId
+                select new
+                {
+                    u.UsId,
+                    FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim(),
+                }
+            ).ToListAsync();
 
             // determine number of modules for this materia
             int maCantModulos = 1; // default
-            var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
+            var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm =>
+                cm.CaMaId == CaMaId
+            );
             if (caMa != null)
             {
                 var materia = await _context.Materias.FindAsync(caMa.MaId);
@@ -145,8 +177,8 @@ namespace ISFDyT124.Controllers
             ViewData["MaCantModulos"] = maCantModulos;
             model.ModuleCount = maCantModulos;
 
-            var caMaName = await _context.CarreraMaterias
-                .Where(cm => cm.CaMaId == CaMaId)
+            var caMaName = await _context
+                .CarreraMaterias.Where(cm => cm.CaMaId == CaMaId)
                 .FirstOrDefaultAsync();
             ViewData["CaMaDenominacion"] = caMaName;
 
@@ -206,8 +238,9 @@ namespace ISFDyT124.Controllers
             model.CaMaId = CaMaId;
 
             // Buscar el rol Estudiante (case-insensitive)
-            var role = await _context.Roles
-                .FirstOrDefaultAsync(r => r.RoDenominacion.ToLower() == "estudiante");
+            var role = await _context.Roles.FirstOrDefaultAsync(r =>
+                r.RoDenominacion.ToLower() == "estudiante"
+            );
 
             if (role == null)
             {
@@ -215,12 +248,14 @@ namespace ISFDyT124.Controllers
             }
 
             // Traer alumnos inscriptos en esa materia
-            var estudiantes = await (from i in _context.Inscripciones
-                                     join u in _context.Usuarios on i.UsId equals u.UsId
-                                     where i.CaMaId == CaMaId && u.RoId == role.RoId
-                                     select u)
-                                    .Distinct()
-                                    .ToListAsync();
+            var estudiantes = await (
+                from i in _context.Inscripciones
+                join u in _context.Usuarios on i.UsId equals u.UsId
+                where i.CaMaId == CaMaId && u.RoId == role.RoId
+                select u
+            )
+                .Distinct()
+                .ToListAsync();
 
             var usIdsInscritos = estudiantes.Select(u => u.UsId).ToList();
 
@@ -228,9 +263,12 @@ namespace ISFDyT124.Controllers
             // Algunos registros históricos pueden no tener CaMaId (se guardaron antes de asignarlo).
             // Para mostrar el histórico como primario, incluimos también registros con CaMaId NULL
             // siempre que pertenezcan a alumnos inscriptos en esta materia.
-            var todasLasAsistencias = await _context.Asistencias
-                .Where(a => a.UsId.HasValue && usIdsInscritos.Contains(a.UsId.Value)
-                            && (a.CaMaId == CaMaId || a.CaMaId == null))
+            var todasLasAsistencias = await _context
+                .Asistencias.Where(a =>
+                    a.UsId.HasValue
+                    && usIdsInscritos.Contains(a.UsId.Value)
+                    && (a.CaMaId == CaMaId || a.CaMaId == null)
+                )
                 .ToListAsync();
 
             // Columnas (fechas)
@@ -252,7 +290,9 @@ namespace ISFDyT124.Controllers
                 decimal sumaPorcentajes = 0m;
                 foreach (var fecha in model.Fechas)
                 {
-                    var registro = asistenciasAlumno.FirstOrDefault(a => a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha);
+                    var registro = asistenciasAlumno.FirstOrDefault(a =>
+                        a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha
+                    );
                     decimal pct = 0m;
                     if (registro != null)
                     {
@@ -261,8 +301,10 @@ namespace ISFDyT124.Controllers
                         if (prop != null)
                         {
                             var val = prop.GetValue(registro);
-                            if (val is decimal d) pct = d;
-                            else if (val is decimal?) pct = ((decimal?)val) ?? 0m;
+                            if (val is decimal d)
+                                pct = d;
+                            else if (val is decimal?)
+                                pct = ((decimal?)val) ?? 0m;
                         }
                         else
                         {
@@ -274,15 +316,18 @@ namespace ISFDyT124.Controllers
                 }
 
                 int totalFechas = model.Fechas.Count;
-                decimal promedio = totalFechas > 0 ? Math.Round(sumaPorcentajes / totalFechas, 1) : 0m;
+                decimal promedio =
+                    totalFechas > 0 ? Math.Round(sumaPorcentajes / totalFechas, 1) : 0m;
 
-                model.Rows.Add(new AsistenciaGlobalRowViewModel
-                {
-                    UsId = alumno.UsId,
-                    FullName = $"{alumno.UsApellido} {alumno.UsNombre}",
-                    AsistenciaPorFecha = asistenciaPorFecha,
-                    PorcentajeAsistencia = promedio
-                });
+                model.Rows.Add(
+                    new AsistenciaGlobalRowViewModel
+                    {
+                        UsId = alumno.UsId,
+                        FullName = $"{alumno.UsApellido} {alumno.UsNombre}",
+                        AsistenciaPorFecha = asistenciaPorFecha,
+                        PorcentajeAsistencia = promedio,
+                    }
+                );
             }
 
             return View(model);

@@ -26,7 +26,7 @@ servidor SQL Server — la de esta rama apunta a una base en Railway.
 ### Controllers (`Controllers/`)
 
 | Controller | `[Authorize]` | Qué hace |
-|---|---|---|
+| --- | --- | --- |
 | `AccountController` | solo `CambiarContrasena` | Login por DNI+contraseña (texto plano), arma la cookie con claims (Name, Email, Role), fuerza cambio de contraseña si contraseña==DNI, redirige según rol. |
 | `AdminController` | `Roles="Admin"` (toda la clase) | Dashboard, alta/edición/baja de usuarios, ABM de usuarios, auditoría de actividad de docentes. |
 | `AsistenciasController` | **ninguno** | Toma de asistencia y reporte global — filtra alumnos por rol `"estudiante"` (ver bug de nombres de rol más abajo). |
@@ -97,7 +97,7 @@ no se borraron porque sus acciones en `HomeController` siguen existiendo
 El nombre de rol usado para "alumno" **no es consistente** en todo el código:
 
 | String usado | Dónde | ¿Matchea contra el rol sembrado ("Alumno")? |
-|---|---|---|
+| --- | --- | --- |
 | `"Alumno"` (exacto) | `ProfesorController.Asistencia` | ✅ Sí |
 | `"estudiante"` (minúscula) | `AsistenciasController` (2 lugares), `InscripcionesController.AgregarInscripcionMateria` | ❌ No — nunca existe un rol con ese nombre |
 | `"Estudiante"` (mayúscula inicial) | `InscripcionesController` (4 lugares más) | ❌ No |

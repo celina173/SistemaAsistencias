@@ -1,4 +1,5 @@
-﻿using ISFDyT124.Data;
+﻿using System.Security.Claims;
+using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace ISFDyT124.Controllers
 {
@@ -44,9 +44,11 @@ namespace ISFDyT124.Controllers
             }
 
             // 5. BUSCAR Y VALIDAR CREDENCIALES: por DNI + contraseña, incluyendo el Rol.
-            var usuario = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.UsDni == dniEntero && u.UsContrasena == model.Contrasena);
+            var usuario = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.UsDni == dniEntero && u.UsContrasena == model.Contrasena
+                );
 
             if (usuario == null)
             {
@@ -57,19 +59,23 @@ namespace ISFDyT124.Controllers
             // 6. CREAR CLAIMS (Tarjeta de identificación): Combinamos los datos de ambos códigos.
             var claims = new List<Claim>
             {
-
                 new Claim(ClaimTypes.NameIdentifier, $"{usuario.UsId}"),
                 new Claim(ClaimTypes.Name, $"{usuario.UsNombre} {usuario.UsApellido}"),
                 new Claim(ClaimTypes.Email, $"{usuario.UsEmail}"),
                 new Claim(ClaimTypes.Role, $"{usuario.Rol?.RoDenominacion}"),
-
             };
 
             // 7. INICIAR SESIÓN: Creamos la cookie segura.
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
             var principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal
+            );
 
             // 8. REDIRECCIÓN PARTE A: Si la contraseña es igual al DNI, forzamos el cambio.
             if (usuario.UsDni.ToString() == usuario.UsContrasena)
@@ -80,8 +86,10 @@ namespace ISFDyT124.Controllers
             {
                 case "ADMIN":
                     return RedirectToAction("Index", "Admin");
-                case "PROFESOR":
+                case "DOCENTE":
                     return RedirectToAction("Index", "Profesor");
+                case "DIRECCIÓN":
+                    return RedirectToAction("Index", "Admin"); //Por ahora; hasta que definamos si tendrá una vista aparte, o permisos especiales.
                 default:
                     return RedirectToAction("Index", "Home");
             }
@@ -99,7 +107,10 @@ namespace ISFDyT124.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CambiarContrasena(string nuevaContrasena, string confirmarContrasena)
+        public async Task<IActionResult> CambiarContrasena(
+            string nuevaContrasena,
+            string confirmarContrasena
+        )
         {
             if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
             {
@@ -114,7 +125,9 @@ namespace ISFDyT124.Controllers
             }
 
             // Buscamos el usuario logueado usando el Claim del ID
-            var usuario = await _context.Usuarios.FindAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)));
+            var usuario = await _context.Usuarios.FindAsync(
+                int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+            );
             if (usuario == null)
                 return RedirectToAction("Salir");
 
