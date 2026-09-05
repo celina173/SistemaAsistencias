@@ -65,9 +65,9 @@ using (var scope = app.Services.CreateScope())
             UsId = nuevoUsId,
             UsNombre = "Admin",
             UsApellido = "Sistema",
-            UsDni = 11111111,
+            UsDni = 12345678,
             UsEmail = "admin@instituto.edu.ar",
-            UsContrasena = "11111111",
+            UsContrasena = "12345678",
             RoId = rolAdmin.RoId
         });
     }
