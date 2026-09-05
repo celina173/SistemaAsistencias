@@ -1,5 +1,6 @@
 using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
 using ISFDyT124.Models; // Importa los modelos
+using ISFDyT124.Services; // Importa PasswordService para hashear la contraseña sembrada
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
 
 //using ISFDyT124.DTOs; // Importa objetos de transferencia de datos
@@ -83,7 +84,9 @@ using (var scope = app.Services.CreateScope())
             UsApellido = "Sistema",
             UsDni = adminDni,
             UsEmail = adminEmail,
-            UsContrasena = "12345678",
+            // CAMBIO: la contraseña sembrada para el admin (igual a su DNI, mismo criterio
+            // que un alta manual) se guarda hasheada en vez de en texto plano.
+            UsContrasena = PasswordService.HashPassword("12345678"),
             RoId = rolAdmin.RoId
         });
     }
