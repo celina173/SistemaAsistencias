@@ -41,24 +41,27 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
 
     var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
-    if (rolAdmin == null)
+    if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == 1))
     {
         rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
         context.Roles.Add(rolAdmin);
     }
 
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Profesor"))
+    if (!await context.Roles.AnyAsync(r => r.RoId == 2 || r.RoDenominacion == "Profesor"))
         context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
 
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
+    if (!await context.Roles.AnyAsync(r => r.RoId == 3 || r.RoDenominacion == "Alumno"))
         context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
+
+    // Puede haber quedado null si el RoId=1 ya estaba ocupado por un rol con otro nombre
+    rolAdmin ??= await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin" || r.RoId == 1);
 
     const int adminDni = 12345678;
     const string adminEmail = "admin@instituto.edu.ar";
 
     // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
     // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
-    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
+    if (rolAdmin != null && !await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
     {
         // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
         int nuevoUsId = await context.Usuarios.AnyAsync()
