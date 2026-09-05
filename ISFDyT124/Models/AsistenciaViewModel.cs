@@ -14,6 +14,8 @@ namespace ISFDyT124.Models
     public class AsistenciaFormViewModel
     {
         public int? CaMaId { get; set; }
+        // Número de módulos que tiene la materia (se usa en el controlador)
+        public int ModuleCount { get; set; } = 1;
         public List<AsistenciaRowViewModel> Rows { get; set; } = new List<AsistenciaRowViewModel>();
     }
 }

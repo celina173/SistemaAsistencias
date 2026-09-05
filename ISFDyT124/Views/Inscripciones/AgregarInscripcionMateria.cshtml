@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Inscripción - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="site.css">
+</head>
+<body class="agregar-page">
+
+    <header class="top-header">
+        <div class="menu-icon">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div class="header-title">
+            <span class="title-small">INSTITUTO N° 124</span>
+            <h1 class="title-large">SISTEMA DE ASISTENCIAS</h1>
+        </div>
+        <div class="header-logo">
+            <img src="img/logo.png" alt="IS 124" class="logo-img">
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebarMenu">
+        <ul class="sidebar-links">
+            <li class="active"><a href="inicio.html">Inicio</a></li>
+            <li><a href="asistencia-global.html">Calendario</a></li>
+            <li class="menu-divider"></li>
+            <li class="logout"><a href="index.html">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <div class="header-divider"></div>
+
+    <div class="info-banner">
+        <div class="info-col-left"><p class="info-bold">INSCRIPCIONES</p></div>
+        <div class="info-col-right"><p class="info-bold">ADMINISTRADOR</p></div>
+    </div>
+
+    <div class="page-title-container">
+        <h2 class="page-main-title">Nueva Inscripción</h2>
+    </div>
+
+    <main class="main-container-form">
+        <div class="form-card">
+            <form id="formInscripcion" class="form-grid" method="post" asp-action="AgregarInscripcionMateria" asp-controller="Inscripciones">
+                @Html.AntiForgeryToken()
+                @* Mostrar errores de validación del servidor para diagnosticar por qué no se guarda *@
+                <div class="validation-summary" style="color:#c00; margin-bottom:10px;">@Html.ValidationSummary(true)</div>
+
+                <div class="input-field" style="grid-column: span 2;">
+                    <label for="alumno">Seleccionar Alumno</label>
+                    <input type="text" id="alumno" name="alumno" placeholder="Escribí para buscar alumno..." required autocomplete="off">
+                    <input type="hidden" id="SelectedUsId" name="SelectedUsId" />
+                    <div id="alumno-list" class="autocomplete-list"></div>
+                </div>
+
+                <div class="input-field">
+                    <label for="carrera">Carrera</label>
+                    <input type="text" id="carrera" name="carrera" placeholder="Escribí para buscar carrera..." required autocomplete="off">
+                    <input type="hidden" id="SelectedCaId" name="SelectedCaId" />
+                    <div id="carrera-list" class="autocomplete-list"></div>
+                </div>
+
+                <div class="input-field">
+                    <label for="materia">Materia</label>
+                    <input type="text" id="materia" name="materia" placeholder="Escribí para buscar materia..." required autocomplete="off">
+                    <input type="hidden" id="SelectedMaId" name="SelectedMaId" />
+                    <div id="materia-list" class="autocomplete-list"></div>
+                </div>
+
+                <div class="form-buttons" style="grid-column: span 2;">
+                    <a class="btn-cancel" asp-action="GestionInscripcionesMaterias">Cancelar</a>
+                    <button type="submit" class="btn-save">Confirmar Inscripción</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+            var students = @Html.Raw(ViewData["StudentsJson"] ?? "[]");
+            var carreras = @Html.Raw(ViewData["CarrerasJson"] ?? "[]");
+            var materias = @Html.Raw(ViewData["MateriasJson"] ?? "[]");
+
+            function createList(containerId, items, displayFn, onPick) {
+                var container = document.getElementById(containerId);
+                container.innerHTML = '';
+                items.forEach(function (it) {
+                    var div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.textContent = displayFn(it);
+                    div.dataset.value = JSON.stringify(it);
+                    div.addEventListener('click', function () {
+                        onPick(it);
+                        container.innerHTML = '';
+                    });
+                    container.appendChild(div);
+                });
+            }
+
+            function filterAndShow(inputEl, listElId, items, displayFn, onPick) {
+                var q = inputEl.value.trim().toLowerCase();
+                var filtered = items.filter(function (it) { return displayFn(it).toLowerCase().includes(q); });
+                createList(listElId, filtered, displayFn, onPick);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var alumnoInput = document.getElementById('alumno');
+                var carreraInput = document.getElementById('carrera');
+                var materiaInput = document.getElementById('materia');
+
+                alumnoInput.addEventListener('input', function () {
+                    filterAndShow(alumnoInput, 'alumno-list', students, function (s) { return s.FullName; }, function (s) {
+                        alumnoInput.value = s.FullName;
+                        document.getElementById('SelectedUsId').value = s.UsId;
+                    });
+                });
+
+                carreraInput.addEventListener('input', function () {
+                    filterAndShow(carreraInput, 'carrera-list', carreras, function (c) { return c.CaDenominacion; }, function (c) {
+                        carreraInput.value = c.CaDenominacion;
+                        document.getElementById('SelectedCaId').value = c.CaId;
+                    });
+                });
+
+                materiaInput.addEventListener('input', function () {
+                    filterAndShow(materiaInput, 'materia-list', materias, function (m) { return m.MaDenominacion; }, function (m) {
+                        materiaInput.value = m.MaDenominacion;
+                        document.getElementById('SelectedMaId').value = m.MaId;
+                    });
+                });
+
+                alumnoInput.addEventListener('focus', function () { createList('alumno-list', students, function (s) { return s.FullName; }, function (s) { alumnoInput.value = s.FullName; document.getElementById('SelectedUsId').value = s.UsId; }); });
+                carreraInput.addEventListener('focus', function () { createList('carrera-list', carreras, function (c) { return c.CaDenominacion; }, function (c) { carreraInput.value = c.CaDenominacion; document.getElementById('SelectedCaId').value = c.CaId; }); });
+                materiaInput.addEventListener('focus', function () { createList('materia-list', materias, function (m) { return m.MaDenominacion; }, function (m) { materiaInput.value = m.MaDenominacion; document.getElementById('SelectedMaId').value = m.MaId; }); });
+            });
+    </script>
+
+    <style>
+            .autocomplete-list {
+                border: 1px solid #ddd;
+                max-height: 160px;
+                overflow-y: auto;
+                background: #fff;
+            }
+
+            .autocomplete-item {
+                padding: 8px 10px;
+                cursor: pointer;
+            }
+
+                .autocomplete-item:hover {
+                    background: #f1f1f1;
+                }
+    </style>
+
+    <script src="script.js"></script>
+</body>
+</html>
