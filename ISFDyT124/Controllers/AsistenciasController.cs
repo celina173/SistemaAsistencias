@@ -124,20 +124,12 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
-            // Buscar rol Estudiante
-            var role = await _context.Roles.FirstOrDefaultAsync(r =>
-                r.RoDenominacion.ToLower() == "estudiante"
-            );
-            if (role == null)
-            {
-                return View(model);
-            }
-
-            // find users inscribed to this Carreras_Materias via Inscripciones — ensure we load Usuario and its Rol
+            // Alumnos inscriptos a esta cátedra vía Inscripciones (la inscripción ya es la prueba
+            // de que corresponde tomarle asistencia acá, sin depender de un nombre de rol puntual).
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId && u.RoId == role.RoId
+                where i.CaMaId == CaMaId
                 select new
                 {
                     u.UsId,
@@ -237,21 +229,11 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
-            // Buscar el rol Estudiante (case-insensitive)
-            var role = await _context.Roles.FirstOrDefaultAsync(r =>
-                r.RoDenominacion.ToLower() == "estudiante"
-            );
-
-            if (role == null)
-            {
-                return View(model);
-            }
-
-            // Traer alumnos inscriptos en esa materia
+            // Alumnos inscriptos en esta materia vía Inscripciones (ver Asistencia() más arriba)
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId && u.RoId == role.RoId
+                where i.CaMaId == CaMaId
                 select u
             )
                 .Distinct()
