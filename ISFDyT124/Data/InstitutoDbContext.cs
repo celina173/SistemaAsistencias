@@ -38,7 +38,7 @@ namespace ISFDyT124.Data
             //modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
             //modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
             modelBuilder.Entity<CarreraMateria>().ToTable("CarreraMateria");
-            modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedNever();
+            modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedOnAdd();
             modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
             modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
             modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();

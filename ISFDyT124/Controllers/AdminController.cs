@@ -1,6 +1,7 @@
 ﻿using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using ISFDyT124.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -224,7 +225,11 @@ namespace ISFDyT124.Controllers
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                UsContrasena = model.UsDni.ToString(),
+                // CAMBIO: la contraseña inicial (el propio DNI) se guarda hasheada. Sigue
+                // siendo el mismo valor de contraseña por defecto, solo cambia cómo se
+                // almacena; el chequeo de "debe cambiar contraseña" en AccountController
+                // ahora verifica el hash en vez de comparar strings.
+                UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
                 RoId = selectedRoleId,
                 CaCoId = selectedRoleId == 3 ? model.CaCoId : null,
             };
