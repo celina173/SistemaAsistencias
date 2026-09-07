@@ -1,8 +1,8 @@
+using ISFDyT124.Data;
+using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ISFDyT124.Models;
-using ISFDyT124.Data;
 
 [Authorize(Roles = "Admin")]
 public class CarrerasController : Controller
@@ -15,7 +15,7 @@ public class CarrerasController : Controller
     }
 
     // GET: CARRERAS
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
         return View(await _context.Carreras.ToListAsync());
     }
@@ -28,8 +28,7 @@ public class CarrerasController : Controller
             return NotFound();
         }
 
-        var carrera = await _context.Carreras
-            .FirstOrDefaultAsync(c => c.CaId == CaId);
+        var carrera = await _context.Carreras.FirstOrDefaultAsync(c => c.CaId == CaId);
         if (carrera == null)
         {
             return NotFound();
@@ -47,7 +46,7 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera)
+    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera)
     {
         if (ModelState.IsValid)
         {
@@ -77,7 +76,10 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int? CaId, [Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera)
+    public async Task<IActionResult> Edit(
+        int? CaId,
+        [Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera
+    )
     {
         if (CaId != carrera.CaId)
         {
@@ -115,8 +117,7 @@ public class CarrerasController : Controller
             return NotFound();
         }
 
-        var carrera = await _context.Carreras
-            .FirstOrDefaultAsync(c => c.CaId == CaId);
+        var carrera = await _context.Carreras.FirstOrDefaultAsync(c => c.CaId == CaId);
         if (carrera == null)
         {
             return NotFound();

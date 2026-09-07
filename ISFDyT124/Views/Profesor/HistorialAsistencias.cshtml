@@ -1,0 +1,57 @@
+@model IEnumerable<ISFDyT124.DTO.AsistenciaDetalleDto>
+@{
+    ViewData["Title"] = "Historial de Asistencias";
+    ViewData["BodyClass"] = "global-page";
+}
+
+@* Réplica dinámica del estilo de Views/Home/AsistenciaGlobal.cshtml (global-table /
+   main-container-global) integrada al _Layout. Lista el histórico de una materia. *@
+
+<main class="main-container-global">
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">Historial de Asistencias</p>
+            <p>@ViewBag.MateriaNombre</p>
+        </div>
+        <div class="info-col-right">
+            <a asp-action="Index" style="text-decoration:none;">&larr; Volver a mis cátedras</a>
+        </div>
+    </div>
+
+    <div class="global-table-container">
+        <table class="global-table">
+            <thead>
+                <tr>
+                    <th colspan="4" class="title-cell">Historial — @ViewBag.MateriaNombre</th>
+                </tr>
+                <tr>
+                    <th class="align-left">Fecha</th>
+                    <th class="align-left">Alumno</th>
+                    <th>Presente</th>
+                    <th>Justificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var a in Model)
+                    {
+                        <tr>
+                            <td>@(a.AsFecha.HasValue ? a.AsFecha.Value.ToString("dd/MM/yyyy") : "-")</td>
+                            <td class="align-left">@a.UsuarioNombre</td>
+                            <td>@(a.AsPresente ? "Presente" : "Ausente")</td>
+                            <td>@(a.AsJustificacion ? "Justificada" : "-")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" style="text-align:center;">Sin registros de asistencia para esta materia.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

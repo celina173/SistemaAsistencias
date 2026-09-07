@@ -41,6 +41,6 @@ namespace ISFDyT124.Models
         public virtual Materia? Materias { get; set; } // Por el momento no se utiliza
 
         // Relación opcional hacia Carreras_Materias cuando la asistencia se vincula a una carrera/materia
-        public virtual CarrerasMaterias? CarreraMateria { get; set; }
+        public virtual CarreraMateria? CarreraMateria { get; set; }
     }
 }

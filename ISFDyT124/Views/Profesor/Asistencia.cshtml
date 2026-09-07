@@ -1,0 +1,77 @@
+@model IEnumerable<ISFDyT124.DTO.UsuarioDetalleDto>
+@{
+    ViewData["Title"] = "Toma de Asistencia";
+    ViewData["BodyClass"] = "asistencia-page";
+
+    var existentes = ViewBag.AsistenciasExistentes as Dictionary<int, ISFDyT124.DTO.AsistenciaDetalleDto>
+                     ?? new Dictionary<int, ISFDyT124.DTO.AsistenciaDetalleDto>();
+    int maId = (int)(ViewBag.MateriaId ?? 0);
+    var fecha = (DateTime)(ViewBag.Fecha ?? DateTime.Today);
+}
+
+@* Réplica dinámica de Views/Home/Asistencia.cshtml (mismas clases: attendance-table,
+   custom-checkbox, justification-cell, btn-guardar, info-banner) integrada al _Layout. *@
+
+<main class="main-container-asistencia">
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p>@fecha.ToString("dd/MM/yyyy")</p>
+            <p class="info-bold">@ViewBag.CarreraNombre</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">@User.Identity?.Name</p>
+            <p class="info-bold">@ViewBag.MateriaNombre</p>
+        </div>
+    </div>
+
+    <form asp-action="Asistencia" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="maId" value="@maId" />
+        <input type="hidden" name="fecha" value="@fecha.ToString("yyyy-MM-dd")" />
+
+        <div class="table-container">
+            <table class="attendance-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Apellido y Nombre</th>
+                        <th style="width: 25%; text-align: center;">Presente</th>
+                        <th style="width: 25%; text-align: center;">Justificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int i = 0;
+                        foreach (var alumno in Model)
+                        {
+                            var presente = existentes.ContainsKey(alumno.UsId) && existentes[alumno.UsId].AsPresente;
+                            var justificado = existentes.ContainsKey(alumno.UsId) && existentes[alumno.UsId].AsJustificacion;
+                            <tr>
+                                <td>@alumno.UsApellido, @alumno.UsNombre</td>
+                                <td class="modules-cell" style="text-align: center;">
+                                    <input type="hidden" name="asistencias[@i].UsId" value="@alumno.UsId" />
+                                    <input type="checkbox" class="custom-checkbox"
+                                           name="asistencias[@i].AsPresente" value="true" @(presente ? "checked" : "") />
+                                </td>
+                                <td class="justification-cell" style="text-align: center;">
+                                    <input type="checkbox" class="custom-checkbox"
+                                           name="asistencias[@i].AsJustificacion" value="true" @(justificado ? "checked" : "") />
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" style="text-align:center;">No hay alumnos inscriptos en esta cátedra.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <button type="submit" class="btn-guardar">Guardar Asistencia</button>
+    </form>
+</main>

@@ -39,6 +39,64 @@ namespace ISFDyT124.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Auditoría de docentes: por cada (docente, cátedra asignada), cuántas fechas
+        /// distintas cargó asistencia y cuál fue la última vez. No hay en el modelo una
+        /// fecha de carga real ni quién cargó cada registro, así que esto es una auditoría
+        /// de actividad (¿usa el sistema?), no de cumplimiento contra un calendario.
+        /// </summary>
+        public async Task<IActionResult> AuditoriaDocentes()
+        {
+            var docentes = await _context.Usuarios
+                .Where(u => u.RoId == 2)
+                .Include(u => u.CarreraMaterias).ThenInclude(cm => cm.Carrera)
+                .Include(u => u.CarreraMaterias).ThenInclude(cm => cm.Materia)
+                .ToListAsync();
+
+            var filas = new List<AuditoriaDocenteDto>();
+
+            foreach (var docente in docentes)
+            {
+                foreach (var catedra in docente.CarreraMaterias)
+                {
+                    var caCoIds = await _context.CarreraCohortes
+                        .Where(cc => cc.CaId == catedra.CaId)
+                        .Select(cc => cc.CaCoId)
+                        .ToListAsync();
+
+                    var cantidadAlumnos = await _context.Usuarios
+                        .CountAsync(u => u.RoId == 3 && u.CaCoId != null && caCoIds.Contains(u.CaCoId.Value));
+
+                    // Se matchea por MaId (no CaMaId): ProfesorController guarda las
+                    // asistencias con MaId y deja CaMaId en null.
+                    var fechas = await _context.Asistencias
+                        .Where(a => a.MaId == catedra.MaId && a.AsFecha != null)
+                        .Select(a => a.AsFecha!.Value.Date)
+                        .Distinct()
+                        .ToListAsync();
+
+                    filas.Add(new AuditoriaDocenteDto
+                    {
+                        UsId = docente.UsId,
+                        DocenteNombre = $"{docente.UsApellido}, {docente.UsNombre}",
+                        CaMaId = catedra.CaMaId,
+                        CarreraDenominacion = catedra.Carrera?.CaDenominacion ?? "-",
+                        MateriaDenominacion = catedra.Materia?.MaDenominacion ?? "-",
+                        CantidadAlumnos = cantidadAlumnos,
+                        CantidadFechasCargadas = fechas.Count,
+                        UltimaFechaCargada = fechas.Count > 0 ? fechas.Max() : null
+                    });
+                }
+            }
+
+            var ordenadas = filas
+                .OrderBy(f => f.UltimaFechaCargada.HasValue ? 1 : 0)
+                .ThenBy(f => f.UltimaFechaCargada)
+                .ToList();
+
+            return View(ordenadas);
+        }
+
         public async Task<IActionResult> UsuariosABM()
         {
             var usuarios = await _context.Usuarios

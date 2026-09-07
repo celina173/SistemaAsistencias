@@ -1,0 +1,48 @@
+@model ISFDyT124.Models.Materia
+
+@{
+    ViewData["Title"] = "Detalle Materia";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
+</div>
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Detalle Materia</h2>
+</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaDenominacion)</label>
+            <input value="@Model.MaDenominacion" readonly>
+        </div>
+
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaModalidad)</label>
+            <input value="@(Model.MaModalidad ?? "-")" readonly>
+        </div>
+
+        <div class="input-field">
+            <label>@Html.DisplayNameFor(model => model.MaCantModulos)</label>
+            <input value="@(Model.MaCantModulos?.ToString() ?? "-")" readonly>
+        </div>
+
+        <div class="input-field">
+            <label>Carreras relacionadas</label>
+            <input value="@(Model.CarreraMaterias?.Count ?? 0)" readonly>
+        </div>
+
+        <div class="form-buttons">
+            <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Volver</a>
+            <a asp-action="Edit" asp-route-MaId="@Model.MaId" class="btn-save" style="text-decoration:none; text-align:center;">Editar</a>
+        </div>
+    </div>
+</main>

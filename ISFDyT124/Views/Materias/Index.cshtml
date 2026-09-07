@@ -1,0 +1,72 @@
+@model IEnumerable<ISFDyT124.Models.Materia>
+
+@{
+    ViewData["Title"] = "Materias";
+    ViewData["BodyClass"] = "gestion-page";
+}
+
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
+</div>
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Gestión Materias</h2>
+</div>
+
+<main class="main-container-global">
+
+    <div class="toolbar-container">
+        <div class="spacer"></div>
+        <div class="add-btn-container">
+            <a asp-action="Create" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+        </div>
+    </div>
+
+    <div class="global-table-container">
+        <table class="global-table crud-materias">
+            <thead>
+                <tr>
+                    <th class="align-left">NOMBRE DE LA MATERIA</th>
+                    <th>MODALIDAD</th>
+                    <th>MÓDULOS</th>
+                    <th class="align-left">CARRERAS RELACIONADAS</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="align-left">@item.MaDenominacion</td>
+                            <td>@(item.MaModalidad ?? "-")</td>
+                            <td>@(item.MaCantModulos?.ToString() ?? "-")</td>
+                            <td class="align-left">@(item.CarreraMaterias?.Count ?? 0)</td>
+                            <td class="action-cell">
+                                <div class="action-buttons">
+                                    <a asp-action="Edit" asp-route-MaId="@item.MaId" class="icon-btn btn-edit" title="Editar">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+                                    </a>
+                                    <a asp-action="Details" asp-route-MaId="@item.MaId" class="icon-btn" title="Detalles">📋</a>
+                                    <a asp-action="Delete" asp-route-MaId="@item.MaId" class="icon-btn" title="Eliminar">🗑️</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No hay materias cargadas todavía.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

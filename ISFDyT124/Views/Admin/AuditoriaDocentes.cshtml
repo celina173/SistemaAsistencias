@@ -1,0 +1,67 @@
+@model IEnumerable<ISFDyT124.DTO.AuditoriaDocenteDto>
+
+@{
+    ViewData["Title"] = "Auditoría de Docentes";
+    ViewData["BodyClass"] = "global-page";
+}
+
+<main class="main-container-global">
+
+    <div class="info-banner">
+        <div class="info-col-left">
+            <p class="info-bold">Actividad de carga de asistencia por cátedra</p>
+        </div>
+        <div class="info-col-right">
+            <p class="info-bold">ADMINISTRADOR</p>
+        </div>
+    </div>
+
+    <div class="global-table-container">
+        <table class="global-table">
+            <thead>
+                <tr>
+                    <th colspan="6" class="title-cell">Auditoría de Docentes</th>
+                </tr>
+                <tr>
+                    <th class="align-left">Docente</th>
+                    <th class="align-left">Carrera / Materia</th>
+                    <th>Alumnos</th>
+                    <th>Fechas cargadas</th>
+                    <th class="total-col">Última carga</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var fila in Model)
+                    {
+                        <tr>
+                            <td class="align-left">@fila.DocenteNombre</td>
+                            <td class="align-left">@fila.CarreraDenominacion / @fila.MateriaDenominacion</td>
+                            <td>@fila.CantidadAlumnos</td>
+                            <td>@fila.CantidadFechasCargadas</td>
+                            <td class="total-col">@(fila.UltimaFechaCargada.HasValue ? fila.UltimaFechaCargada.Value.ToString("dd/MM/yyyy") : "-")</td>
+                            <td>
+                                @if (fila.UltimaFechaCargada.HasValue)
+                                {
+                                    <span>Con actividad</span>
+                                }
+                                else
+                                {
+                                    <span style="color:#ef4444; font-weight:700;">Sin actividad</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">No hay docentes con cátedras asignadas todavía.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

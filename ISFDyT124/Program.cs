@@ -36,39 +36,52 @@ builder
 var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n realizada
 
 // Seed: crear roles y usuario admin si no existen
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
-
-    var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
-    if (rolAdmin == null)
+    using (var scope = app.Services.CreateScope())
     {
-        rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
-        context.Roles.Add(rolAdmin);
-    }
+        var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
 
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Profesor"))
-        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
-
-    if (!await context.Roles.AnyAsync(r => r.RoDenominacion == "Alumno"))
-        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
-
-    if (!await context.Usuarios.AnyAsync(u => u.UsEmail == "admin@instituto.edu.ar"))
-    {
-        context.Usuarios.Add(new Usuario
+        var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
+        if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == 1))
         {
-            UsId = 1,
-            UsNombre = "Admin",
-            UsApellido = "Sistema",
-            UsDni = 12345678,
-            UsEmail = "admin@instituto.edu.ar",
-            UsContrasena = "12345678",
-            RoId = rolAdmin.RoId
-        });
-    }
+            rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
+            context.Roles.Add(rolAdmin);
+        }
 
-    await context.SaveChangesAsync();
-}
+        if (!await context.Roles.AnyAsync(r => r.RoId == 2 || r.RoDenominacion == "Profesor"))
+            context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
+
+        if (!await context.Roles.AnyAsync(r => r.RoId == 3 || r.RoDenominacion == "Alumno"))
+            context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
+
+        // Puede haber quedado null si el RoId=1 ya estaba ocupado por un rol con otro nombre
+        rolAdmin ??= await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin" || r.RoId == 1);
+
+        const int adminDni = 12345678;
+        const string adminEmail = "admin@instituto.edu.ar";
+
+        // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
+        // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
+        if (rolAdmin != null && !await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
+        {
+            // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
+            int nuevoUsId = await context.Usuarios.AnyAsync()
+                ? await context.Usuarios.MaxAsync(u => u.UsId) + 1
+                : 1;
+
+            context.Usuarios.Add(new Usuario
+            {
+                UsId = nuevoUsId,
+                UsNombre = "Admin",
+                UsApellido = "Sistema",
+                UsDni = adminDni,
+                UsEmail = adminEmail,
+                UsContrasena = "12345678",
+                RoId = rolAdmin.RoId
+            });
+        }
+
+        await context.SaveChangesAsync();
+    }
 
 // Configuraciones para ambientes que NO son de desarrollo
 if (!app.Environment.IsDevelopment())
