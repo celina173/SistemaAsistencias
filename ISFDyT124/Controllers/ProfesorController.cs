@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
@@ -14,7 +14,7 @@ namespace ISFDyT124.Controllers
     /// Usa exactamente el rol "Profesor" (tal como está sembrado en la tabla ROLES).
     /// Trabaja con los DTOs de la carpeta /DTO en lugar de exponer las entidades.
     /// </summary>
-    [Authorize(Roles = "Profesor")]
+    [Authorize(Roles = "Docente")]
     public class ProfesorController : Controller
     {
         private readonly InstitutoDbContext _context;
@@ -29,7 +29,7 @@ namespace ISFDyT124.Controllers
         // ─────────────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Pantalla de inicio del profesor: lista SOLO las cátedras (Carrera-Materia)
+        /// Pantalla de inicio del docente: lista SOLO las cátedras (Carrera-Materia)
         /// que tiene asignadas (relación muchos a muchos con CarreraMateria).
         /// </summary>
         [HttpGet]
@@ -39,8 +39,8 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            var catedras = await _context.Usuarios
-                .Where(u => u.UsId == docenteId)
+            var catedras = await _context
+                .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
                 .Select(cm => new CarreraMateriaDetalleDto
                 {
@@ -48,7 +48,7 @@ namespace ISFDyT124.Controllers
                     CaId = cm.CaId,
                     MaId = cm.MaId,
                     CarreraDenominacion = cm.Carrera != null ? cm.Carrera.CaDenominacion : "-",
-                    MateriaDenominacion = cm.Materia != null ? cm.Materia.MaDenominacion : "-"
+                    MateriaDenominacion = cm.Materia != null ? cm.Materia.MaDenominacion : "-",
                 })
                 .OrderBy(c => c.CarreraDenominacion)
                 .ThenBy(c => c.MateriaDenominacion)
@@ -80,8 +80,8 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var catedra = await _context.CarreraMaterias
-                .Include(cm => cm.Carrera)
+            var catedra = await _context
+                .CarreraMaterias.Include(cm => cm.Carrera)
                 .Include(cm => cm.Materia)
                 .FirstOrDefaultAsync(cm => cm.CaMaId == caMaId);
 
@@ -98,31 +98,37 @@ namespace ISFDyT124.Controllers
             ViewBag.CantModulos = catedra.Materia?.MaCantModulos ?? 1;
 
             // Carrera-Cohortes de la carrera de esta cátedra.
-            var caCoIds = await _context.CarreraCohortes
-                .Where(cc => cc.CaId == catedra.CaId)
+            var caCoIds = await _context
+                .CarreraCohortes.Where(cc => cc.CaId == catedra.CaId)
                 .Select(cc => cc.CaCoId)
                 .ToListAsync();
 
-            // Alumnos de esa carrera (rol Alumno), proyectados al DTO.
-            var alumnos = await _context.Usuarios
-                .Include(u => u.Rol)
-                .Where(u => u.Rol != null && u.Rol.RoDenominacion == "Alumno"
-                            && u.CaCoId != null && caCoIds.Contains(u.CaCoId.Value))
+            // Alumnos de esa carrera (rol Estudiante), proyectados al DTO.
+            var alumnos = await _context
+                .Usuarios.Include(u => u.Rol)
+                .Where(u =>
+                    u.Rol != null
+                    && u.Rol.RoDenominacion == "Estudiante"
+                    && u.CaCoId != null
+                    && caCoIds.Contains(u.CaCoId.Value)
+                )
                 .Select(u => new UsuarioDetalleDto
                 {
                     UsId = u.UsId,
                     UsApellido = u.UsApellido,
                     UsNombre = u.UsNombre,
                     UsEmail = u.UsEmail,
-                    RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null
+                    RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null,
                 })
                 .OrderBy(u => u.UsApellido)
                 .ThenBy(u => u.UsNombre)
                 .ToListAsync();
 
             // Asistencias ya registradas ese día (para precargar/editar), como dict UsId -> DTO.
-            var existentes = await _context.Asistencias
-                .Where(a => a.MaId == maId && a.AsFecha != null && a.AsFecha.Value.Date == fechaFiltro.Date)
+            var existentes = await _context
+                .Asistencias.Where(a =>
+                    a.MaId == maId && a.AsFecha != null && a.AsFecha.Value.Date == fechaFiltro.Date
+                )
                 .Select(a => new AsistenciaDetalleDto
                 {
                     AsId = a.AsId,
@@ -130,7 +136,7 @@ namespace ISFDyT124.Controllers
                     MaId = a.MaId,
                     AsFecha = a.AsFecha,
                     AsPresente = a.AsPresente,
-                    AsJustificacion = a.AsJustificacion
+                    AsJustificacion = a.AsJustificacion,
                 })
                 .ToListAsync();
 
@@ -144,7 +150,11 @@ namespace ISFDyT124.Controllers
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Asistencia(int maId, DateTime fecha, List<AsistenciaCrearDto> asistencias)
+        public async Task<IActionResult> Asistencia(
+            int maId,
+            DateTime fecha,
+            List<AsistenciaCrearDto> asistencias
+        )
         {
             if (asistencias == null || asistencias.Count == 0)
             {
@@ -154,15 +164,19 @@ namespace ISFDyT124.Controllers
 
             foreach (var dto in asistencias)
             {
-                if (dto.UsId == null) continue;
+                if (dto.UsId == null)
+                    continue;
 
                 bool presente = dto.AsPresente;
                 // Regla de negocio: si asistió, no corresponde justificación de falta.
                 bool justificado = presente ? false : dto.AsJustificacion;
 
                 var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
-                    a.UsId == dto.UsId && a.MaId == maId &&
-                    a.AsFecha != null && a.AsFecha.Value.Date == fecha.Date);
+                    a.UsId == dto.UsId
+                    && a.MaId == maId
+                    && a.AsFecha != null
+                    && a.AsFecha.Value.Date == fecha.Date
+                );
 
                 if (existente != null)
                 {
@@ -172,14 +186,16 @@ namespace ISFDyT124.Controllers
                 }
                 else
                 {
-                    _context.Asistencias.Add(new Asistencia
-                    {
-                        AsFecha = fecha.Date,
-                        AsPresente = presente,
-                        AsJustificacion = justificado,
-                        UsId = dto.UsId,
-                        MaId = maId
-                    });
+                    _context.Asistencias.Add(
+                        new Asistencia
+                        {
+                            AsFecha = fecha.Date,
+                            AsPresente = presente,
+                            AsJustificacion = justificado,
+                            UsId = dto.UsId,
+                            MaId = maId,
+                        }
+                    );
                 }
             }
 
@@ -201,10 +217,11 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> HistorialAsistencias(int maId)
         {
             ViewBag.MateriaId = maId;
-            ViewBag.MateriaNombre = (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
+            ViewBag.MateriaNombre =
+                (await _context.Materias.FindAsync(maId))?.MaDenominacion ?? "Materia";
 
-            var historial = await _context.Asistencias
-                .Where(a => a.MaId == maId)
+            var historial = await _context
+                .Asistencias.Where(a => a.MaId == maId)
                 .Include(a => a.Usuario)
                 .Include(a => a.Materias)
                 .OrderByDescending(a => a.AsFecha)
@@ -217,8 +234,9 @@ namespace ISFDyT124.Controllers
                     AsFecha = a.AsFecha,
                     AsPresente = a.AsPresente,
                     AsJustificacion = a.AsJustificacion,
-                    UsuarioNombre = a.Usuario != null ? a.Usuario.UsApellido + ", " + a.Usuario.UsNombre : "-",
-                    MateriaDenominacion = a.Materias != null ? a.Materias.MaDenominacion : "-"
+                    UsuarioNombre =
+                        a.Usuario != null ? a.Usuario.UsApellido + ", " + a.Usuario.UsNombre : "-",
+                    MateriaDenominacion = a.Materias != null ? a.Materias.MaDenominacion : "-",
                 })
                 .ToListAsync();
 

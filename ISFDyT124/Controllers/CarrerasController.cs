@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Dirección")]
 public class CarrerasController : Controller
 {
     private readonly InstitutoDbContext _context;
