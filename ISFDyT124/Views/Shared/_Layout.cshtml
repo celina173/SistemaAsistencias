@@ -17,13 +17,33 @@
             <div class="bar"></div>
         </div>
 
-        <div class="header-title">
+        @{
+            // Definimos las rutas por defecto (para Alumnos o usuarios no logueados)
+            string targetController = "Home";
+
+            // Verificamos el rol usando los claims de la sesión que se crean en el Login
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+                {
+                    targetController = "Admin";
+                }
+                else if (User.IsInRole("Docente"))
+                {
+                    targetController = "Profesor";
+                }
+            }
+        }
+
+        <!-- TÍTULO:-->
+        <a class="header-title" asp-controller="@targetController" asp-action="Index" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center;">
             <div class="title-small">SISTEMA</div>
             <div class="title-large">ASISTENCIAS</div>
-        </div>
+        </a>
 
+        <!-- LOGO:-->
         <div class="header-logo">
-            <a asp-controller="Home" asp-action="Index">
+            <a asp-controller="@targetController" asp-action="Index">
                 <img src="~/images/logo.png" alt="IS 124" class="logo-img">
             </a>
         </div>
