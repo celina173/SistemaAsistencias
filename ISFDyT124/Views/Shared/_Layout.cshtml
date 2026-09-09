@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Sistema de Asistencias</title>
+    <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
@@ -16,13 +17,35 @@
             <div class="bar"></div>
         </div>
 
-        <div class="header-title">
+        @{
+            // Definimos las rutas por defecto (para Alumnos o usuarios no logueados)
+            string targetController = "Home";
+
+            // Verificamos el rol usando los claims de la sesión que se crean en el Login
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+                {
+                    targetController = "Admin";
+                }
+                else if (User.IsInRole("Docente"))
+                {
+                    targetController = "Profesor";
+                }
+            }
+        }
+
+        <!-- TÍTULO:-->
+        <a class="header-title" asp-controller="@targetController" asp-action="Index" style="text-decoration: none; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center;">
             <div class="title-small">SISTEMA</div>
             <div class="title-large">ASISTENCIAS</div>
-        </div>
+        </a>
 
+        <!-- LOGO:-->
         <div class="header-logo">
-            <img src="~/images/logo.png" alt="IS 124" class="logo-img">
+            <a asp-controller="@targetController" asp-action="Index">
+                <img src="~/images/logo.png" alt="IS 124" class="logo-img">
+            </a>
         </div>
     </header>
 
