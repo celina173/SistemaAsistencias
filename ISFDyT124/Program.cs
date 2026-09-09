@@ -1,6 +1,6 @@
-
 using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
 using ISFDyT124.Models; // Importa los modelos
+using ISFDyT124.Services; // Importa PasswordService para hashear la contraseña sembrada
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
 
 //using ISFDyT124.DTOs; // Importa objetos de transferencia de datos
@@ -36,52 +36,63 @@ builder
 var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n realizada
 
 // Seed: crear roles y usuario admin si no existen
-    using (var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
+
+    var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
+    if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == 1))
     {
-        var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
-
-        var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
-        if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == 1))
-        {
-            rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
-            context.Roles.Add(rolAdmin);
-        }
-
-        if (!await context.Roles.AnyAsync(r => r.RoId == 2 || r.RoDenominacion == "Profesor"))
-            context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Profesor" });
-
-        if (!await context.Roles.AnyAsync(r => r.RoId == 3 || r.RoDenominacion == "Alumno"))
-            context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Alumno" });
-
-        // Puede haber quedado null si el RoId=1 ya estaba ocupado por un rol con otro nombre
-        rolAdmin ??= await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin" || r.RoId == 1);
-
-        const int adminDni = 12345678;
-        const string adminEmail = "admin@instituto.edu.ar";
-
-        // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
-        // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
-        if (rolAdmin != null && !await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
-        {
-            // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
-            int nuevoUsId = await context.Usuarios.AnyAsync()
-                ? await context.Usuarios.MaxAsync(u => u.UsId) + 1
-                : 1;
-
-            context.Usuarios.Add(new Usuario
-            {
-                UsId = nuevoUsId,
-                UsNombre = "Admin",
-                UsApellido = "Sistema",
-                UsDni = adminDni,
-                UsEmail = adminEmail,
-                UsContrasena = "12345678",
-                RoId = rolAdmin.RoId
-            });
-        }
-
-        await context.SaveChangesAsync();
+        rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
+        context.Roles.Add(rolAdmin);
     }
+
+    var rolDocente = await context.Roles.FindAsync(2);
+    if (rolDocente == null)
+        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Docente" });
+    else if (rolDocente.RoDenominacion != "Docente")
+        rolDocente.RoDenominacion = "Docente";
+
+    var rolEstudiante = await context.Roles.FindAsync(3);
+    if (rolEstudiante == null)
+        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Estudiante" });
+    else if (rolEstudiante.RoDenominacion != "Estudiante")
+        rolEstudiante.RoDenominacion = "Estudiante";
+
+    if (!await context.Roles.AnyAsync(r => r.RoId == 4))
+        context.Roles.Add(new Rol { RoId = 4, RoDenominacion = "Dirección" });
+
+    // Puede haber quedado null si el RoId=1 ya estaba ocupado por un rol con otro nombre
+    rolAdmin ??= await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin" || r.RoId == 1);
+
+    const int adminDni = 12345678;
+    const string adminEmail = "admin@instituto.edu.ar";
+
+    // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
+    // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
+    if (rolAdmin != null && !await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
+    {
+        // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
+        int nuevoUsId = await context.Usuarios.AnyAsync()
+            ? await context.Usuarios.MaxAsync(u => u.UsId) + 1
+            : 1;
+
+        context.Usuarios.Add(new Usuario
+        {
+            UsId = nuevoUsId,
+            UsNombre = "Admin",
+            UsApellido = "Sistema",
+            UsDni = adminDni,
+            UsEmail = adminEmail,
+            // CAMBIO: la contraseña sembrada para el admin (igual a su DNI, mismo criterio
+            // que un alta manual) se guarda hasheada en vez de en texto plano.
+            UsContrasena = PasswordService.HashPassword("12345678"),
+            RoId = rolAdmin.RoId
+        });
+    }
+
+    await context.SaveChangesAsync();
+}
 
 // Configuraciones para ambientes que NO son de desarrollo
 if (!app.Environment.IsDevelopment())

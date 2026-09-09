@@ -7,6 +7,7 @@ namespace ISFDyT124.Models
     {
         [Key]
         [Display(Name = "ID Relación")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CaMaId { get; set; }
 
         [Required(ErrorMessage = "Debe seleccionar una carrera.")]

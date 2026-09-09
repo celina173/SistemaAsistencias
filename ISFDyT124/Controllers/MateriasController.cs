@@ -1,9 +1,12 @@
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+[Authorize(Roles = "Admin,Dirección")]
 public class MateriasController : Controller
 {
     private readonly InstitutoDbContext _context;
@@ -39,23 +42,37 @@ public class MateriasController : Controller
     // GET: MATERIAS/Create
     public IActionResult Create()
     {
+        ViewData["CaId"] = new SelectList(_context.Carreras, "CaId", "CaDenominacion");
+        ViewData["MaId"] = new SelectList(_context.Materias, "MaId", "MaDenominacion");
         return View();
     }
 
     // POST: MATERIAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(
-        [Bind("MaDenominacion, MaModalidad, MaCantModulos")] Materia materia
-    )
+    public async Task<IActionResult> Create([Bind("MaDenominacion,MaModalidad,MaCantModulos")] Materia materia, int? CaId)
     {
         if (ModelState.IsValid)
         {
             _context.Add(materia);
             await _context.SaveChangesAsync();
+            // Si se seleccionó una carrera, crear la relación en CarrerasMaterias
+            if (CaId.HasValue)
+            {
+                var rel = new CarreraMateria
+                {
+                    CaId = CaId.Value,
+                    MaId = materia.MaId
+                };
+                _context.CarreraMaterias.Add(rel);
+                await _context.SaveChangesAsync();
+            }
             return RedirectToAction(nameof(Index));
         }
 
+        // repoblar selects en caso de error
+        ViewData["CaId"] = new SelectList(_context.Carreras, "CaId", "CaDenominacion");
+        ViewData["MaId"] = new SelectList(_context.Materias, "MaId", "MaDenominacion", materia?.MaId);
         return View(materia);
     }
 

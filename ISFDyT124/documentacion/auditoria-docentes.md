@@ -19,7 +19,7 @@ Una tabla con una fila por cada combinación **(docente, cátedra que tiene
 asignada)**:
 
 | Columna | Qué informa |
-|---|---|
+| --- | --- |
 | Docente | Apellido y nombre |
 | Carrera / Materia | La cátedra puntual |
 | Alumnos | Cuántos alumnos están inscriptos en esa cátedra |

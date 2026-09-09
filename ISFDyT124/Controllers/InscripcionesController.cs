@@ -48,7 +48,7 @@ namespace ISFDyT124.Controllers
                             .Include(x => x.Materia)
                             .FirstOrDefaultAsync(x => x.CaMaId == ins.CaMaId);
                         ins.CarreraMateria = cm;
-                    }   
+                    }
                 }
 
                 return View(all);

@@ -41,6 +41,11 @@
                 <span asp-validation-for="MaCantModulos" class="text-danger"></span>
             </div>
 
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="CaId">Asignar a Carrera</label>
+                @Html.DropDownList("CaId", (SelectList)ViewData["CaId"], "-- Seleccione una carrera --", new { @class = "input-select" })
+            </div>
+
             <div class="form-buttons" style="grid-column: span 2;">
                 <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
                 <button type="submit" class="btn-save">Guardar Materia</button>

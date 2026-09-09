@@ -52,18 +52,19 @@
 
             <div id="carreraCohorteGroup" class="input-field" style="display:none;">
                 <label asp-for="CaCoId">Carrera / Cohorte</label>
-                <select asp-for="CaCoId">
+                <select asp-for="CaCoId" data-msg-required="Debe seleccionar una Carrera / Cohorte para un Estudiante.">
                     <option value="">Seleccione Carrera / Cohorte</option>
                     @foreach (var cc in ViewBag.CarreraCohortesList)
                     {
                         <option value="@cc.CaCoId">@cc.Denominacion</option>
                     }
                 </select>
+                <span asp-validation-for="CaCoId" class="text-danger"></span>
             </div>
 
             <div id="materiasGroup" class="input-field" style="display:none;">
                 <label>Materias Asignadas</label>
-                <select name="selectedCaMaIds" multiple style="height:150px;">
+                <select name="selectedCaMaIds" multiple style="height:150px;" data-msg-required="Debe seleccionar al menos una materia para un Docente.">
                     @foreach (var cm in ViewBag.CarreraMateriasList)
                     {
                         if (materiasActuales.Contains(cm.CaMaId))
@@ -76,6 +77,7 @@
                         }
                     }
                 </select>
+                @Html.ValidationMessage("SelectedCaMaIds", "", new { @class = "text-danger" })
             </div>
 
             <div class="form-buttons">
@@ -90,10 +92,19 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         var roleSelect = document.getElementById('selectedRoleId');
+        var caCoIdSelect = document.getElementById('CaCoId');
+        var materiasSelect = document.querySelector('#materiasGroup select');
+
         function toggleFields() {
             var val = parseInt(roleSelect.value);
-            document.getElementById('carreraCohorteGroup').style.display = (val === 3) ? 'flex' : 'none';
-            document.getElementById('materiasGroup').style.display = (val === 2) ? 'flex' : 'none';
+            var esEstudiante = val === 3;
+            var esDocente = val === 2;
+
+            document.getElementById('carreraCohorteGroup').style.display = esEstudiante ? 'flex' : 'none';
+            document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
+
+            caCoIdSelect.required = esEstudiante;
+            materiasSelect.required = esDocente;
         }
         roleSelect.addEventListener('change', toggleFields);
         toggleFields();
