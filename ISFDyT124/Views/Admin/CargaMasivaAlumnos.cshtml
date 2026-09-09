@@ -1,0 +1,211 @@
+@model ISFDyT124.DTO.CargaMasivaPaso1Dto
+@{
+    ViewData["Title"] = "Carga Masiva de Alumnos - Paso 1";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="admin-banner">
+    ADMINISTRADOR
+</div>
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Carga Masiva de Alumnos vía Excel</h2>
+</div>
+
+<main class="main-container-form">
+    <!-- Indicador de pasos (Wizard) -->
+    <div class="wizard-steps-container" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 25px;">
+        <div class="step-item active" style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: #1a73e8; border-bottom: 3px solid #1a73e8; padding-bottom: 6px;">
+            <span class="step-number" style="background: #1a73e8; color: white; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">1</span>
+            <span>Archivo y Carrera</span>
+        </div>
+        <div class="step-item" style="display: flex; align-items: center; gap: 8px; color: #888; border-bottom: 3px solid #ddd; padding-bottom: 6px;">
+            <span class="step-number" style="background: #ddd; color: #555; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">2</span>
+            <span>Mapeo de Columnas</span>
+        </div>
+        <div class="step-item" style="display: flex; align-items: center; gap: 8px; color: #888; border-bottom: 3px solid #ddd; padding-bottom: 6px;">
+            <span class="step-number" style="background: #ddd; color: #555; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">3</span>
+            <span>Resultado y Reporte</span>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger" style="background: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+            <i class="bi bi-exclamation-triangle-fill" style="margin-right: 8px;"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="form-card" style="max-width: 780px; margin: 0 auto;">
+        <div style="background: #e8f0fe; color: #174ea6; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+            <i class="bi bi-info-circle-fill" style="margin-right: 6px;"></i>
+            <strong>Instrucciones:</strong> Seleccione la carrera y cohorte a la que se asignarán los alumnos del archivo, elija las materias en las que se los inscribirá (ej. las de 1° año) y suba la planilla en formato <strong>.xlsx</strong>. En el siguiente paso podrá asociar las columnas de su archivo a los campos correspondientes.
+        </div>
+
+        <form asp-controller="Admin" asp-action="CargaMasivaMapear" method="post" enctype="multipart/form-data" id="formCargaMasiva">
+            @Html.AntiForgeryToken()
+
+            <div class="input-field" style="margin-bottom: 20px;">
+                <label asp-for="CaCoId" style="font-weight: 600; margin-bottom: 6px; display: block;">Carrera / Cohorte de Destino *</label>
+                <select asp-for="CaCoId" id="selectCaCoId" class="form-control" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc;">
+                    <option value="" disabled selected>-- Seleccione una Carrera / Cohorte --</option>
+                    @if (ViewBag.CarreraCohortesList != null)
+                    {
+                        foreach (var cc in ViewBag.CarreraCohortesList)
+                        {
+                            <option value="@cc.CaCoId">@cc.Denominacion</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="CaCoId" class="text-danger" style="font-size: 13px;"></span>
+            </div>
+
+            <!-- Sección de selección de materias -->
+            <div id="materiasSection" style="margin-bottom: 25px; display: none; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <label style="font-weight: 600; display: block; margin-bottom: 2px;">Materias para Inscripción Automática *</label>
+                        <small style="color: #6b7280;">Marque las materias correspondientes (por ejemplo, las de 1° año):</small>
+                    </div>
+                    <button type="button" id="btnToggleAllMaterias" class="btn btn-sm btn-outline-secondary" style="font-size: 12px; padding: 4px 10px; border-radius: 4px; border: 1px solid #9ca3af; background: white; cursor: pointer;">
+                        Deseleccionar todas
+                    </button>
+                </div>
+
+                <div id="materiasListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; max-height: 220px; overflow-y: auto; padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 6px;">
+                    <!-- Se puebla dinámicamente vía JavaScript -->
+                </div>
+                <span asp-validation-for="SelectedCaMaIds" class="text-danger" style="font-size: 13px; display: block; margin-top: 6px;"></span>
+            </div>
+
+            <!-- Subida del archivo Excel -->
+            <div class="input-field" style="margin-bottom: 25px;">
+                <label asp-for="ArchivoExcel" style="font-weight: 600; margin-bottom: 6px; display: block;">Archivo Excel (.xlsx) *</label>
+                <div style="border: 2px dashed #93c5fd; border-radius: 8px; padding: 25px; text-align: center; background: #f0f7ff;">
+                    <i class="bi bi-file-earmark-spreadsheet" style="font-size: 36px; color: #1d4ed8; display: block; margin-bottom: 8px;"></i>
+                    <input type="file" asp-for="ArchivoExcel" id="inputArchivoExcel" accept=".xlsx" required style="display: none;" />
+                    <label for="inputArchivoExcel" class="btn btn-primary" style="background: #1a73e8; color: white; padding: 8px 18px; border-radius: 6px; cursor: pointer; display: inline-block; font-size: 14px;">
+                        <i class="bi bi-upload" style="margin-right: 6px;"></i> Seleccionar archivo .xlsx
+                    </label>
+                    <p id="nombreArchivoSeleccionado" style="margin-top: 10px; font-size: 13px; color: #4b5563; font-weight: 500;">
+                        Ningún archivo seleccionado todavía
+                    </p>
+                    <small style="color: #6b7280; display: block; margin-top: 4px;">Formato admitido: Libro de Microsoft Excel (.xlsx)</small>
+                </div>
+                <span asp-validation-for="ArchivoExcel" class="text-danger" style="font-size: 13px;"></span>
+            </div>
+
+            <div class="form-buttons" style="display: flex; justify-content: space-between; margin-top: 30px;">
+                <a asp-action="UsuariosABM" class="btn-cancel" style="text-decoration:none; text-align:center; padding: 10px 20px; border-radius: 6px;">
+                    <i class="bi bi-x-circle" style="margin-right: 6px;"></i> Cancelar
+                </a>
+                <button type="submit" class="btn-save" id="btnContinuarMapeo" style="padding: 10px 24px; border-radius: 6px; background: #1a73e8; color: white; border: none; cursor: pointer; font-weight: 500;">
+                    Continuar al Mapeo <i class="bi bi-arrow-right" style="margin-left: 6px;"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectCaCoId = document.getElementById('selectCaCoId');
+            var materiasSection = document.getElementById('materiasSection');
+            var materiasListContainer = document.getElementById('materiasListContainer');
+            var btnToggleAll = document.getElementById('btnToggleAllMaterias');
+            var inputArchivo = document.getElementById('inputArchivoExcel');
+            var txtNombreArchivo = document.getElementById('nombreArchivoSeleccionado');
+            var allSelected = true;
+
+            // Manejo de nombre del archivo seleccionado
+            if (inputArchivo) {
+                inputArchivo.addEventListener('change', function () {
+                    if (this.files && this.files.length > 0) {
+                        txtNombreArchivo.innerHTML = '<i class="bi bi-check-circle-fill" style="color: #16a34a; margin-right: 6px;"></i> <strong>' + this.files[0].name + '</strong> (' + Math.round(this.files[0].size / 1024) + ' KB)';
+                    } else {
+                        txtNombreArchivo.textContent = 'Ningún archivo seleccionado todavía';
+                    }
+                });
+            }
+
+            // Cargar materias según la Carrera/Cohorte elegida
+            async function cargarMaterias(caCoId) {
+                if (!caCoId) {
+                    materiasSection.style.display = 'none';
+                    materiasListContainer.innerHTML = '';
+                    return;
+                }
+
+                try {
+                    var response = await fetch('@Url.Action("ObtenerMateriasPorCarreraCohorte", "Admin")?caCoId=' + encodeURIComponent(caCoId));
+                    if (!response.ok) throw new Error('Error de red al obtener materias');
+                    var materias = await response.json();
+
+                    materiasListContainer.innerHTML = '';
+                    if (materias.length === 0) {
+                        materiasListContainer.innerHTML = '<p style="color: #6b7280; font-size: 13px; margin: 8px;">No hay materias asociadas a esta carrera actualmente.</p>';
+                    } else {
+                        materias.forEach(function (m) {
+                            var itemDiv = document.createElement('div');
+                            itemDiv.style.display = 'flex';
+                            itemDiv.style.alignItems = 'center';
+                            itemDiv.style.gap = '8px';
+                            itemDiv.style.padding = '6px';
+                            itemDiv.style.borderRadius = '4px';
+                            itemDiv.style.background = '#f3f4f6';
+
+                            var chk = document.createElement('input');
+                            chk.type = 'checkbox';
+                            chk.name = 'SelectedCaMaIds';
+                            chk.value = m.caMaId;
+                            chk.id = 'chk_materia_' + m.caMaId;
+                            chk.checked = true; // Seleccionadas por defecto
+
+                            var lbl = document.createElement('label');
+                            lbl.htmlFor = 'chk_materia_' + m.caMaId;
+                            lbl.style.cursor = 'pointer';
+                            lbl.style.fontSize = '13px';
+                            lbl.style.fontWeight = '500';
+                            lbl.textContent = m.denominacion + (m.modalidad ? ' (' + m.modalidad + ')' : '');
+
+                            itemDiv.appendChild(chk);
+                            itemDiv.appendChild(lbl);
+                            materiasListContainer.appendChild(itemDiv);
+                        });
+                    }
+                    materiasSection.style.display = 'block';
+                    allSelected = true;
+                    btnToggleAll.textContent = 'Deseleccionar todas';
+                } catch (err) {
+                    console.error('Error al cargar materias:', err);
+                }
+            }
+
+            if (selectCaCoId) {
+                selectCaCoId.addEventListener('change', function () {
+                    cargarMaterias(this.value);
+                });
+
+                // Si ya había un valor seleccionado (por ejemplo, postback con error)
+                if (selectCaCoId.value) {
+                    cargarMaterias(selectCaCoId.value);
+                }
+            }
+
+            // Botón toggle todas las materias
+            if (btnToggleAll) {
+                btnToggleAll.addEventListener('click', function () {
+                    var checkboxes = materiasListContainer.querySelectorAll('input[type="checkbox"]');
+                    allSelected = !allSelected;
+                    checkboxes.forEach(function (chk) {
+                        chk.checked = allSelected;
+                    });
+                    btnToggleAll.textContent = allSelected ? 'Deseleccionar todas' : 'Seleccionar todas';
+                });
+            }
+        });
+    </script>
+}
