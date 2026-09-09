@@ -1,0 +1,218 @@
+@model ISFDyT124.DTO.CargaMasivaResultadoDto
+@{
+    ViewData["Title"] = "Carga Masiva de Alumnos - Reporte de Resultados";
+    ViewData["BodyClass"] = "global-page";
+}
+
+<div class="admin-banner">
+    ADMINISTRADOR
+</div>
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Reporte de Carga Masiva de Alumnos</h2>
+</div>
+
+<main class="main-container-global" style="max-width: 1050px; margin: 0 auto; padding: 20px;">
+    <!-- Indicador de pasos (Wizard) -->
+    <div class="wizard-steps-container" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 25px;">
+        <div class="step-item completed" style="display: flex; align-items: center; gap: 8px; color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 6px;">
+            <span class="step-number" style="background: #16a34a; color: white; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">
+                <i class="bi bi-check"></i>
+            </span>
+            <span>Archivo y Carrera</span>
+        </div>
+        <div class="step-item completed" style="display: flex; align-items: center; gap: 8px; color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 6px;">
+            <span class="step-number" style="background: #16a34a; color: white; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">
+                <i class="bi bi-check"></i>
+            </span>
+            <span>Mapeo de Columnas</span>
+        </div>
+        <div class="step-item active" style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: @(Model.EsExitoso ? "#16a34a" : "#dc2626"); border-bottom: 3px solid @(Model.EsExitoso ? "#16a34a" : "#dc2626"); padding-bottom: 6px;">
+            <span class="step-number" style="background: @(Model.EsExitoso ? "#16a34a" : "#dc2626"); color: white; border-radius: 50%; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px;">3</span>
+            <span>@(Model.EsExitoso ? "Carga Exitosa" : "Carga Abortada")</span>
+        </div>
+    </div>
+
+    @if (Model.EsExitoso)
+    {
+        <!-- Banner de éxito -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 22px; margin-bottom: 25px; display: flex; align-items: flex-start; gap: 16px;">
+            <div style="background: #16a34a; color: white; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <div>
+                <h3 style="color: #166534; margin: 0 0 6px 0; font-size: 18px; font-weight: 700;">¡Carga masiva completada con éxito!</h3>
+                <p style="color: #15803d; margin: 0; font-size: 14px;">@Model.Mensaje</p>
+            </div>
+        </div>
+
+        <!-- Tarjetas de métricas -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 25px;">
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="color: #64748b; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Total Alumnos</span>
+                <strong style="font-size: 32px; color: #0f172a; display: block; margin-top: 4px;">@Model.TotalFilas</strong>
+            </div>
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="color: #16a34a; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Nuevos Usuarios</span>
+                <strong style="font-size: 32px; color: #16a34a; display: block; margin-top: 4px;">@Model.AlumnosNuevos</strong>
+            </div>
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="color: #0284c7; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Existentes Reutilizados</span>
+                <strong style="font-size: 32px; color: #0284c7; display: block; margin-top: 4px;">@Model.AlumnosReutilizados</strong>
+            </div>
+            <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="color: #7c3aed; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Inscripciones Creadas</span>
+                <strong style="font-size: 32px; color: #7c3aed; display: block; margin-top: 4px;">@Model.InscripcionesCreadas</strong>
+            </div>
+        </div>
+
+        <!-- Datos académicos -->
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-bottom: 25px;">
+            <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>Carrera / Cohorte asignada:</strong> <span style="color: #1e293b;">@Model.CarreraCohorteDenominacion</span>
+            </p>
+            <div>
+                <strong>Materias en las que se inscribió a los alumnos:</strong>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                    @foreach (var mat in Model.MateriasInscriptas)
+                    {
+                        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500;">
+                            <i class="bi bi-book-half" style="margin-right: 4px;"></i> @mat
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla detallada de alumnos procesados -->
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 30px;">
+            <div style="background: #f8fafc; padding: 12px 18px; border-bottom: 1px solid #e2e8f0;">
+                <h4 style="margin: 0; font-size: 15px; color: #1e293b; font-weight: 600;">
+                    <i class="bi bi-people-fill" style="color: #1a73e8; margin-right: 6px;"></i> Detalle de alumnos cargados (@Model.AlumnosProcesados.Count)
+                </h4>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                    <thead style="background: #f1f5f9; color: #475569;">
+                        <tr>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1; width: 50px;">Fila</th>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1;">DNI</th>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1;">Apellido y Nombre</th>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1;">Email</th>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1; text-align: center;">Estado</th>
+                            <th style="padding: 10px 14px; border-bottom: 2px solid #cbd5e1; text-align: center;">Inscripciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.AlumnosProcesados)
+                        {
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 10px 14px; color: #94a3b8;">@a.Fila</td>
+                                <td style="padding: 10px 14px; font-weight: 600; color: #0f172a;">@a.Dni</td>
+                                <td style="padding: 10px 14px; color: #1e293b;">@a.NombreCompleto</td>
+                                <td style="padding: 10px 14px; color: #475569;">@a.Email</td>
+                                <td style="padding: 10px 14px; text-align: center;">
+                                    @if (a.Estado == "Nuevo alumno")
+                                    {
+                                        <span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Nuevo</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">Existente</span>
+                                    }
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center;">
+                                    <span style="background: #f3f4f6; color: #374151; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">
+                                        @a.MateriasInscriptas mat.
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Banner de carga abortada (Todo o Nada) -->
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 22px; margin-bottom: 25px; display: flex; align-items: flex-start; gap: 16px;">
+            <div style="background: #dc2626; color: white; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                <i class="bi bi-x-octagon-fill"></i>
+            </div>
+            <div>
+                <h3 style="color: #991b1b; margin: 0 0 6px 0; font-size: 18px; font-weight: 700;">Carga masiva abortada (Política Todo o Nada)</h3>
+                <p style="color: #b91c1c; margin: 0; font-size: 14px;">
+                    @Model.Mensaje
+                </p>
+                <div style="margin-top: 10px; font-size: 13px; color: #7f1d1d; background: #fee2e2; padding: 8px 12px; border-radius: 6px;">
+                    <i class="bi bi-shield-exclamation" style="margin-right: 6px;"></i>
+                    <strong>Garantía de consistencia:</strong> Ninguna fila fue guardada en la base de datos para evitar inconsistencias. Corrija los errores indicados abajo en su planilla y vuelva a intentarlo.
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla detallada de errores detectados -->
+        @if (Model.Errores.Any())
+        {
+            <div style="background: white; border: 1px solid #fca5a5; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 30px;">
+                <div style="background: #fef2f2; padding: 12px 18px; border-bottom: 1px solid #fecaca;">
+                    <h4 style="margin: 0; font-size: 15px; color: #991b1b; font-weight: 600;">
+                        <i class="bi bi-exclamation-triangle-fill" style="color: #dc2626; margin-right: 6px;"></i> Detalle de filas con errores (@Model.Errores.Count)
+                    </h4>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                        <thead style="background: #fee2e2; color: #7f1d1d;">
+                            <tr>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5; width: 70px;">Fila Excel</th>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5;">DNI</th>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5;">Apellido</th>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5;">Nombre</th>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5;">Email</th>
+                                <th style="padding: 10px 14px; border-bottom: 2px solid #fca5a5; color: #991b1b;">Motivo del Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var err in Model.Errores)
+                            {
+                                <tr style="border-bottom: 1px solid #fee2e2;">
+                                    <td style="padding: 10px 14px; font-weight: 700; color: #991b1b;">Fila @err.Fila</td>
+                                    <td style="padding: 10px 14px; font-family: monospace;">@(string.IsNullOrWhiteSpace(err.Dni) ? Html.Raw("<span style='color:#f87171;'>vacío</span>") : err.Dni)</td>
+                                    <td style="padding: 10px 14px;">@(string.IsNullOrWhiteSpace(err.Apellido) ? Html.Raw("<span style='color:#f87171;'>vacío</span>") : err.Apellido)</td>
+                                    <td style="padding: 10px 14px;">@(string.IsNullOrWhiteSpace(err.Nombre) ? Html.Raw("<span style='color:#f87171;'>vacío</span>") : err.Nombre)</td>
+                                    <td style="padding: 10px 14px;">@(string.IsNullOrWhiteSpace(err.Email) ? Html.Raw("<span style='color:#f87171;'>vacío</span>") : err.Email)</td>
+                                    <td style="padding: 10px 14px; color: #b91c1c; font-weight: 600;">
+                                        <i class="bi bi-x-circle-fill" style="margin-right: 4px;"></i> @err.Motivo
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Botones de acción finales -->
+    <div style="display: flex; justify-content: center; gap: 16px; margin-top: 25px;">
+        @if (Model.EsExitoso)
+        {
+            <a asp-action="UsuariosABM" class="btn-cancel" style="text-decoration:none; padding: 10px 22px; border-radius: 6px; font-weight: 500;">
+                <i class="bi bi-people-fill" style="margin-right: 6px;"></i> Ir al Listado de Usuarios
+            </a>
+            <a asp-action="CargaMasivaAlumnos" class="btn-save" style="text-decoration:none; padding: 10px 22px; border-radius: 6px; background: #1a73e8; color: white; font-weight: 500;">
+                <i class="bi bi-cloud-upload-fill" style="margin-right: 6px;"></i> Realizar otra carga masiva
+            </a>
+        }
+        else
+        {
+            <a asp-action="UsuariosABM" class="btn-cancel" style="text-decoration:none; padding: 10px 22px; border-radius: 6px; font-weight: 500;">
+                <i class="bi bi-x-circle" style="margin-right: 6px;"></i> Cancelar e ir a Usuarios
+            </a>
+            <a asp-action="CargaMasivaAlumnos" class="btn-save" style="text-decoration:none; padding: 10px 22px; border-radius: 6px; background: #dc2626; color: white; font-weight: 500;">
+                <i class="bi bi-arrow-repeat" style="margin-right: 6px;"></i> Reintentar con archivo corregido
+            </a>
+        }
+    </div>
+</main>
