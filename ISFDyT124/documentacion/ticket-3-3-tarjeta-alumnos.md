@@ -1,5 +1,9 @@
 # Tarjeta "Alumnos" (ex-Docentes) — descripción y decisiones de diseño (ticket 3.3)
 
+> **Estado (09/09/2026): implementado — PR [#15](https://github.com/celina173/SistemaAsistencias/pull/15) a `Development`.**
+> Compila en .NET 10, CI en verde. Falta la prueba de los flujos autenticados
+> de punta a punta (bloqueada por credenciales de admin contra Railway).
+
 > **Nomenclatura — regla:**
 > - **En pantalla, siempre "Estudiantes"**: etiqueta de la tarjeta, títulos de
 >   pantalla, encabezados de tabla, botones, mensajes de validación y de
