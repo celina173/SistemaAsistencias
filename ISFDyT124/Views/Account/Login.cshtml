@@ -19,6 +19,7 @@
 
         <form id="loginForm" method="post" action="/Account/Login">
             @Html.AntiForgeryToken()
+            <!-- Bloque de Validación Mejorado -->
             @if (!ViewData.ModelState.IsValid)
             {
                 <div class="alerta-error" role="alert">
