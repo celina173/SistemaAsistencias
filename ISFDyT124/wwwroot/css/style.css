@@ -2,12 +2,13 @@
    VARIABLES GLOBALES
    ========================================= */
 :root {
-    --primary-color: #003366; /* Color principal */
-    --accent-color: #00a8e8; /* Color de acento */
-    --bg-color: #f8fafc; /* Fondo grisáceo muy suave */
-    --text-main: #1e293b; /* Gris oscuro para legibilidad */
-    --text-muted: #64748b; /* Gris claro para detalles secundarios */
+    --primary-color: #003366;    /* Color principal */
+    --accent-color: #00a8e8;     /* Color de acento */
+    --bg-color: #f8fafc;         /* Fondo grisáceo muy suave */
+    --text-main: #1e293b;        /* Gris oscuro para legibilidad */
+    --text-muted: #64748b;       /* Gris claro para detalles secundarios */
     --white: #ffffff;
+    
     /* Espaciados y Bordes */
     --radius: 12px;
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -43,7 +44,7 @@ body {
     background: linear-gradient(135deg, var(--bg-color) 0%, #e2e8f0 100%);
 }
 
-.inicio-page,
+.inicio-page, 
 .asistencia-page {
     display: flex;
     flex-direction: column;
@@ -52,7 +53,7 @@ body {
 
 
 .menu-icon {
-    display: flex;
+    display: flex; 
 }
 
 /* SOLO en la página de Login se oculta por completo */
@@ -81,30 +82,23 @@ body {
     z-index: 1100;
 }
 
-    .menu-icon .bar {
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-color) !important;
-        border-radius: 10px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+.menu-icon .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color) !important;
+    border-radius: 10px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-    .menu-icon:hover .bar:nth-child(2) {
-        width: 70%;
-    }
-
-    .menu-icon:hover .bar:nth-child(3) {
-        width: 40%;
-    }
+.menu-icon:hover .bar:nth-child(2) { width: 70%; }
+.menu-icon:hover .bar:nth-child(3) { width: 40%; }
 
 .sidebar.active ~ .top-header .menu-icon .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
-
 .sidebar.active ~ .top-header .menu-icon .bar:nth-child(2) {
     opacity: 0;
 }
-
 .sidebar.active ~ .top-header .menu-icon .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
 }
@@ -116,7 +110,7 @@ body {
     width: 260px;
     height: calc(100vh - 80px);
     margin: 0;
-    background-color: var(--primary-color);
+    background-color: var(--primary-color); 
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
     transition: var(--transition);
     padding: 2rem 1rem;
@@ -125,105 +119,102 @@ body {
     box-sizing: border-box;
 }
 
-    .sidebar.active {
-        left: 0;
-    }
+.sidebar.active {
+    left: 0;
+}
 
 .sidebar-links {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0; 
 }
 
-    .sidebar-links li {
-        margin-bottom: 5px;
-    }
+.sidebar-links li {
+    margin-bottom: 5px;
+}
 
-        .sidebar-links li a {
-            display: block;
-            padding: 12px 16px;
-            text-decoration: none;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            color: #ffffff !important;
-            background: transparent !important;
-            border: none !important;
-            transition: all 0.3s ease;
-        }
+.sidebar-links li a {
+    display: block;
+    padding: 12px 16px;
+    text-decoration: none;
+    
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600; 
+    letter-spacing: -0.01em;
+    
+    color: #ffffff !important; 
+    background: transparent !important; 
+    border: none !important;
+    
+    transition: all 0.3s ease;
+}
 
-            /* Estado Activo e interacciones */
-            .sidebar-links li a:hover,
-            .sidebar-links li.active a {
-                color: var(--accent-color) !important; /* Cambia solo el color de la letra */
-                font-weight: 700;
-                background: transparent !important;
-                padding-left: 24px; /* Desplazamiento sutil */
-            }
+/* Estado Activo e interacciones */
+.sidebar-links li a:hover,
+.sidebar-links li.active a {
+    color: var(--accent-color) !important; /* Cambia solo el color de la letra */
+    font-weight: 700;                     
+    background: transparent !important;   
+    padding-left: 24px;                    /* Desplazamiento sutil */
+}
 
-        /* Línea separadora */
-        .sidebar-links li.logout {
-            margin-top: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.15); /* Línea blanca ultra fina y transparente */
-            padding-top: 1.5rem;
-        }
+/* Línea separadora */
+.sidebar-links li.logout {
+    margin-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15); /* Línea blanca ultra fina y transparente */
+    padding-top: 1.5rem;
+}
 
-        /* Cerrar sesión */
-        .sidebar-links li.active a {
-            color: var(--accent-color) !important;
-            font-weight: 700;
-            padding-left: 16px;
-            background: transparent !important;
-        }
+/* Cerrar sesión */
+.sidebar-links li.active a {
+    color: var(--accent-color) !important; 
+    font-weight: 700;
+    padding-left: 16px; 
+    background: transparent !important;
+}
 
-        .sidebar-links li.logout a:hover {
-            color: #ff5f5f !important; /* Rojo suave limpio al pasar el mouse */
-            font-weight: 600;
-        }
-
-        .sidebar-links li a:hover {
-            color: var(--accent-color) !important;
-            font-weight: 700;
-            padding-left: 24px; /* Se desplaza suave solo la opción donde estás parado */
-            background: transparent !important;
-        }
+.sidebar-links li.logout a:hover {
+    color: #ff5f5f !important; /* Rojo suave limpio al pasar el mouse */
+    font-weight: 600;
+}
+.sidebar-links li a:hover {
+    color: var(--accent-color) !important;
+    font-weight: 700;
+    padding-left: 24px; /* Se desplaza suave solo la opción donde estás parado */
+    background: transparent !important;
+}
 
 /* ====================================================================
    MAESTRO: BANNERS INFORMATIVOS (ADMINISTRADOR, DOCENTE, ASISTENCIAS)
    ==================================================================== */
 .info-banner, .admin-banner {
     display: flex !important;
-    justify-content: space-between !important;
+    justify-content: space-between !important; 
     align-items: center !important;
     width: 100% !important;
     max-width: 100% !important;
-    background-color: #f1f5f9 !important;
+    background-color: #f1f5f9 !important; 
     padding: 14px 2rem !important;
-    margin: 0 0 20px 0 !important;
+    margin: 0 0 20px 0 !important; 
     border-bottom: 1px solid #cbd5e1 !important;
     box-sizing: border-box !important;
     text-transform: uppercase;
 }
 
-    .info-banner p,
-    .info-banner div,
-    .info-bold {
-        margin: 0 !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.05em !important;
-        color: var(--primary-color) !important;
-    }
-
-.info-col-left {
-    text-align: left;
+.info-banner p, 
+.info-banner div,
+.info-bold {
+    margin: 0 !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    color: var(--primary-color) !important;
 }
 
-.info-col-right {
-    text-align: right;
-}
+.info-col-left { text-align: left; }
+.info-col-right { text-align: right; }
 
 /* =========================================
    PANTALLA: LOGIN
@@ -240,7 +231,7 @@ body {
 .login-card {
     background-color: var(--bg-card);
     padding: 2.5rem;
-    border-radius: 24px;
+    border-radius: 24px; 
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 400px;
@@ -252,46 +243,46 @@ body {
     margin-bottom: 2rem;
 }
 
-    .logo-container .logo-img {
-        max-width: 120px;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
-    }
+.logo-container .logo-img {
+    max-width: 120px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+}
 
 .login-card .input-group {
     margin-bottom: 1.5rem;
 }
 
-    .login-card .input-group label {
-        display: block;
-        font-weight: 600;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        color: var(--text-main);
-        letter-spacing: -0.01em;
-    }
+.login-card .input-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem; 
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
 
-    .login-card .input-group input {
-        width: 100%;
-        padding: 14px 16px;
-        border: 1.5px solid var(--border-color);
-        border-radius: 12px;
-        font-size: 1rem;
-        background-color: var(--input-bg);
-        transition: var(--transition);
-        outline: none;
-    }
+.login-card .input-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    background-color: var(--input-bg);
+    transition: var(--transition);
+    outline: none;
+}
 
-        .login-card .input-group input:focus {
-            border-color: var(--primary-color);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(0, 46, 140, 0.1);
-        }
+.login-card .input-group input:focus {
+    border-color: var(--primary-color);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(0, 46, 140, 0.1);
+}
 
 .btn-submit {
     background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 50%;
+    border-radius: 50%; 
     width: 56px;
     height: 56px;
     font-size: 20px;
@@ -304,14 +295,14 @@ body {
     box-shadow: 0 4px 12px rgba(0, 46, 140, 0.3);
 }
 
-    .btn-submit:hover {
-        background-color: var(--primary-hover);
-        transform: translateY(-2px);
-    }
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+}
 
-    .btn-submit:active {
-        transform: scale(0.95);
-    }
+.btn-submit:active {
+    transform: scale(0.95);
+}
 
 .link-container {
     text-align: center;
@@ -326,9 +317,9 @@ body {
     transition: var(--transition);
 }
 
-    .forgot-password:hover {
-        color: var(--primary-color);
-    }
+.forgot-password:hover {
+    color: var(--primary-color);
+}
 
 .top-header {
     background-color: var(--white);
@@ -355,24 +346,24 @@ body {
     z-index: 1100; /* Mantiene el botón por encima del título absoluto */
 }
 
-    .menu-icon .bar {
-        width: 100%;
-        height: 3px;
-        background-color: var(--primary-color);
-        border-radius: 4px;
-    }
+.menu-icon .bar {
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+}
 
 .header-title {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%); 
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     width: 55%; /* Evita que choque con los elementos de los extremos */
-    pointer-events: none;
+    pointer-events: none; 
     z-index: 1050;
 }
 
@@ -387,7 +378,7 @@ body {
 
 .title-large {
     font-size: clamp(0.95rem, 2.2vw, 1.4rem) !important;
-    font-weight: 800;
+    font-weight: 800;               
     color: var(--primary-color);
     line-height: 1.1;
     white-space: nowrap; /* Evita que se quiebre en dos líneas en pantallas medianas */
@@ -402,11 +393,11 @@ body {
     z-index: 1100; /* Mantiene el logo por encima del título absoluto */
 }
 
-    .header-logo .logo-img {
-        max-height: 45px;
-        width: auto;
-        object-fit: contain;
-    }
+.header-logo .logo-img {
+    max-height: 45px;
+    width: auto;
+    object-fit: contain;
+}
 
 .header-divider {
     height: 4px;
@@ -421,9 +412,8 @@ body {
     .header-title {
         width: 45%; /* Ajusta el espacio en pantallas muy angostas */
     }
-
     .title-large {
-        white-space: normal; /* Si es un celular muy chico, que baje en dos renglones limpios */
+        white-space: normal;  /* Si es un celular muy chico, que baje en dos renglones limpios */
     }
 }
 
@@ -431,7 +421,7 @@ body {
    INICIO DOCENTE
    ========================================= */
 .inicio-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -451,7 +441,7 @@ body {
 .main-container-asistencia {
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 0; 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -460,7 +450,7 @@ body {
 /* Contenedor adaptativo para evitar desbordes en móviles */
 .table-container {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1000px; 
     padding: 0 1.5rem;
     margin-top: 20px;
     margin-bottom: 40px;
@@ -475,31 +465,31 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-    .attendance-table th {
-        text-align: left;
-        padding: 18px 16px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #64748b; /* Gris sofisticado para encabezados */
-        border-bottom: 2px solid #e2e8f0;
-        background-color: transparent;
-    }
+.attendance-table th {
+    text-align: left;
+    padding: 18px 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b; /* Gris sofisticado para encabezados */
+    border-bottom: 2px solid #e2e8f0;
+    background-color: transparent;
+}
 
-    .attendance-table td {
-        padding: 16px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        color: var(--primary-color, #002e8c);
-        border-bottom: 1px solid #f1f5f9;
-        vertical-align: middle;
-    }
+.attendance-table td {
+    padding: 16px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--primary-color, #002e8c);
+    border-bottom: 1px solid #f1f5f9; 
+    vertical-align: middle;
+}
 
-    /* Feedback visual de precisión al pasar el cursor */
-    .attendance-table tbody tr:hover {
-        background-color: #f8fafc;
-    }
+/* Feedback visual de precisión al pasar el cursor */
+.attendance-table tbody tr:hover {
+    background-color: #f8fafc;
+}
 
 /* Checkbox de Alta Precisión Visual */
 .custom-checkbox {
@@ -517,18 +507,18 @@ body {
     display: inline-block;
 }
 
-    .custom-checkbox:hover {
-        border-color: var(--primary-color, #002e8c);
-    }
+.custom-checkbox:hover {
+    border-color: var(--primary-color, #002e8c);
+}
 
-    .custom-checkbox:checked {
-        background-color: var(--primary-color, #001a8c);
-        border-color: var(--primary-color, #001a8c);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-        background-size: 65%;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
+.custom-checkbox:checked {
+    background-color: var(--primary-color, #001a8c); 
+    border-color: var(--primary-color, #001a8c);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: 65%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 /* Botón de Guardado Institucional Unificado */
 .btn-guardar {
@@ -545,27 +535,27 @@ body {
     margin-bottom: 50px;
 }
 
-    .btn-guardar:hover {
-        background-color: #001266;
-        transform: translateY(-2px);
-    }
+.btn-guardar:hover {
+    background-color: #001266;
+    transform: translateY(-2px);
+}
 
-    .btn-guardar:active {
-        transform: scale(0.99);
-    }
+.btn-guardar:active {
+    transform: scale(0.99);
+}
 
 /* Ajustes finos para pantallas móviles */
 @media (max-width: 768px) {
     .table-container {
         padding: 0 1rem;
     }
-
-    .attendance-table th,
+    
+    .attendance-table th, 
     .attendance-table td {
         padding: 12px 10px; /* Reducción de padding para optimizar espacio */
         font-size: 0.9rem;
     }
-
+    
     .btn-guardar {
         width: calc(100% - 2rem); /* Botón completo adaptativo en celulares */
         padding: 14px 0;
@@ -584,7 +574,7 @@ body {
 .main-container-global {
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 0; 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -593,104 +583,102 @@ body {
 /* Contenedor adaptativo premium con control de desborde */
 .global-table-container {
     width: 100%;
-    max-width: 1150px;
-    margin: 30px auto;
-    padding: 0 1.5rem 15px;
-    overflow-x: auto;
+    max-width: 1150px; 
+    margin: 30px auto; 
+    padding: 0 1.5rem 15px; 
+    overflow-x: auto; 
     box-sizing: border-box;
 }
 
-    /* Scrollbar Minimalista Personalizado */
-    .global-table-container::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .global-table-container::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 10px;
-    }
-
-    .global-table-container::-webkit-scrollbar-thumb {
-        background: var(--primary-color, #001a8c);
-        border-radius: 10px;
-    }
+/* Scrollbar Minimalista Personalizado */
+.global-table-container::-webkit-scrollbar {
+    height: 6px;
+}
+.global-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+.global-table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color, #001a8c); 
+    border-radius: 10px;
+}
 
 /* Estructura limpia de la Matriz de Datos */
 .global-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 900px;
+    min-width: 900px; 
     font-family: 'Inter', sans-serif;
 }
 
-    .global-table th,
-    .global-table td {
-        padding: 14px 10px;
-        text-align: center;
-        font-size: 0.9rem;
-        color: var(--primary-color, #002e8c);
-        border-bottom: 1px solid #e2e8f0;
-    }
+.global-table th, 
+.global-table td {
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--primary-color, #002e8c);
+    border-bottom: 1px solid #e2e8f0;
+}
 
-    .global-table th {
-        font-weight: 700;
-        background-color: #f8fafc;
-    }
+.global-table th {
+    font-weight: 700;
+    background-color: #f8fafc;
+}
 
-    /* Fila de título superior */
-    .global-table .title-cell {
-        font-size: 1.1rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        color: var(--primary-color, #002e8c);
-        text-align: left;
-        padding: 16px 0 12px 4px;
-        background-color: transparent;
-        border-bottom: 2px solid var(--primary-color, #002e8c);
-    }
+/* Fila de título superior */
+.global-table .title-cell {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--primary-color, #002e8c);
+    text-align: left;
+    padding: 16px 0 12px 4px;
+    background-color: transparent;
+    border-bottom: 2px solid var(--primary-color, #002e8c);
+}
 
-    .global-table .icon-cell {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: var(--primary-color, #002e8c);
-        background-color: transparent;
-        border-bottom: 2px solid var(--primary-color, #002e8c);
-        text-align: center;
-    }
+.global-table .icon-cell {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary-color, #002e8c);
+    background-color: transparent;
+    border-bottom: 2px solid var(--primary-color, #002e8c);
+    text-align: center;
+}
 
-    /* Fila de fechas */
-    .global-table thead tr:nth-child(2) th {
-        font-size: 0.78rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 14px 8px;
-    }
+/* Fila de fechas */
+.global-table thead tr:nth-child(2) th {
+    font-size: 0.78rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 8px;
+}
 
-    .global-table .align-left {
-        text-align: left;
-        padding-left: 12px;
-        font-weight: 600;
-    }
+.global-table .align-left {
+    text-align: left;
+    padding-left: 12px;
+    font-weight: 600;
+}
 
-    /* Feedback al pasar el mouse */
-    .global-table tbody tr:hover {
-        background-color: #f8fafc;
-    }
+/* Feedback al pasar el mouse */
+.global-table tbody tr:hover {
+    background-color: #f8fafc;
+}
 
-    /* Columna de Totales de Alto Impacto */
-    .global-table .total-col {
-        background-color: rgba(0, 46, 140, 0.04) !important;
-        color: var(--primary-color, #001a8c) !important;
-        font-weight: 700;
-        border-left: 2px solid #e2e8f0;
-    }
+/* Columna de Totales de Alto Impacto */
+.global-table .total-col {
+    background-color: rgba(0, 46, 140, 0.04) !important;
+    color: var(--primary-color, #001a8c) !important;
+    font-weight: 700;
+    border-left: 2px solid #e2e8f0;
+}
 
 /* =========================================
    PANTALLA: PANEL ADMIN
    ========================================= */
 .admin-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -711,7 +699,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1;
+    flex-grow: 1; 
     padding: 40px 20px;
 }
 
@@ -719,7 +707,7 @@ body {
 .cards-grid {
     display: flex;
     gap: 40px; /* Espacio simétrico entre tarjeta y tarjeta */
-    flex-wrap: wrap;
+    flex-wrap: wrap; 
     justify-content: center;
     max-width: 1400px; /* Evita que en pantallas gigantes se desparramen demasiado */
     margin: 0 auto;
@@ -728,30 +716,30 @@ body {
 /* Diseño individual de cada tarjeta minimalista */
 .admin-card {
     background-color: #ffffff;
-    border-radius: 30px;
+    border-radius: 30px; 
     padding: 40px 20px;
-    width: 220px;
+    width: 220px; 
     height: 250px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 30px 50px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 30px 50px rgba(0, 0, 0, 0.15); 
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
 }
 
-    /* Efecto hover "Nivel Dios": eleva la tarjeta y profundiza la sombra */
-    .admin-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
-    }
+/* Efecto hover "Nivel Dios": eleva la tarjeta y profundiza la sombra */
+.admin-card:hover {
+    transform: translateY(-10px); 
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+}
 
 /* NUEVOS ÍCONOS VECTORIALES (Reemplazan a las imágenes fijas) */
 .card-icon-vector {
-    font-size: 70px; /* Tamaño ideal, moderno y estilizado */
-    color: var(--primary-color); /* Toma automáticamente tu azul del sistema */
-    margin-bottom: 20px; /* Despegue perfecto del título */
+    font-size: 70px;                 /* Tamaño ideal, moderno y estilizado */
+    color: var(--primary-color);     /* Toma automáticamente tu azul del sistema */
+    margin-bottom: 20px;             /* Despegue perfecto del título */
     transition: transform 0.3s ease, color 0.3s ease;
 }
 
@@ -772,14 +760,14 @@ body {
 
 /* Ajuste específico de tipografía para el módulo largo de inscripciones */
 #card-inscripciones h3 {
-    font-size: 18px; /* Un punto más chico para evitar quiebres toscos */
+    font-size: 18px;                 /* Un punto más chico para evitar quiebres toscos */
     padding: 0 5px;
     line-height: 1.2;
 }
 
 /* ===========================================================================================================================
    PANTALLAS GESTION (ESTUDIANTES-DOCENTES-MATERIAS-CARRERAS-INSCRIPCION)
-   =========================================================================================================================== */
+   =========================================================================================================================== */  
 /* =========================================
    PANTALLA: GESTIÓN DE ESTUDIANTES
    ========================================= */
@@ -799,28 +787,28 @@ body {
     align-items: center;
     background-color: transparent;
     border: none;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0; 
     padding: 4px 0;
-    flex-grow: 1;
+    flex-grow: 1; 
     transition: border-color 0.2s;
 }
 
-    .search-box:focus-within {
-        border-bottom-color: var(--primary-color);
-        outline: none;
-    }
+.search-box:focus-within {
+    border-bottom-color: var(--primary-color);
+    outline: none;
+}
 
-    /* Input interno con el texto despegado del borde */
-    .search-box input {
-        border: none;
-        background: transparent;
-        padding: 6px 0 6px 14px;
-        width: 100%;
-        outline: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-    }
+/* Input interno con el texto despegado del borde */
+.search-box input {
+    border: none;
+    background: transparent;
+    padding: 6px 0 6px 14px;
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
 
 /* Botón de la lupa */
 .btn-search {
@@ -830,15 +818,15 @@ body {
     display: flex;
     align-items: center;
     padding: 0 8px;
-    outline: none;
-    -webkit-tap-highlight-color: transparent;
+    outline: none; 
+    -webkit-tap-highlight-color: transparent; 
 }
 
-    .btn-search:focus,
-    .btn-search:active,
-    .btn-search svg {
-        outline: none; /* Asegura que ni el botón ni el vector se recuadren */
-    }
+.btn-search:focus,
+.btn-search:active,
+.btn-search svg {
+    outline: none; /* Asegura que ni el botón ni el vector se recuadren */
+}
 
 /* Botón Agregar (+) */
 .btn-add {
@@ -857,9 +845,9 @@ body {
     transition: background-color 0.2s;
 }
 
-    .btn-add:hover {
-        background-color: #000d4d; /* Oscurecimiento sutil */
-    }
+.btn-add:hover {
+    background-color: #000d4d; /* Oscurecimiento sutil */
+}
 
 /* Alineaciones específicas para las columnas de la tabla CRUD */
 .crud-table th:nth-child(2),
@@ -888,9 +876,9 @@ body {
     transition: transform 0.15s;
 }
 
-    .icon-btn:hover {
-        transform: scale(1.18); /* Efecto de crecimiento limpio */
-    }
+.icon-btn:hover {
+    transform: scale(1.18); /* Efecto de crecimiento limpio */
+}
 
 .btn-edit svg {
     stroke: var(--primary-color);
@@ -906,7 +894,7 @@ body {
 .crud-estudiantes th:nth-child(4),
 .crud-estudiantes td:nth-child(4) {
     text-align: center;
-}
+} 
 
 /* =========================================
    PANTALLA: GESTIÓN DE DOCENTES
@@ -944,20 +932,20 @@ body {
     transition: border-color 0.2s;
 }
 
-    .search-box:focus-within {
-        border-bottom-color: var(--primary-color);
-    }
+.search-box:focus-within {
+    border-bottom-color: var(--primary-color);
+}
 
-    .search-box input {
-        border: none;
-        background: transparent;
-        padding: 6px 0 6px 14px;
-        width: 100%;
-        outline: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-    }
+.search-box input {
+    border: none;
+    background: transparent;
+    padding: 6px 0 6px 14px;
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
 
 .btn-search {
     border: none;
@@ -987,9 +975,9 @@ body {
     transition: background-color 0.2s;
 }
 
-    .btn-add:hover {
-        background-color: #000d4d;
-    }
+.btn-add:hover {
+    background-color: #000d4d;
+}
 
 /* Forzar la alineación izquierda limpia para textos largos */
 .align-left {
@@ -1023,9 +1011,9 @@ body {
     transition: transform 0.15s;
 }
 
-    .icon-btn:hover {
-        transform: scale(1.18);
-    }
+.icon-btn:hover {
+    transform: scale(1.18);
+}
 
 .btn-edit svg {
     stroke: var(--primary-color);
@@ -1069,21 +1057,21 @@ body {
     transition: border-color 0.2s;
 }
 
-    .search-box:focus-within {
-        border-bottom-color: var(--primary-color);
-    }
+.search-box:focus-within {
+    border-bottom-color: var(--primary-color);
+}
 
-    /* Input interno del buscador */
-    .search-box input {
-        border: none;
-        background: transparent;
-        padding: 6px 0 6px 14px; /* Despega el texto del borde izquierdo */
-        width: 100%;
-        outline: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-    }
+/* Input interno del buscador */
+.search-box input {
+    border: none;
+    background: transparent;
+    padding: 6px 0 6px 14px; /* Despega el texto del borde izquierdo */
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
 
 /* Botón de la lupa */
 .btn-search {
@@ -1114,9 +1102,9 @@ body {
     transition: background-color 0.2s;
 }
 
-    .btn-add:hover {
-        background-color: #000d4d; /* Oscurecimiento sutil al pasar el mouse */
-    }
+.btn-add:hover {
+    background-color: #000d4d; /* Oscurecimiento sutil al pasar el mouse */
+}
 
 /* Clase global para forzar alineación izquierda en campos largos */
 .align-left {
@@ -1154,9 +1142,9 @@ body {
     transition: transform 0.15s;
 }
 
-    .icon-btn:hover {
-        transform: scale(1.18); /* Efecto feedback visual limpio */
-    }
+.icon-btn:hover {
+    transform: scale(1.18); /* Efecto feedback visual limpio */
+}
 
 .btn-edit svg {
     stroke: var(--primary-color);
@@ -1199,25 +1187,25 @@ body {
     border: none;
     border-bottom: 1px solid #e2e8f0; /* Línea inferior sutil */
     padding: 4px 0;
-    flex-grow: 1;
+    flex-grow: 1; 
     transition: border-color 0.2s;
 }
 
-    .search-box:focus-within {
-        border-bottom-color: var(--primary-color);
-    }
+.search-box:focus-within {
+    border-bottom-color: var(--primary-color);
+}
 
-    /* Input interno del buscador */
-    .search-box input {
-        border: none;
-        background: transparent;
-        padding: 6px 0 6px 14px; /* Margen interno para despegado de texto */
-        width: 100%;
-        outline: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--text-main);
-    }
+/* Input interno del buscador */
+.search-box input {
+    border: none;
+    background: transparent;
+    padding: 6px 0 6px 14px; /* Margen interno para despegado de texto */
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
 
 /* Botón de la lupa */
 .btn-search {
@@ -1248,9 +1236,9 @@ body {
     transition: background-color 0.2s;
 }
 
-    .btn-add:hover {
-        background-color: #000d4d;
-    }
+.btn-add:hover {
+    background-color: #000d4d;
+}
 
 /* Forzar alineación izquierda limpia para textos de gran tamaño */
 .align-left {
@@ -1290,9 +1278,9 @@ body {
     transition: transform 0.15s;
 }
 
-    .icon-btn:hover {
-        transform: scale(1.18);
-    }
+.icon-btn:hover {
+    transform: scale(1.18);
+}
 
 .btn-edit svg {
     stroke: var(--primary-color);
@@ -1305,13 +1293,13 @@ body {
 /* =========================================
    PANTALLA: GESTIÓN DE INSCRIPCIONES MATERIAS
    ========================================= */
-/* El título delicado adaptado a esta pantalla */
+   /* El título delicado adaptado a esta pantalla */
 .gestion-inscripciones .page-main-title {
     font-family: 'Inter', sans-serif !important;
     font-size: 1.4rem;
-    font-weight: 300; /* Ultra fino y moderno */
+    font-weight: 300;               /* Ultra fino y moderno */
     color: var(--primary-color);
-    letter-spacing: 4px; /* Espaciado premium */
+    letter-spacing: 4px;            /* Espaciado premium */
     text-transform: uppercase;
     text-align: center !important;
     display: block !important;
@@ -1347,10 +1335,10 @@ body {
 .page-main-title {
     font-family: 'Inter', sans-serif !important;
     font-size: 1.4rem;
-    font-weight: 300;
-    color: var(--primary-color);
-    letter-spacing: 4px;
-    text-transform: uppercase;
+    font-weight: 300;              
+    color: var(--primary-color);  
+    letter-spacing: 4px;          
+    text-transform: uppercase;    
     text-align: center !important;
     display: block !important;
     width: fit-content !important;
@@ -1364,13 +1352,13 @@ body {
 
 /* ===========================================================================================================================
    PANTALLAS PARA AGREGAR (ESTUDIANTE-DOCENTE-MATERIA-CARRERA-INSCRIPCION)
-   =========================================================================================================================== */
+   =========================================================================================================================== */  
 
 /* =========================================
    PANTALLA: AGREGAR ESTUDIANTE 
    ========================================= */
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1379,7 +1367,7 @@ body {
    PANTALLA: AGREGAR DOCENTE 
    ========================================= */
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1390,7 +1378,7 @@ body {
    ========================================= */
 
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1414,18 +1402,18 @@ body {
     .form-grid {
         grid-template-columns: 1fr;
     }
-
-        .form-grid .input-field {
-            grid-column: span 1 !important;
-        }
-
+    
+    .form-grid .input-field {
+        grid-column: span 1 !important;
+    }
+    
     .main-container-form .form-buttons {
         grid-column: span 1 !important;
         justify-content: center;
         flex-direction: column-reverse;
         gap: 10px;
     }
-
+    
     .main-container-form .btn-save,
     .main-container-form .btn-cancel {
         width: 100%;
@@ -1436,7 +1424,7 @@ body {
    PANTALLA: AGREGAR CARRERA 
    ========================================= */
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1453,15 +1441,15 @@ body {
     flex-grow: 1;
 }
 
-    /* Redefinimos el ancho máximo para albergar cómodamente la grilla */
-    .main-container-form .form-card {
-        background-color: #ffffff;
-        width: 100%;
-        max-width: 750px;
-        padding: 40px;
-        border-radius: 25px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-    }
+/* Redefinimos el ancho máximo para albergar cómodamente la grilla */
+.main-container-form .form-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 750px; 
+    padding: 40px;
+    border-radius: 25px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
 
 .input-field {
     margin-bottom: 30px;
@@ -1469,41 +1457,33 @@ body {
     flex-direction: column;
 }
 
-    .input-field label {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
-
-    /*Inputs con el refinado estilo de "línea inferior" */
-    .input-field input {
-        border: none;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 10px 0;
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--primary-color);
-        outline: none;
-        background: transparent;
-        transition: border-color 0.3s ease;
-    }
-
-        /* Transición limpia al hacer foco */
-        .input-field input:focus {
-            border-bottom-color: var(--primary-color);
-        }
-
-/* Texto de error de validación (jQuery Unobtrusive Validation), ya que Bootstrap no está cargado */
-.text-danger {
-    color: #ef4444;
+.input-field label {
+    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
-    margin-top: 4px;
-    display: block;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+/*Inputs con el refinado estilo de "línea inferior" */
+.input-field input {
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    outline: none;
+    background: transparent;
+    transition: border-color 0.3s ease;
+}
+
+/* Transición limpia al hacer foco */
+.input-field input:focus {
+    border-bottom-color: var(--primary-color);
 }
 
 /* Botones del Formulario */
@@ -1526,10 +1506,10 @@ body {
     transition: background 0.3s ease, transform 0.2s ease;
 }
 
-    .btn-save:hover {
-        background-color: #001266;
-        transform: translateY(-2px);
-    }
+.btn-save:hover {
+    background-color: #001266;
+    transform: translateY(-2px);
+}
 
 .btn-cancel {
     background: transparent;
@@ -1542,19 +1522,19 @@ body {
     transition: color 0.3s ease;
 }
 
-    .btn-cancel:hover {
-        color: #ef4444;
-    }
+.btn-cancel:hover {
+    color: #ef4444;
+}
 /* ===========================================================================================================================
    PANTALLAS PARA MODIFICAR (ESTUDIANTE-DOCENTE-MATERIA-CARRERA)
-   =========================================================================================================================== */
+   =========================================================================================================================== */ 
 
 /* =========================================
    PANTALLA: MODIFICAR ESTUDIANTE
    ========================================= */
 
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1565,7 +1545,7 @@ body {
    ========================================= */
 
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1576,7 +1556,7 @@ body {
    ========================================= */
 
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1587,7 +1567,7 @@ body {
    ========================================= */
 
 .agregar-page {
-    background-color: #ffffff;
+    background-color: #ffffff; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1604,74 +1584,66 @@ body {
     flex-grow: 1;
 }
 
-    /* Redefinimos el ancho máximo para albergar cómodamente la grilla */
-    .main-container-form .form-card {
-        background-color: #ffffff;
-        width: 100%;
-        max-width: 750px;
-        padding: 40px;
-        border-radius: 25px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-    }
-
+/* Redefinimos el ancho máximo para albergar cómodamente la grilla */
+.main-container-form .form-card {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 750px;
+    padding: 40px;
+    border-radius: 25px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
 .input-field {
     margin-bottom: 30px;
     display: flex;
     flex-direction: column;
 }
-
-    .input-field label {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
-    /* Inputs y Selects con el refinado estilo de "línea inferior" */
-    .input-field input,
-    .input-field select {
-        border: none;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 10px 0;
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--primary-color);
-        outline: none;
-        background: transparent;
-        transition: border-color 0.3s ease;
-    }
-    /* Estilo premium exclusivo para adaptar las listas desplegables */
-    .input-field select {
-        cursor: pointer;
-        appearance: none; /* Elimina la flecha rústica por defecto del navegador */
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right center;
-        background-size: 16px;
-        padding-right: 20px;
-    }
-    /* Input exclusivo de lectura para el nombre del alumno (estilo dashed) */
-    .input-field input[readonly] {
-        color: var(--text-muted);
-        cursor: not-allowed;
-        border-bottom-style: dashed;
-    }
-    /* Transición limpia al hacer foco */
-
-    .input-field input:focus,
-    .input-field select:focus {
-        border-bottom-color: var(--primary-color);
-    }
-
-/* Texto de error de validación (jQuery Unobtrusive Validation), ya que Bootstrap no está cargado */
-.text-danger {
-    color: #ef4444;
+.input-field label {
+    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
-    margin-top: 4px;
-    display: block;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+/* Inputs y Selects con el refinado estilo de "línea inferior" */
+.input-field input,
+
+.input-field select {
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    outline: none;
+    background: transparent;
+    transition: border-color 0.3s ease;
+}
+/* Estilo premium exclusivo para adaptar las listas desplegables */
+.input-field select {
+    cursor: pointer;
+    appearance: none; /* Elimina la flecha rústica por defecto del navegador */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 16px;
+    padding-right: 20px;
+}
+/* Input exclusivo de lectura para el nombre del alumno (estilo dashed) */
+.input-field input[readonly] {
+    color: var(--text-muted);
+    cursor: not-allowed;
+    border-bottom-style: dashed;
+}
+/* Transición limpia al hacer foco */
+
+.input-field input:focus,
+
+.input-field select:focus {
+    border-bottom-color: var(--primary-color);
 }
 
 /* Botones del Formulario */
@@ -1694,10 +1666,10 @@ body {
     transition: background 0.3s ease, transform 0.2s ease;
 }
 
-    .btn-save:hover {
-        background-color: #001266;
-        transform: translateY(-2px);
-    }
+.btn-save:hover {
+    background-color: #001266;
+    transform: translateY(-2px);
+}
 
 .btn-cancel {
     background: transparent;
@@ -1712,9 +1684,9 @@ body {
     transition: color 0.3s ease;
 }
 
-    .btn-cancel:hover {
-        color: #ef4444;
-    }
+.btn-cancel:hover {
+    color: #ef4444;
+} 
 /* ===========================================================================================================================
    RECUPERO DE CONTRASEÑA
    =========================================================================================================================== */
@@ -1763,21 +1735,21 @@ body {
     flex-direction: column;
 }
 
-    .auth-title .title-small {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 2px;
-        color: #64748b;
-    }
+.auth-title .title-small {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #64748b;
+}
 
-    .auth-title .title-large {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.4rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        color: var(--primary-color, #002e8c);
-    }
+.auth-title .title-large {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--primary-color, #002e8c);
+}
 
 .header-divider-auth {
     height: 1px;
@@ -1817,32 +1789,32 @@ body {
     flex-direction: column;
 }
 
-    .input-field-auth label {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
-    }
+.input-field-auth label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
 
-    .input-field-auth input {
-        border: none;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 10px 0;
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--primary-color, #002e8c);
-        outline: none;
-        background: transparent;
-        transition: border-color 0.3s ease;
-    }
+.input-field-auth input {
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--primary-color, #002e8c);
+    outline: none;
+    background: transparent;
+    transition: border-color 0.3s ease;
+}
 
-        .input-field-auth input:focus {
-            border-bottom-color: var(--primary-color, #002e8c);
-        }
+.input-field-auth input:focus {
+    border-bottom-color: var(--primary-color, #002e8c);
+}
 
 /* Botonera y controles de acción */
 .button-container-auth {
@@ -1865,10 +1837,10 @@ body {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-    .btn-enviar-recupero:hover {
-        background-color: #001266;
-        transform: translateY(-2px);
-    }
+.btn-enviar-recupero:hover {
+    background-color: #001266;
+    transform: translateY(-2px);
+}
 
 .auth-footer-links {
     text-align: center;
@@ -1884,16 +1856,16 @@ body {
     transition: color 0.3s ease;
 }
 
-    .link-volver:hover {
-        color: var(--primary-color, #002e8c);
-    }
+.link-volver:hover {
+    color: var(--primary-color, #002e8c);
+}
 
 /* Responsive */
 @media (max-width: 480px) {
     .auth-wrapper-global {
         padding: 16px;
     }
-
+    
     .auth-card {
         padding: 35px 25px;
         border-radius: 20px;

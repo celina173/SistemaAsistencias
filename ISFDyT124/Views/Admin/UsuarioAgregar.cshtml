@@ -61,13 +61,17 @@
 
             <div id="materiasGroup" class="input-field" style="display:none;">
                 <label>Materias Asignadas</label>
-                <select name="SelectedCaMaIds" multiple style="height:150px;" data-msg-required="Debe seleccionar al menos una materia para un Docente.">
+                <div id="materiasList" style="height:150px; overflow:auto; border:1px solid #e6e6e6; padding:8px;">
                     @foreach (var cm in ViewBag.CarreraMateriasList)
                     {
-                        <option value="@cm.CaMaId">@cm.Denominacion</option>
+                        <label style="display:block; margin-bottom:6px;">
+                            <input type="checkbox" name="SelectedCaMaIds" value="@cm.CaMaId" />
+                            @cm.Denominacion
+                        </label>
                     }
-                </select>
+                </div>
                 <span asp-validation-for="SelectedCaMaIds" class="text-danger"></span>
+                <span id="selectedCaMaError" class="text-danger" style="display:none;"></span>
             </div>
 
             <div class="input-field">
@@ -88,7 +92,8 @@
     <script>
         var roleSelect = document.getElementById('selectedRoleId');
         var caCoIdSelect = document.getElementById('CaCoId');
-        var materiasSelect = document.querySelector('#materiasGroup select');
+        var materiasGroup = document.getElementById('materiasGroup');
+        var materiasCheckboxes = document.querySelectorAll('#materiasList input[type=checkbox]');
 
         function toggleFields() {
             var val = parseInt(roleSelect.value);
@@ -97,12 +102,32 @@
 
             document.getElementById('carreraCohorteGroup').style.display = esEstudiante ? 'flex' : 'none';
             document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
-
             caCoIdSelect.required = esEstudiante;
-            materiasSelect.required = esDocente;
+            // Set required attribute on at least one checkbox when docente
+            materiasCheckboxes.forEach(function (cb) { cb.required = false; });
+            if (esDocente) {
+                // If visible, ensure first checkbox is marked required so browser shows validation when none selected
+                if (materiasCheckboxes.length > 0) materiasCheckboxes[0].required = true;
+            }
         }
 
         roleSelect.addEventListener('change', toggleFields);
         toggleFields();
+
+        // Client-side validation for checkboxes on submit
+        document.getElementById('formAgregarUsuario').addEventListener('submit', function (e) {
+            var val = parseInt(roleSelect.value);
+            var esDocente = val === 2;
+            if (esDocente) {
+                var checked = Array.from(document.querySelectorAll('#materiasList input[type=checkbox]:checked'));
+                if (checked.length === 0) {
+                    e.preventDefault();
+                    document.getElementById('selectedCaMaError').textContent = 'Debe seleccionar al menos una materia para un Docente.';
+                    document.getElementById('selectedCaMaError').style.display = 'block';
+                    // Scroll to error
+                    document.getElementById('materiasGroup').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
     </script>
 }
