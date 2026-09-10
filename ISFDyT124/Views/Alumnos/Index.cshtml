@@ -1,0 +1,70 @@
+@model IEnumerable<ISFDyT124.DTO.UsuarioDetalleDto>
+@{
+    ViewData["Title"] = "Estudiantes";
+    ViewData["BodyClass"] = "gestion-page";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="info-banner">
+        <div class="info-col-left"><p class="info-bold">@TempData["SuccessMessage"]</p></div>
+    </div>
+}
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Estudiantes</h2>
+</div>
+
+<main class="main-container-global">
+
+    <div class="toolbar-container">
+        <div class="spacer"></div>
+        <div class="add-btn-container">
+            <a asp-controller="Alumnos" asp-action="Agregar" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+        </div>
+    </div>
+
+    <div class="global-table-container">
+        <table class="global-table crud-usuarios">
+            <thead>
+                <tr>
+                    <th class="align-left">APELLIDO Y NOMBRE</th>
+                    <th>DNI</th>
+                    <th class="align-left">EMAIL</th>
+                    <th class="align-left">CARRERA / COHORTE</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="align-left">@item.UsApellido, @item.UsNombre</td>
+                            <td>@item.UsDni</td>
+                            <td class="align-left">@(item.UsEmail ?? "-")</td>
+                            <td class="align-left">@(item.CarreraCohorteDenominacion ?? "-")</td>
+                            <td class="action-cell">
+                                <div class="action-buttons">
+                                    <a asp-action="Editar" asp-route-id="@item.UsId" class="icon-btn btn-edit" title="Editar">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+                                    </a>
+                                    <form asp-action="Eliminar" asp-route-id="@item.UsId" method="post" style="display:inline;" onsubmit="return confirm('¿Está seguro de eliminar este estudiante?');">
+                                        <button type="submit" class="icon-btn" style="border:none; background:none; cursor:pointer;" title="Eliminar">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align:center;">No hay estudiantes para mostrar.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</main>

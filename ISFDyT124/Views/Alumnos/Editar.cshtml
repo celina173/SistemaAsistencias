@@ -1,0 +1,63 @@
+@model ISFDyT124.DTO.UsuarioDetalleDto
+@{
+    ViewData["Title"] = "Editar Estudiante";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Editar Estudiante</h2>
+</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <form asp-controller="Alumnos" asp-action="Editar" method="post" id="formEditarEstudiante" class="form-grid">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="UsId" />
+
+            <div class="input-field">
+                <label asp-for="UsApellido">Apellidos</label>
+                <input asp-for="UsApellido" autocomplete="off">
+                <span asp-validation-for="UsApellido" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsNombre">Nombres</label>
+                <input asp-for="UsNombre" autocomplete="off">
+                <span asp-validation-for="UsNombre" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsDni">DNI</label>
+                <input asp-for="UsDni" autocomplete="off">
+                <span asp-validation-for="UsDni" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsEmail">Email</label>
+                <input asp-for="UsEmail" autocomplete="off">
+                <span asp-validation-for="UsEmail" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="CaCoId">Carrera / Cohorte</label>
+                <select asp-for="CaCoId" required data-msg-required="Debe seleccionar una Carrera / Cohorte.">
+                    <option value="">Seleccione Carrera / Cohorte</option>
+                    @foreach (var cc in ViewBag.CarreraCohortesList)
+                    {
+                        <option value="@cc.CaCoId">@cc.Denominacion</option>
+                    }
+                </select>
+                <span asp-validation-for="CaCoId" class="text-danger"></span>
+            </div>
+
+            <div class="form-buttons">
+                <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
+                <button type="submit" class="btn-save">Guardar</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
