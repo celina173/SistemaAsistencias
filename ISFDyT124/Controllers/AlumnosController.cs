@@ -135,18 +135,14 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> Agregar()
         {
             await CargarCarreraCohortesAsync(await CaCoIdsPermitidosAsync());
-            return View(new UsuarioCrearDto());
+            return View(new AlumnoFormDto());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Agregar(UsuarioCrearDto model)
+        public async Task<IActionResult> Agregar(AlumnoFormDto model)
         {
             var permitidos = await CaCoIdsPermitidosAsync();
-
-            // El rol lo fija el servidor: acá solo se crean estudiantes.
-            model.RoId = RolEstudianteId;
-            model.SelectedCaMaIds = null;
 
             if (!ModelState.IsValid)
             {
@@ -218,14 +214,13 @@ namespace ISFDyT124.Controllers
 
             await CargarCarreraCohortesAsync(permitidos);
 
-            var dto = new UsuarioDetalleDto
+            var dto = new AlumnoFormDto
             {
                 UsId = alumno.UsId,
                 UsApellido = alumno.UsApellido,
                 UsNombre = alumno.UsNombre,
                 UsEmail = alumno.UsEmail,
                 UsDni = alumno.UsDni,
-                RoId = alumno.RoId,
                 CaCoId = alumno.CaCoId,
             };
 
@@ -234,7 +229,7 @@ namespace ISFDyT124.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Editar(int id, UsuarioDetalleDto model)
+        public async Task<IActionResult> Editar(int id, AlumnoFormDto model)
         {
             if (id != model.UsId)
                 return BadRequest();
