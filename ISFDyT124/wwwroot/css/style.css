@@ -1899,3 +1899,41 @@ body {
         border-radius: 20px;
     }
 }
+/* Contenedor principal de la alerta de error */
+.alerta-error {
+    display: flex;
+    align-items: center;
+    background-color: #fef2f2; /* Fondo rojo muy suave */
+    border: 1px solid #f87171; /* Borde rojo sutil */
+    color: #991b1b; /* Texto rojo oscuro y legible */
+    padding: 12px 16px;
+    border-radius: 8px; /* Mantiene la misma curva que tus inputs */
+    margin-bottom: 20px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Estilo y espaciado para el ícono de advertencia */
+.icono-alerta {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* Área de texto interna */
+.alerta-texto {
+    flex-grow: 1;
+}
+
+    /* Oculta los puntos de lista que genera por defecto ASP.NET */
+    .alerta-texto ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .alerta-texto li {
+        margin: 0;
+    }

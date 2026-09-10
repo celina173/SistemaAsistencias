@@ -17,10 +17,17 @@
 
 <main class="main-container-global">
 
-    <div class="toolbar-container">
-        <div class="spacer"></div>
+    <div class="toolbar-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+            {
+                <a asp-controller="Admin" asp-action="CargaMasivaAlumnos" class="btn-carga-masiva" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc;">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i> Carga Estudiantes
+                </a>
+            }
+        </div>
         <div class="add-btn-container">
-            <a asp-controller="Alumnos" asp-action="Agregar" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+            <a asp-controller="Alumnos" asp-action="Agregar" class="btn-add" id="btnAgregar" title="Nuevo Estudiante" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
         </div>
     </div>
 

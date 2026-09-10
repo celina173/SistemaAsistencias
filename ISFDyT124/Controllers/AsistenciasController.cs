@@ -220,14 +220,51 @@ namespace ISFDyT124.Controllers
         // Muestra el histórico de asistencias por materia (filtrado por CaMaId)
         public async Task<IActionResult> AsistenciaGlobal(int? CaMaId)
         {
+            // Verificamos si es Admin/Directivo
+            if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+            {
+                // Traemos los datos separados para poder armar la cascada en la vista
+                ViewBag.TodasLasCatedras = await (
+                    from cm in _context.CarreraMaterias
+                    join c in _context.Carreras on cm.CaId equals c.CaId
+                    join m in _context.Materias on cm.MaId equals m.MaId
+                    select new
+                    {
+                        CaMaId = cm.CaMaId,
+                        CaId = c.CaId,
+                        Carrera = c.CaDenominacion,
+                        Materia = m.MaDenominacion
+                    }
+                ).ToListAsync();
+            }
+
             var model = new AsistenciaGlobalViewModel();
 
             if (CaMaId == null)
             {
-                return View(model);
+                return View(model); // Retorna la vista vacía si el Admin no eligió nada aún
             }
 
             model.CaMaId = CaMaId;
+
+            // NUEVO: Buscamos los nombres reales de la Carrera y Materia
+            var infoCatedra = await (
+                from cm in _context.CarreraMaterias
+                join c in _context.Carreras on cm.CaId equals c.CaId
+                join m in _context.Materias on cm.MaId equals m.MaId
+                where cm.CaMaId == CaMaId
+                select new
+                {
+                    Carrera = c.CaDenominacion,
+                    Materia = m.MaDenominacion
+                }
+            ).FirstOrDefaultAsync();
+
+            if (infoCatedra != null)
+            {
+                ViewBag.CarreraNombre = infoCatedra.Carrera;
+                ViewBag.MateriaNombre = infoCatedra.Materia;
+            }
 
             // Alumnos inscriptos en esta materia vía Inscripciones (ver Asistencia() más arriba)
             var estudiantes = await (
