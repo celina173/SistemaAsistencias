@@ -1,0 +1,106 @@
+@model ISFDyT124.DTO.AlumnoFormDto
+@{
+    ViewData["Title"] = "Agregar Estudiante";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Agregar Estudiante</h2>
+</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <form asp-controller="Alumnos" asp-action="Agregar" method="post" id="formAgregarEstudiante" class="form-grid">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="input-field">
+                <label asp-for="UsApellido">Apellidos</label>
+                <input asp-for="UsApellido" autocomplete="off">
+                <span asp-validation-for="UsApellido" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsNombre">Nombres</label>
+                <input asp-for="UsNombre" autocomplete="off">
+                <span asp-validation-for="UsNombre" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsDni">DNI</label>
+                <input asp-for="UsDni" autocomplete="off">
+                <span asp-validation-for="UsDni" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="UsEmail">Email</label>
+                <input asp-for="UsEmail" autocomplete="off">
+                <span asp-validation-for="UsEmail" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="CaCoId">Carrera / Cohorte</label>
+                <select asp-for="CaCoId" id="selectCaCoId" required data-msg-required="Debe seleccionar una Carrera / Cohorte.">
+                    <option value="">Seleccione Carrera / Cohorte</option>
+                    @foreach (var cc in ViewBag.CarreraCohortesList)
+                    {
+                        <option value="@cc.CaCoId">@cc.Denominacion</option>
+                    }
+                </select>
+                <span asp-validation-for="CaCoId" class="text-danger"></span>
+            </div>
+
+            <div class="input-field" id="materiasGroup" style="display:none;">
+                <label>Materias en las que se inscribe</label>
+                <small style="color:#6b7280; display:block; margin-bottom:6px;">Marcá las materias que va a cursar (podés cambiarlas después desde Editar).</small>
+                <div id="materiasContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px; max-height:200px; overflow-y:auto; padding:8px; border:1px solid #e5e7eb; border-radius:6px;"></div>
+            </div>
+
+            <div class="form-buttons">
+                <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
+                <button type="submit" class="btn-save">Guardar</button>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            var select = document.getElementById('selectCaCoId');
+            var group = document.getElementById('materiasGroup');
+            var container = document.getElementById('materiasContainer');
+            var yaSeleccionadas = @Html.Raw(Json.Serialize(Model.SelectedCaMaIds ?? new List<int>()));
+
+            async function cargarMaterias(caCoId) {
+                if (!caCoId) { group.style.display = 'none'; container.innerHTML = ''; return; }
+                try {
+                    var resp = await fetch('@Url.Action("MateriasPorCarreraCohorte", "Alumnos")?caCoId=' + encodeURIComponent(caCoId));
+                    if (!resp.ok) throw new Error('red');
+                    var materias = await resp.json();
+                    container.innerHTML = '';
+                    if (materias.length === 0) {
+                        container.innerHTML = '<span style="color:#6b7280; font-size:13px;">Esta carrera no tiene materias cargadas.</span>';
+                    } else {
+                        materias.forEach(function (m) {
+                            var lbl = document.createElement('label');
+                            lbl.style.cssText = 'display:flex; align-items:center; gap:6px; font-weight:400; cursor:pointer;';
+                            var chk = document.createElement('input');
+                            chk.type = 'checkbox';
+                            chk.name = 'SelectedCaMaIds';
+                            chk.value = m.caMaId;
+                            chk.checked = yaSeleccionadas.indexOf(m.caMaId) !== -1;
+                            lbl.appendChild(chk);
+                            lbl.appendChild(document.createTextNode(m.denominacion));
+                            container.appendChild(lbl);
+                        });
+                    }
+                    group.style.display = 'block';
+                } catch (e) { group.style.display = 'none'; }
+            }
+
+            select.addEventListener('change', function () { yaSeleccionadas = []; cargarMaterias(this.value); });
+            if (select.value) cargarMaterias(select.value);
+        })();
+    </script>
+}

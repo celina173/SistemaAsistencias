@@ -47,6 +47,9 @@ using (var scope = app.Services.CreateScope())
         context.Roles.Add(rolAdmin);
     }
 
+    // Roles del negocio: se busca por RoId (PK fija) y se corrige la denominación si cambió,
+    // en vez de buscar por nombre (que en bases con el seed viejo insertaba una fila duplicada
+    // y rompía el arranque). Denominaciones definitivas: Docente / Estudiante / Dirección.
     var rolDocente = await context.Roles.FindAsync(2);
     if (rolDocente == null)
         context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Docente" });

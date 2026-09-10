@@ -1,6 +1,6 @@
 @model ISFDyT124.DTO.CargaMasivaPaso1Dto
 @{
-    ViewData["Title"] = "Carga Masiva de Alumnos - Paso 1";
+    ViewData["Title"] = "Carga Masiva de Estudiantes - Paso 1";
     ViewData["BodyClass"] = "agregar-page";
 }
 
@@ -9,7 +9,7 @@
 </div>
 
 <div class="page-title-container">
-    <h2 class="page-main-title">Carga Masiva de Alumnos vía Excel</h2>
+    <h2 class="page-main-title">Carga Masiva de Estudiantes vía Excel</h2>
 </div>
 
 <main class="main-container-form">
@@ -39,7 +39,7 @@
     <div class="form-card" style="max-width: 780px; margin: 0 auto;">
         <div style="background: #e8f0fe; color: #174ea6; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
             <i class="bi bi-info-circle-fill" style="margin-right: 6px;"></i>
-            <strong>Instrucciones:</strong> Seleccione la carrera y cohorte a la que se asignarán los alumnos del archivo, elija las materias en las que se los inscribirá (ej. las de 1° año) y suba la planilla en formato <strong>.xlsx</strong>. En el siguiente paso podrá asociar las columnas de su archivo a los campos correspondientes.
+            <strong>Instrucciones:</strong> Seleccione la carrera y cohorte a la que se asignarán los estudiantes del archivo, elija las materias en las que se los inscribirá (ej. las de 1° año) y suba la planilla en formato <strong>.xlsx</strong>. En el siguiente paso podrá asociar las columnas de su archivo a los campos correspondientes.
         </div>
 
         <form asp-controller="Admin" asp-action="CargaMasivaMapear" method="post" enctype="multipart/form-data" id="formCargaMasiva">

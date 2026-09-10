@@ -1,6 +1,6 @@
 @model ISFDyT124.DTO.CargaMasivaResultadoDto
 @{
-    ViewData["Title"] = "Carga Masiva de Alumnos - Reporte de Resultados";
+    ViewData["Title"] = "Carga Masiva de Estudiantes - Reporte de Resultados";
     ViewData["BodyClass"] = "global-page";
 }
 
@@ -9,7 +9,7 @@
 </div>
 
 <div class="page-title-container">
-    <h2 class="page-main-title">Reporte de Carga Masiva de Alumnos</h2>
+    <h2 class="page-main-title">Reporte de Carga Masiva de Estudiantes</h2>
 </div>
 
 <main class="main-container-global" style="max-width: 1050px; margin: 0 auto; padding: 20px;">
@@ -49,7 +49,7 @@
         <!-- Tarjetas de métricas -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 25px;">
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <span style="color: #64748b; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Total Alumnos</span>
+                <span style="color: #64748b; font-size: 13px; text-transform: uppercase; font-weight: 600; display: block;">Total Estudiantes</span>
                 <strong style="font-size: 32px; color: #0f172a; display: block; margin-top: 4px;">@Model.TotalFilas</strong>
             </div>
             <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
@@ -72,7 +72,7 @@
                 <strong>Carrera / Cohorte asignada:</strong> <span style="color: #1e293b;">@Model.CarreraCohorteDenominacion</span>
             </p>
             <div>
-                <strong>Materias en las que se inscribió a los alumnos:</strong>
+                <strong>Materias en las que se inscribió a los estudiantes:</strong>
                 <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
                     @foreach (var mat in Model.MateriasInscriptas)
                     {
@@ -88,7 +88,7 @@
         <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 30px;">
             <div style="background: #f8fafc; padding: 12px 18px; border-bottom: 1px solid #e2e8f0;">
                 <h4 style="margin: 0; font-size: 15px; color: #1e293b; font-weight: 600;">
-                    <i class="bi bi-people-fill" style="color: #1a73e8; margin-right: 6px;"></i> Detalle de alumnos cargados (@Model.AlumnosProcesados.Count)
+                    <i class="bi bi-people-fill" style="color: #1a73e8; margin-right: 6px;"></i> Detalle de estudiantes cargados (@Model.AlumnosProcesados.Count)
                 </h4>
             </div>
             <div style="overflow-x: auto;">
