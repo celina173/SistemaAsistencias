@@ -436,7 +436,7 @@ namespace ISFDyT124.Controllers
 
             if (model.SelectedCaMaIds == null || !model.SelectedCaMaIds.Any())
             {
-                ModelState.AddModelError("SelectedCaMaIds", "Debe seleccionar al menos una materia para inscribir a los alumnos.");
+                ModelState.AddModelError("SelectedCaMaIds", "Debe seleccionar al menos una materia para inscribir a los estudiantes.");
             }
 
             if (model.ArchivoExcel == null || model.ArchivoExcel.Length == 0)
@@ -601,7 +601,7 @@ namespace ISFDyT124.Controllers
                             Apellido = fila.Apellido,
                             Nombre = fila.Nombre,
                             Email = fila.Email,
-                            Motivo = $"El DNI pertenece a un usuario existente con rol {rolNombre}. No puede registrarse como Alumno."
+                            Motivo = $"El DNI pertenece a un usuario existente con rol {rolNombre}. No puede registrarse como Estudiante."
                         });
                     }
                 }
@@ -734,7 +734,7 @@ namespace ISFDyT124.Controllers
                 var resultadoExitoso = new CargaMasivaResultadoDto
                 {
                     EsExitoso = true,
-                    Mensaje = $"Se procesaron correctamente {parseResult.FilasValidas.Count} alumnos ({alumnosNuevos} nuevos y {alumnosReutilizados} existentes). Se crearon {inscripcionesCreadas} inscripciones a materias.",
+                    Mensaje = $"Se procesaron correctamente {parseResult.FilasValidas.Count} estudiantes ({alumnosNuevos} nuevos y {alumnosReutilizados} existentes). Se crearon {inscripcionesCreadas} inscripciones a materias.",
                     CarreraCohorteDenominacion = ccDenom,
                     TotalFilas = parseResult.FilasValidas.Count,
                     AlumnosNuevos = alumnosNuevos,
