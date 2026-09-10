@@ -1,9 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -13,9 +8,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-page">
-
+    
     <div class="auth-wrapper-global">
-
+        
         <main class="auth-card">
             <div class="auth-header">
                 <img src="img/logo.png" alt="IS 124" class="auth-logo">
@@ -24,20 +19,20 @@
                     <div class="title-large">ASISTENCIAS</div>
                 </div>
             </div>
-
+            
             <div class="header-divider-auth"></div>
 
             <h2 class="form-title-auth">Recuperar Contraseña</h2>
             <p class="auth-instruction">
                 Ingresá tu correo electrónico registrado y te enviaremos las instrucciones para restablecer tu contraseña.
             </p>
-
+            
             <form id="formRecupero" class="auth-form">
                 <div class="input-field-auth">
                     <label for="emailRecupero">Correo Electrónico</label>
                     <input type="email" id="emailRecupero" name="emailRecupero" placeholder="ejemplo@ies124.edu.ar" required autocomplete="off">
                 </div>
-
+                
                 <div class="button-container-auth">
                     <button type="submit" class="btn-enviar-recupero">Enviar Enlace</button>
                 </div>
