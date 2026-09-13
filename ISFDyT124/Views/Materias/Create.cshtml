@@ -25,13 +25,18 @@
 
             <div class="input-field">
                 <label asp-for="MaDenominacion"></label>
-                <input asp-for="MaDenominacion" placeholder="Ej: Programación III" autocomplete="off">
+                <input asp-for="MaDenominacion" placeholder="Ej: Programación III" autocomplete="off" oninput="this.value = this.value.replace(/[0-9]/g,'');" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s.,()-]+">
                 <span asp-validation-for="MaDenominacion" class="text-danger"></span>
             </div>
 
             <div class="input-field">
                 <label asp-for="MaModalidad"></label>
-                <input asp-for="MaModalidad" placeholder="Ej: Presencial" autocomplete="off">
+                <select asp-for="MaModalidad" class="input-select">
+                    <option value="">-- Seleccione modalidad --</option>
+                    <option value="Presencial">Presencial</option>
+                    <option value="Virtual">Virtual</option>
+                    <option value="Libre">Libre</option>
+                </select>
                 <span asp-validation-for="MaModalidad" class="text-danger"></span>
             </div>
 
