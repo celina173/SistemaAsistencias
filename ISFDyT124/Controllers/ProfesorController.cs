@@ -97,21 +97,18 @@ namespace ISFDyT124.Controllers
             ViewBag.MateriaNombre = catedra.Materia?.MaDenominacion ?? "Materia";
             ViewBag.CantModulos = catedra.Materia?.MaCantModulos ?? 1;
 
-            // Carrera-Cohortes de la carrera de esta cátedra.
-            var caCoIds = await _context
-                .CarreraCohortes.Where(cc => cc.CaId == catedra.CaId)
-                .Select(cc => cc.CaCoId)
+            // Alumnos inscriptos en esta cátedra vía Inscripciones — la inscripción puntual a la
+            // materia es lo que habilita tomarle asistencia, no solo pertenecer a la carrera
+            // (mismo criterio que ya usa AsistenciasController.Asistencia/AsistenciaGlobal, y
+            // el mismo que documenta el comentario de AlumnosController.Agregar).
+            var usIdsInscriptos = await _context
+                .Inscripciones.Where(i => i.CaMaId == caMaId)
+                .Select(i => i.UsId)
                 .ToListAsync();
 
-            // Alumnos de esa carrera (rol Estudiante), proyectados al DTO.
             var alumnos = await _context
                 .Usuarios.Include(u => u.Rol)
-                .Where(u =>
-                    u.Rol != null
-                    && u.Rol.RoDenominacion == "Estudiante"
-                    && u.CaCoId != null
-                    && caCoIds.Contains(u.CaCoId.Value)
-                )
+                .Where(u => usIdsInscriptos.Contains(u.UsId))
                 .Select(u => new UsuarioDetalleDto
                 {
                     UsId = u.UsId,

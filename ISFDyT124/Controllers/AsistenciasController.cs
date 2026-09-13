@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using static ISFDyT124.Models.AsistenciaGlobalViewModel;
 
 namespace ISFDyT124.Controllers
 {
+    [Authorize(Roles = "Admin,Dirección,Docente")]
     public class AsistenciasController : Controller
     {
         private readonly InstitutoDbContext _context;
@@ -137,24 +139,22 @@ namespace ISFDyT124.Controllers
                 }
             ).ToListAsync();
 
-            // determine number of modules for this materia
+            // Carrera y materia reales de esta cátedra (antes se guardaba el objeto CarreraMateria
+            // entero en ViewData, lo que mostraba "ISFDyT124.Models.CarreraMateria" en pantalla).
+            var caMa = await _context
+                .CarreraMaterias.Include(cm => cm.Carrera)
+                .Include(cm => cm.Materia)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
+
             int maCantModulos = 1; // default
-            var caMa = await _context.CarreraMaterias.FirstOrDefaultAsync(cm =>
-                cm.CaMaId == CaMaId
-            );
             if (caMa != null)
             {
-                var materia = await _context.Materias.FindAsync(caMa.MaId);
-                if (materia != null)
+                ViewBag.CarreraNombre = caMa.Carrera?.CaDenominacion ?? "Carrera";
+                ViewBag.MateriaNombre = caMa.Materia?.MaDenominacion ?? "Materia";
+
+                if (caMa.Materia?.MaCantModulos is int cant && cant > 0)
                 {
-                    if (materia.MaCantModulos.HasValue && materia.MaCantModulos.Value > 0)
-                    {
-                        maCantModulos = materia.MaCantModulos.Value;
-                    }
-                    else
-                    {
-                        maCantModulos = 1;
-                    }
+                    maCantModulos = cant;
                 }
             }
 
@@ -168,11 +168,6 @@ namespace ISFDyT124.Controllers
 
             ViewData["MaCantModulos"] = maCantModulos;
             model.ModuleCount = maCantModulos;
-
-            var caMaName = await _context
-                .CarreraMaterias.Where(cm => cm.CaMaId == CaMaId)
-                .FirstOrDefaultAsync();
-            ViewData["CaMaDenominacion"] = caMaName;
 
             return View(model);
         }

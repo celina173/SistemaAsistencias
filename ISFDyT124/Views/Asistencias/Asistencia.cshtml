@@ -8,11 +8,10 @@
     <div class="info-banner">
         <div class="info-col-left">
             <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
-            <p class="info-bold">Tec. Sup. en Desarrollo de Software</p>
+            <p class="info-bold">@ViewBag.CarreraNombre</p>
         </div>
         <div class="info-col-right">
-            <p class="info-bold">Profesor</p>
-            <p class="info-bold">@ViewData["CaMaDenominacion"]</p>
+            <p class="info-bold">@ViewBag.MateriaNombre</p>
         </div>
     </div>
 

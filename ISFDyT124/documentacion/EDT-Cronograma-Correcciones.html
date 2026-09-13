@@ -417,6 +417,8 @@
           <div class="edt-item"><span class="code">2.1</span><span class="name">Mensaje de error claro en el login</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">2.2</span><span class="name">Acomodar la vista "Olvidé mi contraseña"</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">2.3</span><span class="name">Encriptar las contraseñas (hash) en login</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">2.4</span><span class="name">Login no muestra error si falla la validación del DTO (bypass del frontend)</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">2.5</span><span class="name">Campo de login debería pedir "DNI" en vez de "Usuario"</span><span class="tag normal">Post-MVP</span></div>
         </div>
       </div>
 
@@ -427,6 +429,14 @@
           <div class="edt-item"><span class="code">3.2</span><span class="name">Corregir roles sembrados: Admin / Dirección / Docente / Alumno</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">3.3</span><span class="name">Tarjeta "Alumnos" (ex-Docentes): alumnos por carrera</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos vía Excel</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.5</span><span class="name">DNI inicia en 0 en vez de vacío al agregar usuario</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.6</span><span class="name">Confirmación de eliminar usuario usa alert nativo del navegador</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.7</span><span class="name">Autocompletado de contraseñas del navegador interfiere en el campo</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.8</span><span class="name">Falta validación de formato/longitud (DNI, email, nombre)</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">3.9</span><span class="name">Se puede eliminar cualquier Admin, incluso a uno mismo o al último</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">3.10</span><span class="name">Excepción de SQL no controlada al guardar con campo obligatorio vacío</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">3.11</span><span class="name">Cambiar rol Docente → Admin no limpia las materias asignadas</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">3.12</span><span class="name">Acepta valores de DNI excesivamente largos</span><span class="tag mvp">MVP</span></div>
         </div>
       </div>
 
@@ -436,6 +446,14 @@
           <div class="edt-item"><span class="code">4.1</span><span class="name">Corregir relación faltante carrera–materia</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">4.2</span><span class="name">Agregar campo "porcentaje" en Materia</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">4.3</span><span class="name">Permitir asignar más de una materia/carrera a un docente</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">4.4</span><span class="name">Materia: campos Denominación/Modalidad aceptan números</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.5</span><span class="name">Materia: "Modalidad" debería ser una lista fija, no texto libre</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.6</span><span class="name">Materia: permite crear materias duplicadas</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.7</span><span class="name">Materia: la nueva queda al final del listado</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">4.8</span><span class="name">Materia: paso redundante Detalles → Editar</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">4.9</span><span class="name">Carrera: permite denominación totalmente numérica</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">4.10</span><span class="name">Carrera: permite varias palabras pegadas sin espacios</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">4.11</span><span class="name">Carrera: falta cartel de confirmación al agregar/eliminar</span><span class="tag normal">Post-MVP</span></div>
         </div>
       </div>
 
@@ -445,6 +463,13 @@
           <div class="edt-item"><span class="code">5.1</span><span class="name">Bug: rol "estudiante" inexistente → usar Inscripciones</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">5.2</span><span class="name">Popup de calendario en el panel de admin</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">5.3</span><span class="name">Ocultar calendario al docente hasta elegir carrera/materia</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">5.4</span><span class="name">Nombre del profesor muestra el tipo de objeto, no el nombre real</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">5.5</span><span class="name">Nombre de carrera estático, no dinámico según selección</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">5.6</span><span class="name">Datos de carrera/materia no se visualizan correctamente</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">5.7</span><span class="name">Botón "Cancelar" sin estilo de botón</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">5.8</span><span class="name">Tabla de alumnos sin estilo consistente</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">5.9</span><span class="name">Toma/consulta de asistencia accesible sin login</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">5.10</span><span class="name">Asistencia Global en blanco con una cátedra real</span><span class="tag critico">Crítico</span></div>
         </div>
       </div>
 
@@ -452,6 +477,9 @@
         <div class="edt-phase-head"><span class="code">6</span><span class="name">Calidad transversal</span></div>
         <div class="edt-items">
           <div class="edt-item"><span class="code">6.1</span><span class="name">Revisión de diseño responsive en todas las vistas</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">6.2</span><span class="name">Migraciones no aplican sobre una base nueva</span><span class="tag critico">Crítico</span></div>
+          <div class="edt-item"><span class="code">6.3</span><span class="name">Vistas sin _Layout: doble encabezado y logo roto</span><span class="tag mvp">MVP</span></div>
+          <div class="edt-item"><span class="code">6.4</span><span class="name">Vistas de Home con datos hardcodeados / posible código muerto</span><span class="tag normal">Post-MVP</span></div>
         </div>
       </div>
 
@@ -487,6 +515,18 @@
             <div class="bar" style="left:27%; width:22%;"></div>
           </div>
         </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">2.4</span>Validación DTO silenciosa en login</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">2.5</span>Label "DNI" en vez de "Usuario"</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:77%; width:21%;"></div>
+          </div>
+        </div>
 
         <div class="gantt-phase-row"><div class="label">3 · Usuarios y roles</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
         <div class="gantt-row">
@@ -507,6 +547,24 @@
             <div class="bar destacado" style="left:52%; width:23%;"></div>
           </div>
         </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.8–3.10</span>Validaciones + eliminar Admin + excepción SQL</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.11–3.12</span>Limpieza de materias + DNI largo</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">3.5–3.7</span>Detalles de UI en alta de usuario</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
 
         <div class="gantt-phase-row"><div class="label">4 · Carreras y materias</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
         <div class="gantt-row">
@@ -517,6 +575,18 @@
         </div>
         <div class="gantt-row">
           <div class="label"><span class="code">4.3</span>Múltiples materias por docente</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">4.4–4.6 / 4.9</span>Validaciones Materia/Carrera</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">4.7 / 4.8 / 4.10 / 4.11</span>Detalles de UX Materia/Carrera</div>
           <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
             <div class="bar destacado" style="left:52%; width:23%;"></div>
           </div>
@@ -535,6 +605,36 @@
             <div class="bar destacado" style="left:52%; width:23%;"></div>
           </div>
         </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.4</span>Nombre de profesor roto en toma de asistencia</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.5 / 5.6</span>Carrera/materia no dinámicos</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.7 / 5.8</span>Estilos de la vista de asistencia</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:52%; width:23%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.9</span>Asistencia accesible sin login</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">5.10</span>Asistencia Global en blanco</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
 
         <div class="gantt-phase-row"><div class="label">1 · Navegación (UI)</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
         <div class="gantt-row">
@@ -545,6 +645,24 @@
         </div>
 
         <div class="gantt-phase-row"><div class="label">6 · Calidad</div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">6.2</span>Migraciones no aplican desde cero</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar critico" style="left:2%; width:19%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">6.3</span>Vistas sin _Layout: doble header</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar" style="left:27%; width:22%;"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="label"><span class="code">6.4</span>Vistas de Home hardcodeadas</div>
+          <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="bar destacado" style="left:77%; width:21%;"></div>
+          </div>
+        </div>
         <div class="gantt-row">
           <div class="label"><span class="code">6.1</span>Revisión responsive</div>
           <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
@@ -624,6 +742,18 @@
             <td><span class="badge critico">Crítico</span></td>
           </tr>
           <tr>
+            <td class="code-cell">2.4</td>
+            <td><div class="wp-name">Login no muestra error (DTO)</div><div class="deliverable">Hallazgo de testing — Valentín Homs</div></td>
+            <td>Si se elude la validación HTML del navegador (ej. quitando <code>required</code>) y se envía el login con usuario o contraseña vacíos, el backend no muestra ningún mensaje — la página solo recarga en blanco. La validación de <code>ModelState</code> debería mostrar el error igual.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">2.5</td>
+            <td><div class="wp-name">Label "DNI" en vez de "Usuario"</div><div class="deliverable">Hallazgo de testing — Valentín Homs</div></td>
+            <td>El campo de login dice "Usuario", pero en realidad pide el DNI. Un usuario nuevo probablemente no intente loguearse con su DNI al leer esa etiqueta — cambiar el texto visible del campo.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
             <td class="code-cell">3.1</td>
             <td><div class="wp-name">Revisar vista de alta de usuario</div></td>
             <td>Repasar el formulario de <code>UsuarioAgregar</code>: validaciones, campos condicionales por rol, mensajes de error.</td>
@@ -648,6 +778,54 @@
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
+            <td class="code-cell">3.5</td>
+            <td><div class="wp-name">DNI inicia en 0</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>Al entrar a "Agregar Usuario" el campo DNI se inicializa con el valor <code>0</code> en vez de quedar vacío.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.6</td>
+            <td><div class="wp-name">Alert nativo al eliminar</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>La confirmación de eliminación usa el <code>confirm()</code> nativo del navegador, rompiendo la estética del sistema. Reemplazar por un modal propio.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.7</td>
+            <td><div class="wp-name">Autocompletado de contraseña</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>El navegador ofrece guardar/sugerir contraseñas propias del usuario en el campo de contraseña del alta de un Estudiante. Agregar <code>autocomplete="new-password"</code>.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.8</td>
+            <td><div class="wp-name">Falta validación de formato/longitud</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>El alta/edición de usuario permite DNI de 4 dígitos, emails sin formato válido, y nombres/apellidos de un solo carácter o numéricos, en cualquier rol.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.9</td>
+            <td><div class="wp-name">Eliminar cualquier Admin</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>El sistema permite eliminar libremente usuarios con rol Admin, incluso el propio usuario logueado (autoeliminación) o el último Admin que quede en el sistema. Falta esa validación de negocio.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.10</td>
+            <td><div class="wp-name">Excepción SQL no controlada</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>Si se guarda un usuario dejando vacío un campo obligatorio (ej. Email) sin que la validación C# lo frene, el intento de insert llega a SQL Server y la excepción sale sin controlar en pantalla.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.11</td>
+            <td><div class="wp-name">Rol Docente → Admin no limpia materias</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>Al cambiarle el rol a un Docente (con materias asignadas) a Admin, el backend no limpia la tabla intermedia — el usuario queda como Admin pero retiene materias asignadas, visibles en la grilla.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">3.12</td>
+            <td><div class="wp-name">DNI excesivamente largo</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
+            <td>El sistema acepta valores de DNI desbordados (ej. 18 dígitos) sin validar un rango razonable.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
             <td class="code-cell">4.1</td>
             <td><div class="wp-name">Relación carrera–materia faltante</div></td>
             <td>Completar la relación que falta en la vista de Carrera/Materia (a confirmar con el equipo cuál falta exactamente al tomar la tarea).</td>
@@ -663,6 +841,54 @@
             <td class="code-cell">4.3</td>
             <td><div class="wp-name">Múltiples materias/carreras por docente</div></td>
             <td>Ya existe la relación muchos a muchos en el modelo — falta la UI para que el Admin asigne más de una cátedra al mismo docente desde una sola pantalla.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.4</td>
+            <td><div class="wp-name">Materia acepta números</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Los campos Denominación y Modalidad de Materia aceptan valores numéricos, deberían validarse como texto.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.5</td>
+            <td><div class="wp-name">Modalidad como lista fija</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>"Modalidad" es un campo de texto libre — debería ser un desplegable con las opciones reales (Presencial, Virtual, Libre, etc.) para no permitir cualquier valor.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.6</td>
+            <td><div class="wp-name">Permite materias duplicadas</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>El alta de Materia no valida que ya exista una con la misma denominación.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.7</td>
+            <td><div class="wp-name">Materia nueva al final del listado</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Al guardar una materia nueva, queda al final del listado — obliga a scrollear para verla. Considerar ordenar u ofrecer feedback visual de dónde quedó.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.8</td>
+            <td><div class="wp-name">Paso redundante Detalles → Editar</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Desde "Detalles" de una materia hay que apretar "Editar" para poder modificarla — un paso de más si el usuario ya quería editar directamente.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.9</td>
+            <td><div class="wp-name">Carrera con denominación numérica</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Se pudo crear una carrera con denominación "1231231231" (solo números) — debería rechazarse.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.10</td>
+            <td><div class="wp-name">Carrera sin espacios entre palabras</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Se pudo crear la carrera "ProfesoradodeEducaciónInicial" (varias palabras pegadas, sin espacios) — validar formato de nombre.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">4.11</td>
+            <td><div class="wp-name">Falta cartel de confirmación</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
+            <td>Al agregar o eliminar una carrera no aparece ningún cartel confirmando que la acción se realizó correctamente.</td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
@@ -684,9 +910,69 @@
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
+            <td class="code-cell">5.4</td>
+            <td><div class="wp-name">Nombre de profesor roto</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
+            <td>En la toma de asistencia, el encabezado muestra literalmente <code>ISFDyT124.Models.CarreraMateria</code> en vez del nombre del profesor — falta formatear el dato en vez de mostrar el objeto crudo.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.5</td>
+            <td><div class="wp-name">Carrera estática en asistencia</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
+            <td>El nombre de la carrera se muestra fijo, no cambia dinámicamente según el <code>CaMaId</code> seleccionado.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.6</td>
+            <td><div class="wp-name">Datos de carrera/materia no visibles</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
+            <td>Los datos de carrera y materia seleccionados no aparecen correctamente en la vista de toma de asistencia.</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.7</td>
+            <td><div class="wp-name">Botón Cancelar sin estilo</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
+            <td>El botón "Cancelar" de la toma de asistencia aparece como un link de texto subrayado en vez de un botón consistente con el resto de los controles.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.8</td>
+            <td><div class="wp-name">Tabla de alumnos sin estilo</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
+            <td>Los encabezados y filas de la tabla de alumnos aparecen como celdas simples, sin alineación ni el estilo visual del resto del sistema.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.9</td>
+            <td><div class="wp-name">Asistencia accesible sin login</div><div class="deliverable">Hallazgo de auditoría visual — Gianna Branca</div></td>
+            <td><code>AsistenciasController</code> no tiene <code>[Authorize]</code> en la clase — a diferencia de Admin/Profesor/Alumnos, se puede tomar y consultar asistencia (Index, Asistencia, AsistenciaGlobal) sin haber iniciado sesión.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">5.10</td>
+            <td><div class="wp-name">Asistencia Global en blanco</div><div class="deliverable">Hallazgo de auditoría visual — Gianna Branca</div></td>
+            <td>Al pasarle un <code>CaMaId</code> de una cátedra con asistencias cargadas, <code>AsistenciaGlobal</code> devuelve la página completamente en blanco, sin cartel de error. Con la vista vacía (sin seleccionar cátedra) sí funciona.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
             <td class="code-cell">6.1</td>
             <td><div class="wp-name">Revisión responsive</div></td>
             <td>Pasada general por todas las vistas en mobile/tablet — layout, tablas con scroll horizontal, menú lateral colapsable.</td>
+            <td><span class="badge normal">Post-MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">6.2</td>
+            <td><div class="wp-name">Migraciones no aplican desde cero</div><div class="deliverable">Hallazgo de auditoría visual — Gianna Branca</div></td>
+            <td><code>dotnet ef database update</code> falla en una base vacía: la migración <code>AgregarInscripcionesYCarrerasMaterias</code> reintroduce la FK <code>UsuarioRoles→Roles</code> con <code>ON DELETE CASCADE</code>, lo que choca con otros caminos de cascada ya existentes ("multiple cascade paths"). Sólo no se nota porque la base de Railway ya tenía el esquema armado antes de que se agregara ese conflicto — nadie más pudo levantar el proyecto contra una base 100% nueva.</td>
+            <td><span class="badge critico">Crítico</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">6.3</td>
+            <td><div class="wp-name">Vistas sin _Layout: doble header y logo roto</div><div class="deliverable">Hallazgo de auditoría visual — Gianna Branca</div></td>
+            <td><code>Home/Asistencia</code>, <code>Home/AsistenciaGlobal</code> e <code>Inscripciones/AgregarInscripcionMateria</code> traen su propio <code>&lt;!DOCTYPE html&gt;</code> completo en vez de usar el <code>_Layout</code> compartido, lo que dibuja el encabezado dos veces y rompe el logo (rutas viejas <code>style.css</code>/<code>img/logo.png</code> en vez de <code>/css/style.css</code>/<code>/images/logo.png</code>).</td>
+            <td><span class="badge mvp">MVP</span></td>
+          </tr>
+          <tr>
+            <td class="code-cell">6.4</td>
+            <td><div class="wp-name">Vistas de Home con datos hardcodeados</div><div class="deliverable">Hallazgo de auditoría visual — Gianna Branca</div></td>
+            <td><code>Home/Asistencia</code> y <code>Home/AsistenciaGlobal</code> son mockups estáticos: <code>HomeController</code> hace <code>return View()</code> sin modelo y el HTML trae nombres de alumnos y fechas hardcodeados (coinciden con nombres reales de compañeros del equipo). <code>Home/Index</code> además duplica la lógica de selección de carrera/materia de <code>AsistenciasController.Index</code>. Evaluar con el equipo si se pueden dar de baja, ya que <code>ProfesorController</code> cubre el mismo caso de uso con datos reales.</td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
         </tbody>

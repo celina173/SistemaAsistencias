@@ -55,9 +55,22 @@
                 <span class="menu-arrow">➔</span>
                 <a asp-controller="Home" asp-action="Index">Inicio</a>
             </li>
+            @{
+                // El docente no debería caer directo en el calendario general (que no tiene
+                // selector de cátedra para él, solo para Admin/Dirección) sin haber elegido antes
+                // qué carrera/materia está dictando — se lo manda primero a sus cátedras.
+                bool esDocente = User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Docente");
+            }
             <li>
                 <span class="menu-arrow">➔</span>
-                <a asp-controller="Asistencias" asp-action="AsistenciaGlobal">Calendario</a>
+                @if (esDocente)
+                {
+                    <a asp-controller="Profesor" asp-action="Index">Calendario</a>
+                }
+                else
+                {
+                    <a asp-controller="Asistencias" asp-action="AsistenciaGlobal">Calendario</a>
+                }
             </li>
             @if (User.Identity != null && User.Identity.IsAuthenticated
                   && (User.IsInRole("Admin") || User.IsInRole("Dirección")))

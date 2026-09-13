@@ -9,7 +9,7 @@ namespace ISFDyT124.Models
         public int MaId { get; set; }
 
         [Required(ErrorMessage = "Debe ingresar el nombre de la materia.")]
-        [StringLength(30, ErrorMessage = "No se permiten más de 30 caracteres.")]
+        [StringLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")]
         [RegularExpression(
             @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s.,()-]*$",
             ErrorMessage = "Ingrese una materia válida."

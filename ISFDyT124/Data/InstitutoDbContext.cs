@@ -120,6 +120,34 @@ namespace ISFDyT124.Data
                 .HasForeignKey(a => a.MaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Relación ASISTENCIAS -> CARRERA_MATERIA. Sin esto, la navegación CarreraMateria de
+            // Asistencia quedaba sin configurar y EF Core le creaba su propia columna sombra
+            // (CarreraMateriaCaMaId) separada de CaMaId, que el código real nunca usa.
+            // NO ACTION (no Cascade): Materias ya cascadea a Asistencias directo por MaId: si
+            // esta también cascadeara, SQL Server rechaza el esquema por "multiple cascade
+            // paths" (Materias -> Asistencias directo, y Materias -> CarreraMateria ->
+            // Asistencias indirecto).
+            modelBuilder.Entity<Asistencia>()
+                .HasOne(a => a.CarreraMateria)
+                .WithMany()
+                .HasForeignKey(a => a.CaMaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relación INSCRIPCIONES -> USUARIOS y CARRERA_MATERIA. Mismo problema que arriba:
+            // sin configurar, EF creaba UsuariosUsId / CarreraMateriaCaMaId como columnas sombra
+            // separadas de UsId / CaMaId, siempre en null.
+            modelBuilder.Entity<Inscripciones>()
+                .HasOne(i => i.Usuarios)
+                .WithMany()
+                .HasForeignKey(i => i.UsId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Inscripciones>()
+                .HasOne(i => i.CarreraMateria)
+                .WithMany()
+                .HasForeignKey(i => i.CaMaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // Muchos a muchos Usuario <-> CarreraMateria (docentes asignados a cátedras),
             // mapeada a la tabla existente UsuarioCarreraMateria (columnas CarreraMateriasCaMaId / UsuariosUsId).
             modelBuilder.Entity<Usuario>()

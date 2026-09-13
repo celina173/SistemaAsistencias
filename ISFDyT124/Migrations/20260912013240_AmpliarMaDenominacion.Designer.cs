@@ -4,6 +4,7 @@ using ISFDyT124.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ISFDyT124.Migrations
 {
     [DbContext(typeof(InstitutoDbContext))]
-    partial class InstitutoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260912013240_AmpliarMaDenominacion")]
+    partial class AmpliarMaDenominacion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,6 +45,9 @@ namespace ISFDyT124.Migrations
                     b.Property<int?>("CaMaId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CarreraMateriaCaMaId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("MaId")
                         .HasColumnType("int");
 
@@ -50,7 +56,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("AsId");
 
-                    b.HasIndex("CaMaId");
+                    b.HasIndex("CarreraMateriaCaMaId");
 
                     b.HasIndex("MaId");
 
@@ -147,14 +153,20 @@ namespace ISFDyT124.Migrations
                     b.Property<int>("CaMaId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CarreraMateriaCaMaId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UsId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuariosUsId")
                         .HasColumnType("int");
 
                     b.HasKey("InId");
 
-                    b.HasIndex("CaMaId");
+                    b.HasIndex("CarreraMateriaCaMaId");
 
-                    b.HasIndex("UsId");
+                    b.HasIndex("UsuariosUsId");
 
                     b.ToTable("Inscripciones");
                 });
@@ -283,8 +295,7 @@ namespace ISFDyT124.Migrations
                 {
                     b.HasOne("ISFDyT124.Models.CarreraMateria", "CarreraMateria")
                         .WithMany()
-                        .HasForeignKey("CaMaId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CarreraMateriaCaMaId");
 
                     b.HasOne("ISFDyT124.Models.Materia", "Materias")
                         .WithMany("Asistencias")
@@ -345,15 +356,11 @@ namespace ISFDyT124.Migrations
                 {
                     b.HasOne("ISFDyT124.Models.CarreraMateria", "CarreraMateria")
                         .WithMany()
-                        .HasForeignKey("CaMaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CarreraMateriaCaMaId");
 
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuarios")
                         .WithMany()
-                        .HasForeignKey("UsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UsuariosUsId");
 
                     b.Navigation("CarreraMateria");
 
