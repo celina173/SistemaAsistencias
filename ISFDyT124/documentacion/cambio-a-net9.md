@@ -30,7 +30,7 @@ Se decidió pasar el proyecto a **.NET 9**.
 En `ISFDyT124.csproj`:
 
 | Paquete | Antes (net10) | Ahora (net9) |
-|---|---|---|
+| --- | --- | --- |
 | `TargetFramework` | `net10.0` | `net9.0` |
 | `Microsoft.EntityFrameworkCore.SqlServer` | `10.0.12` | `9.0.20` |
 | `Microsoft.EntityFrameworkCore.Tools` | `10.0.12` | `9.0.20` |
