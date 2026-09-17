@@ -625,6 +625,43 @@ body {
     background-color: #f8fafc;
 }
 
+.global-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.global-table th.sortable:hover {
+    background-color: #f1f5f9;
+    color: var(--primary-hover, #001f5c);
+}
+
+.global-table th .sort-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: inherit;
+    color: inherit;
+    justify-content: center;
+    width: 100%;
+}
+
+.global-table th.align-left .sort-header {
+    justify-content: flex-start;
+}
+
+.global-table th .sort-indicator {
+    font-size: 0.75rem;
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+}
+
+.global-table th.sortable:hover .sort-indicator,
+.global-table th.sorted-asc .sort-indicator,
+.global-table th.sorted-desc .sort-indicator {
+    opacity: 1;
+}
+
 /* Fila de título superior */
 .global-table .title-cell {
     font-size: 1.1rem;

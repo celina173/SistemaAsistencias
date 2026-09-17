@@ -12,23 +12,26 @@ namespace ISFDyT124.Migrations
         {
             // SQL Server no permite convertir una columna existente a IDENTITY con ALTER COLUMN.
             // Hay que recrear la tabla preservando los datos y las FKs que apuntan a CaMaId.
+            // Nombres de PK/FK corregidos a los que realmente crea AgregarInscripcionesYCarrerasMaterias
+            // (PK_CarreraMateria / FK_CarreraMateria_...) — tenían el nombre viejo "CarrerasMaterias"
+            // por el mismo drift manual del ticket 6.2.
             migrationBuilder.Sql(@"
                 ALTER TABLE UsuarioCarreraMateria DROP CONSTRAINT FK_UsuarioCarreraMateria_CarreraMateria_CarreraMateriasCaMaId;
                 ALTER TABLE Asistencias DROP CONSTRAINT FK_Asistencias_CarreraMateria_CarreraMateriaCaMaId;
                 ALTER TABLE Inscripciones DROP CONSTRAINT FK_Inscripciones_CarreraMateria_CarreraMateriaCaMaId;
 
                 EXEC sp_rename 'CarreraMateria', 'CarreraMateria_old';
-                EXEC sp_rename 'PK_CarrerasMaterias', 'PK_CarrerasMaterias_old';
-                EXEC sp_rename 'FK_CarrerasMaterias_Carreras_CaId', 'FK_CarrerasMaterias_Carreras_CaId_old';
-                EXEC sp_rename 'FK_CarrerasMaterias_Materias_MaId', 'FK_CarrerasMaterias_Materias_MaId_old';
+                EXEC sp_rename 'PK_CarreraMateria', 'PK_CarreraMateria_old';
+                EXEC sp_rename 'FK_CarreraMateria_Carreras_CaId', 'FK_CarreraMateria_Carreras_CaId_old';
+                EXEC sp_rename 'FK_CarreraMateria_Materias_MaId', 'FK_CarreraMateria_Materias_MaId_old';
 
                 CREATE TABLE CarreraMateria (
                     CaMaId INT IDENTITY(1,1) NOT NULL,
                     CaId INT NOT NULL,
                     MaId INT NOT NULL,
-                    CONSTRAINT PK_CarrerasMaterias PRIMARY KEY (CaMaId),
-                    CONSTRAINT FK_CarrerasMaterias_Carreras_CaId FOREIGN KEY (CaId) REFERENCES Carreras (CaId) ON DELETE CASCADE,
-                    CONSTRAINT FK_CarrerasMaterias_Materias_MaId FOREIGN KEY (MaId) REFERENCES Materias (MaId) ON DELETE CASCADE
+                    CONSTRAINT PK_CarreraMateria PRIMARY KEY (CaMaId),
+                    CONSTRAINT FK_CarreraMateria_Carreras_CaId FOREIGN KEY (CaId) REFERENCES Carreras (CaId) ON DELETE CASCADE,
+                    CONSTRAINT FK_CarreraMateria_Materias_MaId FOREIGN KEY (MaId) REFERENCES Materias (MaId) ON DELETE CASCADE
                 );
 
                 SET IDENTITY_INSERT CarreraMateria ON;
@@ -60,17 +63,17 @@ namespace ISFDyT124.Migrations
                 ALTER TABLE Inscripciones DROP CONSTRAINT FK_Inscripciones_CarreraMateria_CarreraMateriaCaMaId;
 
                 EXEC sp_rename 'CarreraMateria', 'CarreraMateria_old';
-                EXEC sp_rename 'PK_CarrerasMaterias', 'PK_CarrerasMaterias_old';
-                EXEC sp_rename 'FK_CarrerasMaterias_Carreras_CaId', 'FK_CarrerasMaterias_Carreras_CaId_old';
-                EXEC sp_rename 'FK_CarrerasMaterias_Materias_MaId', 'FK_CarrerasMaterias_Materias_MaId_old';
+                EXEC sp_rename 'PK_CarreraMateria', 'PK_CarreraMateria_old';
+                EXEC sp_rename 'FK_CarreraMateria_Carreras_CaId', 'FK_CarreraMateria_Carreras_CaId_old';
+                EXEC sp_rename 'FK_CarreraMateria_Materias_MaId', 'FK_CarreraMateria_Materias_MaId_old';
 
                 CREATE TABLE CarreraMateria (
                     CaMaId INT NOT NULL,
                     CaId INT NOT NULL,
                     MaId INT NOT NULL,
-                    CONSTRAINT PK_CarrerasMaterias PRIMARY KEY (CaMaId),
-                    CONSTRAINT FK_CarrerasMaterias_Carreras_CaId FOREIGN KEY (CaId) REFERENCES Carreras (CaId) ON DELETE CASCADE,
-                    CONSTRAINT FK_CarrerasMaterias_Materias_MaId FOREIGN KEY (MaId) REFERENCES Materias (MaId) ON DELETE CASCADE
+                    CONSTRAINT PK_CarreraMateria PRIMARY KEY (CaMaId),
+                    CONSTRAINT FK_CarreraMateria_Carreras_CaId FOREIGN KEY (CaId) REFERENCES Carreras (CaId) ON DELETE CASCADE,
+                    CONSTRAINT FK_CarreraMateria_Materias_MaId FOREIGN KEY (MaId) REFERENCES Materias (MaId) ON DELETE CASCADE
                 );
 
                 INSERT INTO CarreraMateria (CaMaId, CaId, MaId)

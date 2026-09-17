@@ -118,11 +118,16 @@ namespace ISFDyT124.Data
                 .HasForeignKey(ur => ur.UsId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // NO ACTION (no Cascade): Usuario ya cascadea desde Rol (Usuario.RoId es requerido),
+            // y UsuarioRol ya cascadea desde Usuario justo arriba. Si esta FK también cascadeara,
+            // SQL Server ve dos caminos de cascada distintos desde Roles hasta UsuarioRoles
+            // (directo, y vía Usuarios) y rechaza crear el esquema en una base nueva
+            // ("multiple cascade paths") — ticket 6.2.
             modelBuilder.Entity<UsuarioRol>()
                 .HasOne(ur => ur.Rol)
                 .WithMany(r => r.UsuarioRoles)
                 .HasForeignKey(ur => ur.RoId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
             modelBuilder.Entity<Asistencia>()

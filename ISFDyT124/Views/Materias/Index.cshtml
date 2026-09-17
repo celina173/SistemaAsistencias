@@ -31,10 +31,30 @@
         <table class="global-table crud-materias">
             <thead>
                 <tr>
-                    <th class="align-left">NOMBRE DE LA MATERIA</th>
-                    <th>MODALIDAD</th>
-                    <th>MÓDULOS</th>
-                    <th class="align-left">CARRERAS RELACIONADAS</th>
+                    <th class="align-left sortable" data-type="text">
+                        <div class="sort-header">
+                            NOMBRE DE LA MATERIA
+                            <span class="sort-indicator">▲</span>
+                        </div>
+                    </th>
+                    <th class="sortable" data-type="text">
+                        <div class="sort-header">
+                            MODALIDAD
+                            <span class="sort-indicator">⇅</span>
+                        </div>
+                    </th>
+                    <th class="sortable" data-type="number">
+                        <div class="sort-header">
+                            MÓDULOS
+                            <span class="sort-indicator">⇅</span>
+                        </div>
+                    </th>
+                    <th class="align-left sortable" data-type="number">
+                        <div class="sort-header">
+                            CARRERAS RELACIONADAS
+                            <span class="sort-indicator">⇅</span>
+                        </div>
+                    </th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
@@ -70,3 +90,77 @@
         </table>
     </div>
 </main>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.querySelector('.crud-materias');
+        if (!table) return;
+
+        const tbody = table.querySelector('tbody');
+        let rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        if (rows.length <= 1 && rows[0]?.querySelector('td[colspan]')) return;
+
+        const headers = Array.from(table.querySelectorAll('thead th'));
+        const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+
+        let activeCol = -1;
+        let isAsc = false;
+        let activeTh = null;
+
+        table.querySelector('thead').addEventListener('click', function (e) {
+            const th = e.target.closest('th.sortable');
+            if (!th) return;
+
+            const colIndex = headers.indexOf(th);
+            const isSameCol = (colIndex === activeCol);
+
+            if (isSameCol) {
+                isAsc = !isAsc;
+                rows.reverse();
+            } else {
+                if (activeTh) {
+                    activeTh.classList.remove('sorted-asc', 'sorted-desc');
+                    const prevIndicator = activeTh.querySelector('.sort-indicator');
+                    if (prevIndicator) prevIndicator.textContent = '⇅';
+                }
+
+                activeCol = colIndex;
+                activeTh = th;
+                isAsc = true;
+                
+                const isNumber = th.getAttribute('data-type') === 'number';
+                const parsed = rows.map(tr => {
+                    const text = tr.children[colIndex]?.textContent.trim() ?? '';
+                    return {
+                        tr,
+                        val: isNumber ? (parseFloat(text.replace(',', '.')) || 0) : text
+                    };
+                });
+                
+                if (isNumber) {
+                    parsed.sort((a, b) => a.val - b.val);
+                } else {
+                    parsed.sort((a, b) => collator.compare(a.val, b.val));
+                }
+
+                rows = parsed.map(item => item.tr);
+            }
+            
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            th.classList.add(isAsc ? 'sorted-asc' : 'sorted-desc');
+            const indicator = th.querySelector('.sort-indicator');
+            if (indicator) {
+                indicator.textContent = isAsc ? '▲' : '▼';
+            }
+
+            // Single atomic DOM update (triggers 1 reflow instead of N)
+            tbody.append(...rows);
+        });
+
+        // Trigger default sort by Nombre de la Materia
+        headers[0]?.click();
+    });
+</script>
+}

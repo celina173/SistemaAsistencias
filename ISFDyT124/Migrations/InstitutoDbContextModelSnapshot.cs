@@ -56,7 +56,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("UsId");
 
-                    b.ToTable("Asistencias");
+                    b.ToTable("Asistencias", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Carrera", b =>
@@ -74,7 +74,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("CaId");
 
-                    b.ToTable("Carreras");
+                    b.ToTable("Carreras", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.CarreraCohorte", b =>
@@ -95,7 +95,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("CaId", "CoId")
                         .IsUnique();
 
-                    b.ToTable("CarreraCohortes");
+                    b.ToTable("CarreraCohortes", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.CarreraMateria", b =>
@@ -136,7 +136,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("CoId");
 
-                    b.ToTable("Cohortes");
+                    b.ToTable("Cohortes", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Inscripciones", b =>
@@ -160,7 +160,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("UsId", "CaMaId")
                         .IsUnique();
 
-                    b.ToTable("Inscripciones");
+                    b.ToTable("Inscripciones", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Materia", b =>
@@ -186,7 +186,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("MaId");
 
-                    b.ToTable("Materias");
+                    b.ToTable("Materias", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Rol", b =>
@@ -201,7 +201,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("RoId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Usuario", b =>
@@ -246,7 +246,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("UsDni")
                         .IsUnique();
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.UsuarioRol", b =>
@@ -266,7 +266,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("UsId");
 
-                    b.ToTable("UsuarioRoles");
+                    b.ToTable("UsuarioRoles", (string)null);
                 });
 
             modelBuilder.Entity("UsuarioCarreraMateria", b =>
@@ -281,7 +281,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("UsuariosUsId");
 
-                    b.ToTable("UsuarioCarreraMateria");
+                    b.ToTable("UsuarioCarreraMateria", (string)null);
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Asistencia", b =>
@@ -386,7 +386,7 @@ namespace ISFDyT124.Migrations
                     b.HasOne("ISFDyT124.Models.Rol", "Rol")
                         .WithMany("UsuarioRoles")
                         .HasForeignKey("RoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuario")

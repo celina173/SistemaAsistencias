@@ -1,0 +1,50 @@
+﻿@model ISFDyT124.Models.Usuario
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+    ViewData["BodyClass"] = "agregar-page";
+}
+
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
+</div>
+
+<div class="page-title-container">
+    <h2 class="page-main-title">Eliminar Usuario</h2>
+</div>
+
+<main class="main-container-form">
+    <div class="form-card">
+        <h3 style="color: #000; margin-bottom: 20px;">¿Está seguro de eliminar este usuario?</h3>
+
+        <p style="margin-bottom: 25px; color: #6b7280;">Esta acción es irreversible y podría afectar los registros asociados a este usuario.</p>
+
+        <div class="input-field">
+            <label>Apellido y Nombre</label>
+            <input value="@Model.UsApellido, @Model.UsNombre" readonly style="background-color: #f9fafb;">
+        </div>
+
+        <div class="input-field">
+            <label>DNI</label>
+            <input value="@Model.UsDni" readonly style="background-color: #f9fafb;">
+        </div>
+
+        <div class="input-field">
+            <label>Rol</label>
+            <input value="@(Model.Rol?.RoDenominacion ?? "Sin Rol")" readonly style="background-color: #f9fafb;">
+        </div>
+
+        <form asp-action="UsuarioEliminar" asp-route-id="@Model.UsId" method="post">
+            <div class="form-buttons" style="margin-top: 30px;">
+                <a asp-action="UsuariosABM" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
+                <button type="submit" class="btn-save" style="background-color: #dc3545; border-color: #dc3545;">Eliminar</button>
+            </div>
+        </form>
+    </div>
+</main>
+

@@ -89,9 +89,11 @@ namespace ISFDyT124.Migrations
             // migración anterior — quedó de una ALTER TABLE hecha directo sobre la base
             // compartida, nunca reflejada en el código. Está en NULL en las 3 filas que hay
             // hoy en Asistencias, así que no hay pérdida de datos real al sacarla.
-            migrationBuilder.DropColumn(
-                name: "AsNumeroModulo",
-                table: "Asistencias");
+            // Con IF EXISTS (no DropColumn tipado) porque en una base 100% nueva esta columna
+            // nunca existió — nace de un ALTER TABLE manual, no de ninguna migración — y un
+            // DropColumn normal tira "no existe" y aborta toda la migración (ticket 6.2).
+            migrationBuilder.Sql(@"IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Asistencias') AND name = 'AsNumeroModulo')
+    ALTER TABLE [Asistencias] DROP COLUMN [AsNumeroModulo];");
         }
 
         /// <inheritdoc />

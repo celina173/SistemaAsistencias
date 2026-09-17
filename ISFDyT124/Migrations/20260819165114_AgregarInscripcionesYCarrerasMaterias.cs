@@ -144,13 +144,20 @@ namespace ISFDyT124.Migrations
                 principalColumn: "CaMaId",
                 onDelete: ReferentialAction.Cascade);
 
+            // NO ACTION (no Cascade): Usuarios ya cascadea desde Roles (Usuario.RoId es
+            // requerido) y UsuarioRoles ya cascadea desde Usuarios. Si esta FK también
+            // cascadeara, SQL Server ve dos caminos de cascada distintos desde Roles hasta
+            // UsuarioRoles y rechaza crear el esquema en una base 100% nueva ("multiple cascade
+            // paths") — ticket 6.2. Se corrige acá (no en una migración nueva) porque el fallo
+            // ocurre al repetir esta misma migración desde cero, antes de llegar a cualquier
+            // migración posterior.
             migrationBuilder.AddForeignKey(
                 name: "FK_UsuarioRoles_Roles_RoId",
                 table: "UsuarioRoles",
                 column: "RoId",
                 principalTable: "Roles",
                 principalColumn: "RoId",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.NoAction);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Usuarios_CarreraCohortes_CaCoId",

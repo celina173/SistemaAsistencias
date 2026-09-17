@@ -65,35 +65,6 @@ using (var scope = app.Services.CreateScope())
     if (!await context.Roles.AnyAsync(r => r.RoId == 4))
         context.Roles.Add(new Rol { RoId = 4, RoDenominacion = "Dirección" });
 
-    // Puede haber quedado null si el RoId=1 ya estaba ocupado por un rol con otro nombre
-    rolAdmin ??= await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin" || r.RoId == 1);
-
-    const int adminDni = 12345678;
-    const string adminEmail = "admin@instituto.edu.ar";
-
-    // Chequea por cada campo con restricción propia (UsDni es único; UsEmail es el identificador
-    // de negocio del admin sembrado) — si cualquiera de los dos ya existe, no vuelve a insertar.
-    if (rolAdmin != null && !await context.Usuarios.AnyAsync(u => u.UsEmail == adminEmail || u.UsDni == adminDni))
-    {
-        // UsId es ValueGeneratedNever (manual, no IDENTITY) — mismo patrón que AdminController.UsuarioAgregar
-        int nuevoUsId = await context.Usuarios.AnyAsync()
-            ? await context.Usuarios.MaxAsync(u => u.UsId) + 1
-            : 1;
-
-        context.Usuarios.Add(new Usuario
-        {
-            UsId = nuevoUsId,
-            UsNombre = "Admin",
-            UsApellido = "Sistema",
-            UsDni = adminDni,
-            UsEmail = adminEmail,
-            // CAMBIO: la contraseña sembrada para el admin (igual a su DNI, mismo criterio
-            // que un alta manual) se guarda hasheada en vez de en texto plano.
-            UsContrasena = PasswordService.HashPassword("12345678"),
-            RoId = rolAdmin.RoId
-        });
-    }
-
     await context.SaveChangesAsync();
 }
 

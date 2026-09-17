@@ -394,9 +394,26 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(nameof(UsuariosABM));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
         public async Task<IActionResult> UsuarioEliminar(int id)
+        {
+            var usuario = await _context.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.UsId == id);
+
+            if (usuario == null)
+            {
+                return NotFound();
+            }
+
+            return View(usuario);
+        }
+
+
+
+        [HttpPost, ActionName("UsuarioEliminar")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UsuarioEliminarConfirmado(int id)
         {
             var usuario = await _context
                 .Usuarios.Include(u => u.UsuarioRoles)
