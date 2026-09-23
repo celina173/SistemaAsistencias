@@ -45,7 +45,7 @@ namespace ISFDyT124.Controllers
             return View();
         }
         */
-        
+
         // RECIBIR DATOS POST: Se ejecuta al enviar el formulario. Usamos el DTO por buenas prácticas.
         [HttpPost]
         public async Task<IActionResult> Login(UsuarioLoginDto model)
@@ -204,7 +204,7 @@ namespace ISFDyT124.Controllers
 
         //Recuperación de contraseña
 
-        [HttpGet] 
+        [HttpGet]
         public ActionResult StartRecovery()
         {
             RecoveryViewModel model = new RecoveryViewModel(); // Crea un modelo vacío para el formulario de recuperación
