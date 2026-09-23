@@ -15,7 +15,7 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <form asp-controller="Admin" asp-action="UsuarioEditar" method="post" id="formEditarUsuario" class="form-grid">
+        <form asp-controller="Admin" asp-action="UsuarioEditar" method="post" id="formEditarUsuario" class="form-grid" novalidate>
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <input type="hidden" asp-for="UsId" />
@@ -34,7 +34,7 @@
 
             <div class="input-field">
                 <label asp-for="UsDni">DNI</label>
-                <input asp-for="UsDni" autocomplete="off" maxlength="8">
+                <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="off" maxlength="8">
                 <span asp-validation-for="UsDni" class="text-danger"></span>
             </div>
 
