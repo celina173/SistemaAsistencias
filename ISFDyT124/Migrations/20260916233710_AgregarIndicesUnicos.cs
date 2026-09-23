@@ -10,17 +10,15 @@ namespace ISFDyT124.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // IX_CarreraMateria_CaId e IX_CarreraCohortes_CaId no se borran acá porque
+            // ninguno de los dos existe (ni en una base nueva ni en Railway, verificado):
+            // el primero se perdió en la migración MateriaCarreras (recreó la tabla sin
+            // recrear ese índice), el segundo nunca llegó a existir en la práctica pese a
+            // que InitialCreate lo declaraba. Intentar borrarlos tira "no existe" y aborta
+            // toda la migración.
             migrationBuilder.DropIndex(
                 name: "IX_Inscripciones_UsId",
                 table: "Inscripciones");
-
-            migrationBuilder.DropIndex(
-                name: "IX_CarreraMateria_CaId",
-                table: "CarreraMateria");
-
-            migrationBuilder.DropIndex(
-                name: "IX_CarreraCohortes_CaId",
-                table: "CarreraCohortes");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Inscripciones_UsId_CaMaId",
@@ -60,16 +58,6 @@ namespace ISFDyT124.Migrations
                 name: "IX_Inscripciones_UsId",
                 table: "Inscripciones",
                 column: "UsId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CarreraMateria_CaId",
-                table: "CarreraMateria",
-                column: "CaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CarreraCohortes_CaId",
-                table: "CarreraCohortes",
-                column: "CaId");
         }
     }
 }

@@ -39,9 +39,19 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
+            // Solo cátedras de la cohorte del año en curso — una cátedra de una
+            // cohorte pasada (ej. 2026 cuando ya estamos en 2027) no debe seguir
+            // apareciendo en el panel del docente.
+            int anioActual = DateTime.Today.Year;
+
             var catedras = await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
+                .Where(cm =>
+                    cm.CarreraCohorte != null
+                    && cm.CarreraCohorte.Cohorte != null
+                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
+                )
                 .Select(cm => new CarreraMateriaDetalleDto
                 {
                     CaMaId = cm.CaMaId,
@@ -93,6 +103,16 @@ namespace ISFDyT124.Controllers
 
             int maId = catedra.MaId;
 
+            // El docente solo puede tomar/editar asistencia de sus propias cátedras
+            // asignadas — antes se podía cambiar el caMaId en la URL y ver/editar
+            // la de cualquier otro docente (ticket 6.7, punto 5).
+            var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(docenteIdClaim, out int docenteId))
+                return Unauthorized();
+
+            if (!await EsCatedraDelDocenteAsync(docenteId, maId))
+                return NotFound();
+
             ViewBag.CaMaId = caMaId;
             ViewBag.MateriaId = maId;
             ViewBag.Fecha = fechaFiltro;
@@ -140,7 +160,13 @@ namespace ISFDyT124.Controllers
                 })
                 .ToListAsync();
 
-            ViewBag.AsistenciasExistentes = existentes.ToDictionary(a => a.UsId ?? 0);
+            // Agrupado por alumno en vez de ToDictionary directo: si quedaron dos filas del
+            // mismo alumno para esta materia y fecha (pasó al sincronizar dos tandas de la cola
+            // offline juntas, y puede pasar con datos viejos), ToDictionary tiraba excepción y
+            // se caía toda la pantalla con un error 500. Se toma la más reciente y sigue.
+            ViewBag.AsistenciasExistentes = existentes
+                .GroupBy(a => a.UsId ?? 0)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AsId).First());
 
             return View(alumnos);
         }
@@ -161,6 +187,15 @@ namespace ISFDyT124.Controllers
                 TempData["ErrorMessage"] = "No se recibieron datos de asistencia para procesar.";
                 return RedirectToAction(nameof(Index));
             }
+
+            // Mismo chequeo que en el GET: no se puede guardar asistencia de una cátedra
+            // que no es propia, aunque se arme el POST a mano (ticket 6.7, punto 5).
+            var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(docenteIdClaim, out int docenteId))
+                return Unauthorized();
+
+            if (!await EsCatedraDelDocenteAsync(docenteId, maId))
+                return NotFound();
 
             foreach (var dto in asistencias)
             {
@@ -202,6 +237,28 @@ namespace ISFDyT124.Controllers
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
             return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Verifica que la materia pertenezca a alguna de las cátedras (CarreraMaterias)
+        /// que tiene asignadas el docente EN LA COHORTE DEL AÑO EN CURSO, antes de
+        /// dejarlo ver/editar su asistencia. Una cátedra de una cohorte pasada (ej. el
+        /// docente tenía una carrera de la cohorte 2026 y ya estamos en 2027) no cuenta
+        /// como propia, aunque la relación siga existiendo en la base.
+        /// </summary>
+        private async Task<bool> EsCatedraDelDocenteAsync(int docenteId, int maId)
+        {
+            int anioActual = DateTime.Today.Year;
+
+            return await _context
+                .Usuarios.Where(u => u.UsId == docenteId)
+                .SelectMany(u => u.CarreraMaterias)
+                .AnyAsync(cm =>
+                    cm.MaId == maId
+                    && cm.CarreraCohorte != null
+                    && cm.CarreraCohorte.Cohorte != null
+                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
+                );
         }
 
         #endregion

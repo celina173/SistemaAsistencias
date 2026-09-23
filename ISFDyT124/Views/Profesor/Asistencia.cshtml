@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form asp-action="Asistencia" method="post">
+    <form asp-action="Asistencia" method="post" id="formAsistencia" data-offline-asistencia="true">
         @Html.AntiForgeryToken()
         <input type="hidden" name="maId" value="@maId" />
         <input type="hidden" name="fecha" value="@fecha.ToString("yyyy-MM-dd")" />
@@ -75,3 +75,46 @@
         <button type="submit" class="btn-guardar">Guardar Asistencia</button>
     </form>
 </main>
+
+@section Scripts {
+    @* Dexie y offline-asistencia.js ya se cargan en _Layout.cshtml para todo docente. *@
+    <script>
+        // Frente 7 (PWA offline): si no hay señal al guardar, encola en IndexedDB en vez de
+        // mandar el formulario, sin avisos ni botones — se sincroniza sola cuando vuelva la
+        // señal. Con señal, el comportamiento de siempre no cambia en nada.
+        (function () {
+            var form = document.getElementById('formAsistencia');
+            var maId = @maId;
+            var fecha = '@fecha.ToString("yyyy-MM-dd")';
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, sin cambios
+
+                    e.preventDefault();
+
+                    var filas = [];
+                    form.querySelectorAll('tbody tr').forEach(function (tr) {
+                        var usIdInput = tr.querySelector('input[name$=".UsId"]');
+                        if (!usIdInput) return;
+                        var presenteInput = tr.querySelector('input[name$=".AsPresente"]');
+                        var justificacionInput = tr.querySelector('input[name$=".AsJustificacion"]');
+                        filas.push({
+                            usId: parseInt(usIdInput.value, 10),
+                            presente: !!(presenteInput && presenteInput.checked),
+                            justificacion: !!(justificacionInput && justificacionInput.checked),
+                        });
+                    });
+
+                    if (filas.length === 0) return;
+
+                    // Misma navegación que haría el servidor tras un guardado normal — la
+                    // pantalla se comporta igual haya señal o no, sin carteles de por medio.
+                    window.OfflineAsistencia.encolarAsistencia(maId, fecha, filas).then(function () {
+                        window.location.href = '/Profesor';
+                    });
+                });
+            }
+        })();
+    </script>
+}

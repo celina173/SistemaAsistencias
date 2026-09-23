@@ -30,7 +30,13 @@ namespace ISFDyT124.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AsId"));
 
+                    b.Property<Guid?>("AsClientGuid")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("AsFecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("AsFechaCarga")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("AsJustificacion")
@@ -50,13 +56,17 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("AsId");
 
+                    b.HasIndex("AsClientGuid")
+                        .IsUnique()
+                        .HasFilter("[AsClientGuid] IS NOT NULL");
+
                     b.HasIndex("CaMaId");
 
                     b.HasIndex("MaId");
 
                     b.HasIndex("UsId");
 
-                    b.ToTable("Asistencias", (string)null);
+                    b.ToTable("Asistencias");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Carrera", b =>
@@ -74,13 +84,16 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("CaId");
 
-                    b.ToTable("Carreras", (string)null);
+                    b.ToTable("Carreras");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.CarreraCohorte", b =>
                 {
                     b.Property<int>("CaCoId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaCoId"));
 
                     b.Property<int>("CaId")
                         .HasColumnType("int");
@@ -95,7 +108,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("CaId", "CoId")
                         .IsUnique();
 
-                    b.ToTable("CarreraCohortes", (string)null);
+                    b.ToTable("CarreraCohortes");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.CarreraMateria", b =>
@@ -136,7 +149,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("CoId");
 
-                    b.ToTable("Cohortes", (string)null);
+                    b.ToTable("Cohortes");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Inscripciones", b =>
@@ -160,7 +173,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("UsId", "CaMaId")
                         .IsUnique();
 
-                    b.ToTable("Inscripciones", (string)null);
+                    b.ToTable("Inscripciones");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Materia", b =>
@@ -186,7 +199,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("MaId");
 
-                    b.ToTable("Materias", (string)null);
+                    b.ToTable("Materias");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Rol", b =>
@@ -201,7 +214,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasKey("RoId");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Usuario", b =>
@@ -237,6 +250,12 @@ namespace ISFDyT124.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("UsTokenRecovery")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UsTokenRecoveryVencimiento")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("UsId");
 
                     b.HasIndex("CaCoId");
@@ -246,7 +265,7 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("UsDni")
                         .IsUnique();
 
-                    b.ToTable("Usuarios", (string)null);
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.UsuarioRol", b =>
@@ -266,7 +285,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("UsId");
 
-                    b.ToTable("UsuarioRoles", (string)null);
+                    b.ToTable("UsuarioRoles");
                 });
 
             modelBuilder.Entity("UsuarioCarreraMateria", b =>
@@ -281,7 +300,7 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("UsuariosUsId");
 
-                    b.ToTable("UsuarioCarreraMateria", (string)null);
+                    b.ToTable("UsuarioCarreraMateria");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Asistencia", b =>

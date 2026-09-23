@@ -11,7 +11,7 @@ namespace ISFDyT124.Models
         [Required(ErrorMessage = "Debe ingresar una denominación para la carrera.")]
         [StringLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")]
         [RegularExpression(
-            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ0-9\s.,()-]*$",
+            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s.,()-]*$",
             ErrorMessage = "Ingrese una denominación válida."
         )]
         [Display(Name = "Denominación")]

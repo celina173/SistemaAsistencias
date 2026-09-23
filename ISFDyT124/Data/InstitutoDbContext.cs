@@ -34,12 +34,16 @@ namespace ISFDyT124.Data
             modelBuilder.Entity<Usuario>().Property(u => u.UsId).ValueGeneratedNever();
             //modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();
             //modelBuilder.Entity<Login>().Property(l => l.LoId).ValueGeneratedNever();
-            // Materia, Carrera y Asistencia pasaron a IDENTITY (columna autoincremental en SQL Server)
+            // Materia, Carrera, Asistencia y CarreraMateria pasaron a IDENTITY (columna
+            // autoincremental en SQL Server). CarreraCohorte se suma ahora a esa misma
+            // conversión: quedaba como la única de esa familia con PK manual, lo que
+            // obligaba a calcular el próximo ID a mano en cualquier alta (causa real de
+            // un bug encontrado en el backfill de CarreraMateria.CaCoId) y va a hacer
+            // falta de nuevo apenas exista el alta real de CarreraCohorte (ticket 4.12).
             //modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
-            //modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
             modelBuilder.Entity<CarreraMateria>().ToTable("CarreraMateria");
             modelBuilder.Entity<CarreraMateria>().Property(cm => cm.CaMaId).ValueGeneratedOnAdd();
-            modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedNever();
+            modelBuilder.Entity<CarreraCohorte>().Property(cc => cc.CaCoId).ValueGeneratedOnAdd();
             modelBuilder.Entity<Cohorte>().Property(co => co.CoId).ValueGeneratedNever();
             modelBuilder.Entity<UsuarioRol>().Property(ur => ur.UsRoId).ValueGeneratedNever();
 
@@ -128,6 +132,15 @@ namespace ISFDyT124.Data
                 .WithMany(r => r.UsuarioRoles)
                 .HasForeignKey(ur => ur.RoId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Índice único filtrado: AsClientGuid es nullable (solo los registros que
+            // llegaron por la cola offline lo traen), y SQL Server trata NULL como valor
+            // comparable en un índice único — sin el filtro, dos filas cargadas online
+            // (sin GUID) chocarían entre sí como si fueran duplicadas.
+            modelBuilder.Entity<Asistencia>()
+                .HasIndex(a => a.AsClientGuid)
+                .IsUnique()
+                .HasFilter("[AsClientGuid] IS NOT NULL");
 
             // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
             modelBuilder.Entity<Asistencia>()

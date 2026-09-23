@@ -134,20 +134,28 @@ body {
 }
 
 .sidebar-links li a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 12px 16px;
     text-decoration: none;
-    
+
     font-family: 'Inter', sans-serif;
     font-size: 0.95rem;
-    font-weight: 600; 
+    font-weight: 600;
     letter-spacing: -0.01em;
-    
-    color: #ffffff !important; 
-    background: transparent !important; 
+
+    color: #ffffff !important;
+    background: transparent !important;
     border: none !important;
-    
+
     transition: all 0.3s ease;
+}
+
+.sidebar-links .menu-arrow {
+    display: inline-flex;
+    flex-shrink: 0;
+    line-height: 1;
 }
 
 /* Estado Activo e interacciones */
@@ -276,6 +284,33 @@ body {
     border-color: var(--primary-color);
     background-color: #fff;
     box-shadow: 0 0 0 4px rgba(0, 46, 140, 0.1);
+}
+
+.login-card .input-group .password-field {
+    position: relative;
+}
+
+.login-card .input-group .password-field input {
+    padding-right: 46px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
 }
 
 .btn-submit {
@@ -1492,6 +1527,8 @@ body {
     margin-bottom: 30px;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Sin esto, un <select> con una opción larga (nombre de carrera) fuerza
+                     el ancho del ítem de grilla más allá de la pantalla en celulares. */
 }
 
 .input-field label {
@@ -1634,6 +1671,8 @@ body {
     margin-bottom: 30px;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* Sin esto, un <select> con una opción larga (nombre de carrera) fuerza
+                     el ancho del ítem de grilla más allá de la pantalla en celulares. */
 }
 .input-field label {
     font-family: 'Inter', sans-serif;
@@ -1658,6 +1697,8 @@ body {
     outline: none;
     background: transparent;
     transition: border-color 0.3s ease;
+    width: 100%;
+    min-width: 0;
 }
 /* Estilo premium exclusivo para adaptar las listas desplegables */
 .input-field select {
@@ -1668,6 +1709,9 @@ body {
     background-position: right center;
     background-size: 16px;
     padding-right: 20px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
 }
 /* Input exclusivo de lectura para el nombre del alumno (estilo dashed) */
 .input-field input[readonly] {
@@ -1923,6 +1967,21 @@ body {
     box-sizing: border-box;
 }
 
+/* Contenedor principal de la alerta de éxito */
+.alerta-exito {
+    display: flex;
+    align-items: center;
+    background-color: #f0fdf4; /* Fondo verde muy suave */
+    border: 1px solid #4ade80; /* Borde verde sutil */
+    color: #166534; /* Texto verde oscuro y legible */
+    padding: 12px 16px;
+    border-radius: 8px; /* Mantiene la misma curva que tus inputs */
+    margin-bottom: 20px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* Estilo y espaciado para el ícono de advertencia */
 .icono-alerta {
     width: 20px;
@@ -1946,3 +2005,465 @@ body {
     .alerta-texto li {
         margin: 0;
     }
+
+/* Modal de confirmación (reemplaza al confirm() nativo del navegador) */
+.confirm-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-modal-overlay.active {
+    display: flex;
+}
+
+.confirm-modal {
+    background: #fff;
+    border-radius: 10px;
+    padding: 28px;
+    max-width: 380px;
+    width: calc(100% - 32px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-modal-message {
+    margin: 0 0 20px;
+    font-size: 15px;
+    color: #1e293b;
+    text-align: center;
+}
+
+.confirm-modal .form-buttons {
+    justify-content: center;
+}
+
+/* =========================================================================
+   REDISEÑO MOBILE FIRST
+   Todo lo de abajo redefine (no reemplaza) los componentes de arriba: se
+   apoya en el mismo nombre de clase para que gane por orden de cascada, sin
+   tocar colores/tipografías/radios ya definidos. Base = celular. Los
+   @media (min-width: ...) van agrandando el layout para tablet/desktop.
+   ========================================================================= */
+
+/* ---- Panel Admin: lista vertical en celular, grilla de tarjetas en desktop ---- */
+.main-container-admin {
+    padding: 24px 16px;
+}
+
+.cards-grid {
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.admin-card {
+    width: 100%;
+    height: auto;
+    min-height: 84px;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 22px;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.admin-card:hover {
+    transform: translateY(-3px);
+}
+
+.card-icon-vector {
+    font-size: 38px;
+    margin-bottom: 0;
+}
+
+.admin-card h3 {
+    text-align: left;
+    font-size: 17px;
+}
+
+#card-inscripciones h3 {
+    font-size: 16px;
+}
+
+@media (min-width: 700px) {
+    .main-container-admin {
+        padding: 40px 20px;
+    }
+
+    .cards-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 40px;
+        max-width: 1400px;
+    }
+
+    .admin-card {
+        width: 220px;
+        height: 250px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0;
+        padding: 40px 20px;
+        border-radius: 30px;
+        box-shadow: 0 30px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .admin-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .card-icon-vector {
+        font-size: 70px;
+        margin-bottom: 20px;
+    }
+
+    .admin-card h3 {
+        text-align: center;
+        font-size: 20px;
+    }
+
+    #card-inscripciones h3 {
+        font-size: 18px;
+    }
+}
+
+/* ---- Barra de herramientas: permite que envuelva en dos líneas en celulares angostos ---- */
+.toolbar-container {
+    flex-wrap: wrap;
+    row-gap: 10px;
+}
+
+/* ---- Tablas de listado (Estudiantes/Docentes/Materias/Carreras/Usuarios/Auditoría):
+   en celular cada fila se convierte en una tarjeta con pares "etiqueta: valor".
+   A partir de 760px vuelve a ser la tabla clásica ya existente. ---- */
+.table-responsive-stack {
+    min-width: 0;
+}
+
+.table-responsive-stack thead {
+    display: none;
+}
+
+.table-responsive-stack,
+.table-responsive-stack tbody,
+.table-responsive-stack tr {
+    display: block;
+    width: 100%;
+}
+
+.table-responsive-stack tr {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+    padding: 4px 16px;
+}
+
+.table-responsive-stack td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: right;
+    font-weight: 600;
+}
+
+.table-responsive-stack td:last-child {
+    border-bottom: none;
+}
+
+.table-responsive-stack td::before {
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.table-responsive-stack td.action-cell {
+    justify-content: flex-end;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.table-responsive-stack td[colspan] {
+    display: block;
+    text-align: center;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.table-responsive-stack td[colspan]::before {
+    content: none;
+}
+
+@media (min-width: 760px) {
+    .table-responsive-stack {
+        display: table;
+    }
+
+    .table-responsive-stack tbody {
+        display: table-row-group;
+    }
+
+    .table-responsive-stack tr {
+        display: table-row;
+        background: transparent;
+        box-shadow: none;
+        border-radius: 0;
+        margin-bottom: 0;
+        padding: 0;
+    }
+
+    .table-responsive-stack thead {
+        display: table-header-group;
+    }
+
+    .table-responsive-stack td {
+        display: table-cell;
+        text-align: center;
+        padding: 14px 10px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-responsive-stack td.align-left {
+        text-align: left;
+    }
+
+    .table-responsive-stack td::before {
+        content: none;
+    }
+
+    .table-responsive-stack td.action-cell {
+        display: flex;
+        justify-content: center;
+    }
+
+    .table-responsive-stack td[colspan] {
+        text-align: center;
+    }
+}
+
+/* ---- Formularios (Agregar/Editar Estudiante-Docente-Materia-Carrera-Inscripción):
+   una sola columna a lo ancho completo en celular, dos columnas recién en tablet. ---- */
+.main-container-form {
+    padding: 24px 16px;
+}
+
+.main-container-form .form-card,
+.main-container-form .form-card.form-grid {
+    max-width: 100% !important;
+    width: 100%;
+    padding: 28px 20px;
+    border-radius: 18px;
+}
+
+.form-grid {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+}
+
+.form-buttons {
+    flex-direction: column-reverse;
+    gap: 10px;
+    width: 100%;
+}
+
+.form-buttons .btn-save,
+.form-buttons .btn-cancel {
+    width: 100%;
+}
+
+@media (min-width: 700px) {
+    .main-container-form {
+        padding: 50px 20px;
+    }
+
+    .main-container-form .form-card,
+    .main-container-form .form-card.form-grid {
+        max-width: 750px !important;
+        padding: 40px;
+        border-radius: 25px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 40px;
+    }
+
+    .form-buttons {
+        flex-direction: row;
+        justify-content: flex-end;
+        width: auto;
+    }
+
+    .form-buttons .btn-save,
+    .form-buttons .btn-cancel {
+        width: auto;
+    }
+}
+
+/* ---- Barra de navegación inferior (solo PWA instalada, modo standalone) ---- */
+.pwa-bottom-nav {
+    display: none;
+}
+
+html.pwa-standalone .pwa-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100;
+    background-color: var(--white);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* En modo standalone el menú hamburguesa lateral se reemplaza por la barra de abajo */
+html.pwa-standalone .menu-icon,
+html.pwa-standalone .sidebar {
+    display: none !important;
+}
+
+/* Deja lugar para que el contenido no quede tapado detrás de la barra fija */
+html.pwa-standalone body {
+    padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+}
+
+.pwa-bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none !important;
+    color: var(--text-muted) !important;
+    font-size: 0.68rem;
+    font-weight: 600;
+    flex: 1;
+    padding: 4px 0;
+}
+
+.pwa-bottom-nav-item i {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.pwa-bottom-nav-item:hover,
+.pwa-bottom-nav-item:active {
+    color: var(--primary-color) !important;
+}
+
+/* ---- Banner de instalación de la PWA ---- */
+.pwa-install-banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 1200;
+    background-color: var(--primary-color, #002e8c);
+    color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pwa-install-banner[hidden] {
+    display: none;
+}
+
+.pwa-install-text {
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.pwa-install-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.pwa-install-btn {
+    background-color: #fff;
+    color: var(--primary-color, #002e8c);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pwa-install-dismiss {
+    background: transparent;
+    border: none;
+    color: #fff;
+    opacity: 0.8;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+@media (min-width: 700px) {
+    .pwa-install-banner {
+        left: auto;
+        right: 24px;
+        bottom: 24px;
+        width: 360px;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .pwa-install-actions {
+        flex-shrink: 0;
+    }
+}
+
+/* ---- Filtro de Carrera/Materia en Asistencia Global: apilado en celular ---- */
+.filtro-catedra-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch !important;
+}
+
+.filtro-catedra-form button[type="submit"] {
+    width: 100%;
+}
+
+@media (min-width: 700px) {
+    .filtro-catedra-form {
+        flex-direction: row;
+        gap: 15px;
+        align-items: flex-end !important;
+    }
+
+    .filtro-catedra-form button[type="submit"] {
+        width: auto;
+    }
+}
+

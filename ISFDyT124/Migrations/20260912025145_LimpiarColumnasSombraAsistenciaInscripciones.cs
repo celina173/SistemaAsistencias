@@ -22,17 +22,18 @@ namespace ISFDyT124.Migrations
                 name: "FK_Inscripciones_Usuarios_UsuariosUsId",
                 table: "Inscripciones");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Inscripciones_CarreraMateriaCaMaId",
-                table: "Inscripciones");
+            // Con IF EXISTS por SQL crudo (en vez de DropIndex tipado) porque en la base
+            // compartida estos índices nunca se llegaron a crear (drift histórico fuera de
+            // las migraciones) aunque la columna y su FK sí existen — un DropIndex normal
+            // tira "no existe o no tiene permiso" y aborta toda la migración.
+            migrationBuilder.Sql(@"IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Inscripciones_CarreraMateriaCaMaId' AND object_id = OBJECT_ID('Inscripciones'))
+    DROP INDEX [IX_Inscripciones_CarreraMateriaCaMaId] ON [Inscripciones];");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Inscripciones_UsuariosUsId",
-                table: "Inscripciones");
+            migrationBuilder.Sql(@"IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Inscripciones_UsuariosUsId' AND object_id = OBJECT_ID('Inscripciones'))
+    DROP INDEX [IX_Inscripciones_UsuariosUsId] ON [Inscripciones];");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Asistencias_CarreraMateriaCaMaId",
-                table: "Asistencias");
+            migrationBuilder.Sql(@"IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Asistencias_CarreraMateriaCaMaId' AND object_id = OBJECT_ID('Asistencias'))
+    DROP INDEX [IX_Asistencias_CarreraMateriaCaMaId] ON [Asistencias];");
 
             migrationBuilder.DropColumn(
                 name: "CarreraMateriaCaMaId",

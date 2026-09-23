@@ -1,11 +1,15 @@
-﻿<!DOCTYPE html>
+﻿@model ISFDyT124.Models.ViewModels.RecoveryViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperar Contraseña - Sistema de Asistencias</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
 </head>
 <body class="login-page">
     
@@ -13,7 +17,7 @@
         
         <main class="auth-card">
             <div class="auth-header">
-                <img src="img/logo.png" alt="IS 124" class="auth-logo">
+                <img src="~/images/logo.png" alt="IS 124" class="auth-logo">
                 <div class="auth-title">
                     <div class="title-small">SISTEMA</div>
                     <div class="title-large">ASISTENCIAS</div>
@@ -27,10 +31,25 @@
                 Ingresá tu correo electrónico registrado y te enviaremos las instrucciones para restablecer tu contraseña.
             </p>
             
-            <form id="formRecupero" class="auth-form">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alerta-error" role="alert">
+                    <div class="alerta-texto">@ViewBag.Error</div>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alerta-error" role="alert">
+                    <div class="alerta-texto">@TempData["Error"]</div>
+                </div>
+            }
+
+            <form method="post" asp-controller="Account" asp-action="StartRecovery" class="auth-form">
                 <div class="input-field-auth">
-                    <label for="emailRecupero">Correo Electrónico</label>
-                    <input type="email" id="emailRecupero" name="emailRecupero" placeholder="ejemplo@ies124.edu.ar" required autocomplete="off">
+                    <label asp-for="UsEmail">Correo Electrónico</label>
+                    <input asp-for="UsEmail" type="email" placeholder="ejemplo@ies124.edu.ar" required autocomplete="off">
+                    <span asp-validation-for="UsEmail"></span>
                 </div>
                 
                 <div class="button-container-auth">
@@ -39,12 +58,12 @@
             </form>
 
             <div class="auth-footer-links">
-                <a href="index.html" class="link-volver">← Volver al Login</a>
+                <a asp-controller="Account" asp-action="Login" class="link-volver">← Volver al Login</a>
             </div>
         </main>
 
     </div>
 
-    <script src="script.js"></script>
+    <script src="~/js/script.js" asp-append-version="true"></script>
 </body>
 </html>

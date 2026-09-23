@@ -77,7 +77,7 @@ Puntos clave que no son obvios mirando solo los modelos:
 ### 1.2 Faltan restricciones de unicidad (nada las impide hoy)
 
 | Relación | Se puede duplicar hoy | Dónde se debería frenar |
-|---|---|---|
+| --- | --- | --- |
 | `CarreraMateria` (CaId + MaId) | Sí, sin aviso | Índice único en `InstitutoDbContext` + chequeo en `MateriasController`/alta de cátedra |
 | `Inscripciones` (UsId + CaMaId) | Sí, salvo por el único formulario manual que lo valida (`AgregarInscripcionMateria`) — `AlumnosController` y la carga masiva no chequean | Índice único a nivel de base (defensa real, no depende de que cada controller se acuerde) |
 | `CarreraCohorte` (CaId + CoId) | Sí | Índice único |
@@ -102,7 +102,7 @@ Puntos clave que no son obvios mirando solo los modelos:
 ## 2. Flujos de gestión que no existen (no son bugs, son ausencias)
 
 | Entidad | Alta | Edición | Baja | Impacto de que falte |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `Cohorte` (año) | ❌ No existe | ❌ | ❌ | No se puede arrancar un ciclo lectivo nuevo sin tocar la base a mano |
 | `CarreraCohorte` (carrera+año) | ❌ No existe | ❌ | ❌ | Mismo problema — ni siquiera se puede vincular una carrera a un año nuevo |
 | `Rol` | ❌ Solo el seed fijo (4 roles hardcodeados) | ❌ | ❌ | Aceptable para el alcance actual (los roles del instituto no cambian seguido), pero si el día de mañana piden un rol nuevo, hoy no hay forma sin migración |
@@ -123,7 +123,7 @@ Puntos clave que no son obvios mirando solo los modelos:
 ### 3.2 Con hueco real
 
 | DTO/Modelo | Falta | Por qué importa |
-|---|---|---|
+| --- | --- | --- |
 | `CarreraMateriaCrearDto`, `CohorteCrearDto`, `CarreraCohorteCrearDto`, `RolCrearDto`, `UsuarioRolCrearDto` | No los usa ningún controller — **código muerto** | Confunde: alguien puede pensar que esos flujos de alta existen y perder tiempo buscándolos |
 | `Inscripciones` (modelo) | Sin `[Required]`/`[ForeignKey]` explícitos, sin validación de "el alumno tiene que tener rol Estudiante" ni "la cátedra tiene que existir" a nivel de modelo | Se apoya 100% en que cada controller individual valide bien — ya vimos que no todos lo hacen igual |
 | `CarreraMateria` (modelo) | Sin unicidad (CaId+MaId) | Ver 1.2 |
@@ -148,7 +148,7 @@ el diagnóstico esté completo en un solo documento:
 ## 5. Priorización sugerida
 
 | # | Ítem | Tipo | Por qué en ese orden |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | Unificar `Asistencia` para que ambos controllers escriban siempre `CaMaId` (y dejar de necesitar el parche de `CaMaId == null` en Asistencia Global) | Bug de integridad de datos | Afecta números que ya se están mostrando hoy — cuanta más asistencia real se cargue, más data quedará mal etiquetada y más caro será migrarla después |
 | 2 | Alta de `Cohorte` y `CarreraCohorte` | Feature faltante | Sin esto el sistema no sobrevive al cambio de ciclo lectivo — es un bloqueante de uso real, no una mejora |
 | 3 | Confirmación real (no genérica) al borrar Carrera/Materia, mostrando cuántos alumnos/cátedras/asistencias se van a ver afectados | Prevención de pérdida de datos | Barato de hacer, evita un desastre irreversible |

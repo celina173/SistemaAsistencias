@@ -10,8 +10,10 @@
     <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+    <partial name="_PwaHead" />
 </head>
 <body class="login-page">
+    <partial name="_PwaInstallBanner" />
     <div class="login-card">
         <div class="logo-container">
             <img src="~/images/logo.png" alt="IS 124 Logo" class="logo-img">
@@ -19,6 +21,12 @@
 
         <form id="loginForm" method="post" action="/Account/Login">
             @Html.AntiForgeryToken()
+            @if (TempData["MensajeExito"] != null)
+            {
+                <div class="alerta-exito" role="alert">
+                    <div class="alerta-texto">@TempData["MensajeExito"]</div>
+                </div>
+            }
             <!-- Bloque de Validación Mejorado -->
             @if (!ViewData.ModelState.IsValid)
             {
@@ -40,7 +48,19 @@
 
             <div class="input-group">
                 <label for="contrasena">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" placeholder="••••••••" required>
+                <div class="password-field">
+                    <input type="password" id="contrasena" name="contrasena" placeholder="••••••••" required>
+                    <button type="button" class="toggle-password" id="toggleContrasena" aria-label="Mostrar contraseña">
+                        <svg class="icono-ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <svg class="icono-ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit" aria-label="Ingresar">
@@ -49,10 +69,26 @@
         </form>
 
         <div class="link-container">
-            <a href="recupero-contraseña.html" class="forgot-password">Olvidé mi contraseña</a>
+            <a asp-controller="Account" asp-action="StartRecovery" class="forgot-password">Olvidé mi contraseña</a>
         </div>
     </div>
 
     <script src="~/js/script.js"></script>
+    <script>
+        // Ticket 6.7 punto 1: mostrar/ocultar la contraseña mientras se escribe.
+        (function () {
+            var btn = document.getElementById('toggleContrasena');
+            var input = document.getElementById('contrasena');
+            if (!btn || !input) return;
+
+            btn.addEventListener('click', function () {
+                var mostrar = input.type === 'password';
+                input.type = mostrar ? 'text' : 'password';
+                btn.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                btn.querySelector('.icono-ojo-abierto').style.display = mostrar ? 'none' : '';
+                btn.querySelector('.icono-ojo-cerrado').style.display = mostrar ? '' : 'none';
+            });
+        })();
+    </script>
 </body>
 </html>

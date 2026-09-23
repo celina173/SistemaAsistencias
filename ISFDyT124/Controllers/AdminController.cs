@@ -252,6 +252,14 @@ namespace ISFDyT124.Controllers
 
                 if (selectedRoleId == 2 && model.SelectedCaMaIds != null)
                 {
+                    // usuario es un objeto recién creado (no vino de un Include), así que EF
+                    // no sabe que su colección CarreraMaterias está "cargada". Sin esto, el
+                    // Add() de abajo tira InvalidOperationException al guardar ("el valor de
+                    // la FK de la tabla intermedia es desconocido") porque no puede resolver
+                    // el estado de la relación muchos a muchos. Como es un usuario nuevo,
+                    // sabemos con certeza que la colección está vacía.
+                    _context.Entry(usuario).Collection(u => u.CarreraMaterias).IsLoaded = true;
+
                     var materias = await _context
                         .CarreraMaterias.Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
                         .ToListAsync();

@@ -30,25 +30,25 @@
     @if (User.Identity != null && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
     {
         <div class="admin-filter-container" style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <form asp-action="AsistenciaGlobal" method="get" style="display: flex; gap: 15px; align-items: flex-end;">
+            <form asp-action="AsistenciaGlobal" method="get" class="filtro-catedra-form">
 
                 <!-- Primer Desplegable: CARRERA -->
-                <div style="flex-grow: 1;">
+                <div style="flex-grow: 1; width: 100%;">
                     <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
                         1. Seleccione la Carrera:
                     </label>
-                    <select id="selectCarrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <select id="selectCarrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
                         <option value="">-- Elija una Carrera --</option>
                     </select>
                 </div>
 
                 <!-- Segundo Desplegable: MATERIA -->
-                <div style="flex-grow: 1;">
+                <div style="flex-grow: 1; width: 100%;">
                     <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
                         <i class="bi bi-search"></i> 2. Seleccione la Materia:
                     </label>
                     <!-- Al elegir la materia, se envía el CaMaId oculto al controlador -->
-                    <select id="selectMateria" name="CaMaId" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" disabled required>
+                    <select id="selectMateria" name="CaMaId" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;" disabled required>
                         <option value="">-- Primero elija una Carrera --</option>
                     </select>
                 </div>

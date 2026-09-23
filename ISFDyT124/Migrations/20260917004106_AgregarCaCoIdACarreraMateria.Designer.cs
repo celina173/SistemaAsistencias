@@ -83,7 +83,10 @@ namespace ISFDyT124.Migrations
             modelBuilder.Entity("ISFDyT124.Models.CarreraCohorte", b =>
                 {
                     b.Property<int>("CaCoId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaCoId"));
 
                     b.Property<int>("CaId")
                         .HasColumnType("int");
@@ -389,7 +392,7 @@ namespace ISFDyT124.Migrations
                     b.HasOne("ISFDyT124.Models.Rol", "Rol")
                         .WithMany("UsuarioRoles")
                         .HasForeignKey("RoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuario")

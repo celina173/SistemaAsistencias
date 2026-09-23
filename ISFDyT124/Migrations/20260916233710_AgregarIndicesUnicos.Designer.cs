@@ -389,7 +389,7 @@ namespace ISFDyT124.Migrations
                     b.HasOne("ISFDyT124.Models.Rol", "Rol")
                         .WithMany("UsuarioRoles")
                         .HasForeignKey("RoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuario")

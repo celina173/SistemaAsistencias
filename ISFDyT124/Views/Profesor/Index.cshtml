@@ -7,7 +7,7 @@
 @* Réplica del estilo de gestión del sistema (crud-table / main-container-gestion) para el
    dashboard del profesor: lista SOLO las cátedras (Carrera-Materia) que tiene asignadas. *@
 
-<main class="main-container-gestion">
+<main class="main-container-global">
 
     @if (TempData["SuccessMessage"] != null)
     {
@@ -27,17 +27,17 @@
         </div>
     </div>
 
-    <div class="toolbar-container" style="margin: 12px 0;">
+    <div class="toolbar-container" style="margin: 12px 0; justify-content: flex-start;">
         <a asp-controller="Alumnos" asp-action="Index" class="btn-edit" style="text-decoration:none;">Gestionar estudiantes</a>
     </div>
 
-    <div class="crud-table-container">
-        <table class="crud-table">
+    <div class="global-table-container">
+        <table class="global-table table-responsive-stack">
             <thead>
                 <tr>
-                    <th style="width: 35%;">Carrera</th>
-                    <th style="width: 35%;">Materia</th>
-                    <th style="width: 30%;">Acciones</th>
+                    <th class="align-left">Carrera</th>
+                    <th class="align-left">Materia</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,9 +46,9 @@
                     foreach (var catedra in Model)
                     {
                         <tr>
-                            <td>@catedra.CarreraDenominacion</td>
-                            <td>@catedra.MateriaDenominacion</td>
-                            <td>
+                            <td class="align-left" data-label="Carrera">@catedra.CarreraDenominacion</td>
+                            <td class="align-left" data-label="Materia">@catedra.MateriaDenominacion</td>
+                            <td class="action-cell" data-label="Acciones">
                                 <div class="action-buttons">
                                     <a asp-action="Asistencia" asp-route-caMaId="@catedra.CaMaId"
                                        class="btn-edit" style="text-decoration:none;">Tomar asistencia</a>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sin conexión - Sistema de Asistencias</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .offline-wrap {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .offline-wrap img { max-width: 100px; margin-bottom: 24px; }
+        .offline-wrap h1 { color: var(--primary-color, #002e8c); font-size: 1.3rem; margin-bottom: 12px; }
+        .offline-wrap p { color: var(--text-muted, #64748b); max-width: 340px; }
+        .offline-wrap button {
+            margin-top: 24px;
+            background-color: var(--primary-color, #002e8c);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-wrap">
+        <img src="/images/logo.png" alt="IS 124">
+        <h1>Sin conexión</h1>
+        <p id="offlineMensaje">No se pudo cargar esta página porque no hay conexión a internet en este momento. Cuando vuelva la señal, volvé a intentar.</p>
+        <button onclick="location.reload()">Reintentar</button>
+    </div>
+    <script>
+        // El Service Worker responde con este archivo pero la barra de direcciones sigue
+        // mostrando la URL que se pidió de verdad — se usa para dar un mensaje más útil
+        // en el caso puntual de Tomar Asistencia (frente 7 / PWA offline).
+        (function () {
+            if (window.location.pathname.indexOf('/Profesor/Asistencia') !== -1) {
+                document.getElementById('offlineMensaje').textContent =
+                    'Esta cátedra todavía no se guardó en el dispositivo para poder abrirla sin conexión. ' +
+                    'Abrila una vez con wifi o datos (por ejemplo, al llegar al instituto) y va a quedar ' +
+                    'disponible offline la próxima vez.';
+            }
+        })();
+    </script>
+</body>
+</html>

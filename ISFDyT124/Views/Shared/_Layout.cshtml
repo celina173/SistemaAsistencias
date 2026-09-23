@@ -1,14 +1,32 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Sistema de Asistencias</title>
+    <!-- Token para que el JS de sincronización offline (fetch a /api/asistencias/sincronizar)
+         lo mande por header, ya que ese endpoint recibe JSON y no un submit de formulario. -->
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- PWA: manifest + íconos + metadatos para que el navegador ofrezca instalar la app -->
+    <partial name="_PwaHead" />
+    <script>
+        // Sincrónico y antes de pintar el body: si la PWA corre instalada (standalone),
+        // marca <html> para que el CSS cambie el menú hamburguesa por la barra inferior
+        // nativa sin parpadeo del menú equivocado.
+        (function () {
+            var esStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            if (esStandalone) document.documentElement.classList.add('pwa-standalone');
+        })();
+    </script>
 </head>
 <body class="@ViewData["BodyClass"]">
+
+    <partial name="_PwaInstallBanner" />
 
     <header class="top-header">
         <div class="menu-icon" id="toggleSidebar">
@@ -52,8 +70,7 @@
     <nav class="sidebar" id="sidebarMenu">
         <ul class="sidebar-links">
             <li>
-                <span class="menu-arrow">➔</span>
-                <a asp-controller="Home" asp-action="Index">Inicio</a>
+                <a asp-controller="Home" asp-action="Index"><span class="menu-arrow">➔</span>Inicio</a>
             </li>
             @{
                 // El docente no debería caer directo en el calendario general (que no tiene
@@ -62,29 +79,61 @@
                 bool esDocente = User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Docente");
             }
             <li>
-                <span class="menu-arrow">➔</span>
                 @if (esDocente)
                 {
-                    <a asp-controller="Profesor" asp-action="Index">Calendario</a>
+                    <a asp-controller="Profesor" asp-action="Index"><span class="menu-arrow">➔</span>Calendario</a>
                 }
                 else
                 {
-                    <a asp-controller="Asistencias" asp-action="AsistenciaGlobal">Calendario</a>
+                    <a asp-controller="Asistencias" asp-action="AsistenciaGlobal"><span class="menu-arrow">➔</span>Calendario</a>
                 }
             </li>
             @if (User.Identity != null && User.Identity.IsAuthenticated
                   && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
             {
                 <li>
-                    <span class="menu-arrow">➔</span>
-                    <a asp-controller="Admin" asp-action="Index">Panel Admin</a>
+                    <a asp-controller="Admin" asp-action="Index"><span class="menu-arrow">➔</span>Panel Admin</a>
                 </li>
             }
             <li>
-                <span class="menu-arrow">➔</span>
-                <a asp-controller="Account" asp-action="Login">Cerrar Sesion</a>
+                <a asp-controller="Account" asp-action="Login"><span class="menu-arrow">➔</span>Cerrar Sesion</a>
             </li>
         </ul>
+    </nav>
+
+    <!-- Barra inferior estilo app nativa: solo se muestra cuando la PWA corre instalada
+         (display-mode: standalone / navigator.standalone), reemplazando al menú hamburguesa. -->
+    <nav class="pwa-bottom-nav" id="pwaBottomNav">
+        <a asp-controller="Home" asp-action="Index" class="pwa-bottom-nav-item">
+            <i class="bi bi-house"></i>
+            <span>Inicio</span>
+        </a>
+        @if (esDocente)
+        {
+            <a asp-controller="Profesor" asp-action="Index" class="pwa-bottom-nav-item">
+                <i class="bi bi-calendar3"></i>
+                <span>Calendario</span>
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Asistencias" asp-action="AsistenciaGlobal" class="pwa-bottom-nav-item">
+                <i class="bi bi-calendar3"></i>
+                <span>Calendario</span>
+            </a>
+        }
+        @if (User.Identity != null && User.Identity.IsAuthenticated
+              && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
+        {
+            <a asp-controller="Admin" asp-action="Index" class="pwa-bottom-nav-item">
+                <i class="bi bi-speedometer2"></i>
+                <span>Panel</span>
+            </a>
+        }
+        <a asp-controller="Account" asp-action="Login" class="pwa-bottom-nav-item">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Salir</span>
+        </a>
     </nav>
 
     <div class="header-divider"></div>
@@ -93,6 +142,15 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
+    @if (esDocente)
+    {
+        <!-- Frente 7 (PWA offline): se carga en TODAS las pantallas del docente, no solo
+             en Tomar Asistencia — si no, al guardar sin conexión y navegar a otra pantalla
+             (ej. Mis Cátedras), el listener de 'online' que sincroniza deja de existir y
+             la cola nunca se manda sola al recuperar señal. -->
+        <script src="~/lib/dexie/dist/dexie.min.js"></script>
+        <script src="~/js/offline-asistencia.js" asp-append-version="true"></script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

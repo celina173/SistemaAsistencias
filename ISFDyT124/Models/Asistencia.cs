@@ -17,6 +17,18 @@ namespace ISFDyT124.Models
         [Display(Name = "Fecha y Hora")]
         public DateTime? AsFecha { get; set; }
 
+        // Cuándo se cargó/guardó el registro de verdad (distinto de AsFecha, que es la
+        // fecha de la clase). Para el flujo online normal es prácticamente el mismo
+        // momento; para un registro que llegó de la cola offline, es el momento real en
+        // que el docente lo tomó en el dispositivo, no el momento en que llegó al servidor.
+        [Display(Name = "Fecha de carga")]
+        public DateTime? AsFechaCarga { get; set; }
+
+        // Identificador generado en el cliente (navegador) al encolar un registro offline.
+        // Permite que el servidor detecte reintentos de sincronización duplicados sin
+        // depender únicamente del upsert por (UsId + MaId + Fecha).
+        public Guid? AsClientGuid { get; set; }
+
         //Bloque horario de la clase.
         [Display(Name = "Presente")]
         public bool AsPresente { get; set; } = false;

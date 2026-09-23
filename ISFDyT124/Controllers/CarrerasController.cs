@@ -52,6 +52,7 @@ public class CarrerasController : Controller
         {
             _context.Add(carrera);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Carrera agregada correctamente.";
             return RedirectToAction(nameof(Index));
         }
         return View(carrera);
@@ -138,6 +139,7 @@ public class CarrerasController : Controller
         }
 
         await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Carrera eliminada correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
