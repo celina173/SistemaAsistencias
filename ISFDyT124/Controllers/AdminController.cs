@@ -424,8 +424,7 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> UsuarioEliminarConfirmado(int id)
         {
             var usuario = await _context
-                .Usuarios.Include(u => u.UsuarioRoles)
-                .Include(u => u.CarreraMaterias)
+                .Usuarios.Include(u => u.CarreraMaterias)
                 .FirstOrDefaultAsync(u => u.UsId == id);
 
             if (usuario != null)
@@ -445,7 +444,6 @@ namespace ISFDyT124.Controllers
                 }
 
                 usuario.CarreraMaterias.Clear();
-                _context.UsuarioRoles.RemoveRange(usuario.UsuarioRoles);
                 _context.Usuarios.Remove(usuario);
 
                 try
