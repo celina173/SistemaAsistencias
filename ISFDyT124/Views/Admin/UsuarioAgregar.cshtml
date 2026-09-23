@@ -4,8 +4,14 @@
     ViewData["BodyClass"] = "agregar-page";
 }
 
-<div class="admin-banner">
-    ADMIN
+<!-- BANNER OFICIAL -->
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
 </div>
 
 <div class="page-title-container">
@@ -15,33 +21,33 @@
 <main class="main-container-form">
     <div class="form-card">
         <form asp-controller="Admin" asp-action="UsuarioAgregar" method="post" id="formAgregarUsuario" class="form-grid" novalidate>
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
             <div class="input-field">
                 <label asp-for="UsApellido">Apellidos</label>
-                <input asp-for="UsApellido" autocomplete="off">
+                <input asp-for="UsApellido" autocomplete="off" placeholder="Ej: Albornoz">
                 <span asp-validation-for="UsApellido" class="text-danger"></span>
             </div>
 
             <div class="input-field">
                 <label asp-for="UsNombre">Nombres</label>
-                <input asp-for="UsNombre" autocomplete="off">
+                <input asp-for="UsNombre" autocomplete="off" placeholder="Ej: Celina">
                 <span asp-validation-for="UsNombre" class="text-danger"></span>
             </div>
 
             <div class="input-field">
                 <label asp-for="UsDni">DNI</label>
-                <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="off" value="">
+                <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="new-password" value="" placeholder="Ej: 39123456">
                 <span asp-validation-for="UsDni" class="text-danger"></span>
             </div>
 
             <div class="input-field">
                 <label asp-for="UsEmail">Email</label>
-                <input asp-for="UsEmail" autocomplete="off">
+                <input asp-for="UsEmail" autocomplete="new-password" placeholder="Ej: correo@instituto.com">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
             </div>
 
-            <div class="input-field">
+            <div class="input-field" style="grid-column: span 2;">
                 <label for="selectedRoleId">Rol del Usuario</label>
                 <select id="selectedRoleId" name="selectedRoleId" required
                         asp-items="@(new SelectList(ViewBag.RolesList, "RoId", "RoDenominacion"))">
@@ -49,7 +55,7 @@
                 </select>
             </div>
 
-            <div id="carreraCohorteGroup" class="input-field" style="display:none;">
+            <div id="carreraCohorteGroup" class="input-field" style="display:none; grid-column: span 2;">
                 <label asp-for="CaCoId">Carrera / Cohorte</label>
                 <select asp-for="CaCoId" data-msg-required="Debe seleccionar una Carrera / Cohorte para un Estudiante.">
                     <option value="">Seleccione Carrera / Cohorte</option>
@@ -61,12 +67,12 @@
                 <span asp-validation-for="CaCoId" class="text-danger"></span>
             </div>
 
-            <div id="materiasGroup" class="input-field" style="display:none;">
+            <div id="materiasGroup" class="input-field" style="display:none; grid-column: span 2;">
                 <label>Materias Asignadas</label>
-                <div id="materiasList" style="height:150px; overflow:auto; border:1px solid #e6e6e6; padding:8px;">
+                <div id="materiasList" style="height:150px; overflow:auto; border:1px solid #e6e6e6; padding:8px; border-radius: 6px;">
                     @foreach (var cm in ViewBag.CarreraMateriasList)
                     {
-                        <label style="display:block; margin-bottom:6px;">
+                        <label style="display:block; margin-bottom:6px; cursor: pointer;">
                             <input type="checkbox" name="SelectedCaMaIds" value="@cm.CaMaId" />
                             @cm.Denominacion
                         </label>
@@ -76,14 +82,14 @@
                 <span id="selectedCaMaError" class="text-danger" style="display:none;"></span>
             </div>
 
-            <div class="input-field">
-                <label for="userPassword">Contraseña</label>
-                <input type="password" id="userPassword" name="userPassword" autocomplete="new-password">
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="userPassword">Contraseña Inicial (Opcional)</label>
+                <input type="password" id="userPassword" name="userPassword" autocomplete="new-password" placeholder="Si se deja vacío, será el DNI">
             </div>
 
-            <div class="form-buttons">
+            <div class="form-buttons" style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
                 <a asp-action="UsuariosABM" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
-                <button type="submit" class="btn-save">Guardar</button>
+                <button type="submit" class="btn-save">Guardar Usuario</button>
             </div>
         </form>
     </div>
@@ -105,28 +111,24 @@
             document.getElementById('carreraCohorteGroup').style.display = esEstudiante ? 'flex' : 'none';
             document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
             caCoIdSelect.required = esEstudiante;
-            // Set required attribute on at least one checkbox when docente
+            
             materiasCheckboxes.forEach(function (cb) { cb.required = false; });
-            if (esDocente) {
-                // If visible, ensure first checkbox is marked required so browser shows validation when none selected
-                if (materiasCheckboxes.length > 0) materiasCheckboxes[0].required = true;
+            if (esDocente && materiasCheckboxes.length > 0) {
+                materiasCheckboxes[0].required = true;
             }
         }
 
         roleSelect.addEventListener('change', toggleFields);
         toggleFields();
 
-        // Client-side validation for checkboxes on submit
         document.getElementById('formAgregarUsuario').addEventListener('submit', function (e) {
             var val = parseInt(roleSelect.value);
-            var esDocente = val === 2;
-            if (esDocente) {
+            if (val === 2) {
                 var checked = Array.from(document.querySelectorAll('#materiasList input[type=checkbox]:checked'));
                 if (checked.length === 0) {
                     e.preventDefault();
                     document.getElementById('selectedCaMaError').textContent = 'Debe seleccionar al menos una materia para un Docente.';
                     document.getElementById('selectedCaMaError').style.display = 'block';
-                    // Scroll to error
                     document.getElementById('materiasGroup').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             }

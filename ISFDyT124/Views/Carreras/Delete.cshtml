@@ -5,8 +5,14 @@
     ViewData["BodyClass"] = "agregar-page";
 }
 
-<div class="admin-banner">
-    CARRERAS
+<!-- BANNER OFICIAL -->
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
 </div>
 
 <div class="page-title-container">
@@ -15,21 +21,21 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <h3>¿Está seguro de eliminar esta carrera?</h3>
+        <h3 style="margin-bottom: 25px;">¿Está seguro de eliminar esta carrera?</h3>
 
         <div class="input-field">
             <label>@Html.DisplayNameFor(model => model.CaId)</label>
-            <input value="@Model.CaId" readonly>
+            <input value="@Model.CaId" readonly style="background-color: #f9fafb;">
         </div>
 
         <div class="input-field">
             <label>@Html.DisplayNameFor(model => model.CaDenominacion)</label>
-            <input value="@Model.CaDenominacion" readonly>
+            <input value="@Model.CaDenominacion" readonly style="background-color: #f9fafb;">
         </div>
 
         <form asp-action="Delete">
             <input type="hidden" asp-for="CaId" />
-            <div class="form-buttons">
+            <div class="form-buttons" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 20px;">
                 <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
                 <button type="submit" class="btn-save">Eliminar</button>
             </div>
