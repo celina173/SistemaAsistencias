@@ -5,6 +5,33 @@
     ViewData["BodyClass"] = "gestion-page";
 }
 
+<style>
+    /* Estilos exclusivos para los botones de paginación */
+    .btn-page {
+        padding: 6px 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #003366;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-page:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #003366;
+        color: #003366;
+    }
+    .btn-page:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f1f5f9;
+    }
+</style>
+
 <div class="info-banner">
     <div class="info-col-left">
         <p class="info-bold">PANEL DE CONTROL</p>
@@ -20,45 +47,60 @@
 
 <main class="main-container-global">
 
+    <!-- BOTÓN VOLVER ATRÁS -->
+    <div class="contenedor-volver">
+        <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel de Control">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver al Panel
+        </a>
+    </div>
+
+    <!-- BARRA DE HERRAMIENTAS: Buscador a la izquierda y Botón Agregar a la derecha -->
     <div class="toolbar-container">
-        <div class="spacer"></div>
+        <div class="search-box">
+            <input type="text" id="inputBusqueda" placeholder="Buscar materia..." autocomplete="off" data-lpignore="true">
+            <button class="btn-search" id="btnBuscar" type="button" style="cursor:default;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+
         <div class="add-btn-container">
             <a asp-action="Create" class="btn-add" id="btnAgregar" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
         </div>
     </div>
 
+    <!-- TABLA GLOBAL -->
     <div class="global-table-container">
         <table class="global-table crud-materias table-responsive-stack">
             <thead>
                 <tr>
-                    <th class="align-left sortable" data-type="text">
+                    <th class="align-left sortable" data-type="text" style="cursor:pointer;">
                         <div class="sort-header">
-                            NOMBRE DE LA MATERIA
-                            <span class="sort-indicator">▲</span>
+                            NOMBRE DE LA MATERIA <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">▲</span>
                         </div>
                     </th>
-                    <th class="sortable" data-type="text">
+                    <th class="sortable" data-type="text" style="cursor:pointer;">
                         <div class="sort-header">
-                            MODALIDAD
-                            <span class="sort-indicator">⇅</span>
+                            MODALIDAD <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
                         </div>
                     </th>
-                    <th class="sortable" data-type="number">
+                    <th class="sortable" data-type="number" style="cursor:pointer;">
                         <div class="sort-header">
-                            MÓDULOS
-                            <span class="sort-indicator">⇅</span>
+                            MÓDULOS <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
                         </div>
                     </th>
-                    <th class="align-left sortable" data-type="number">
+                    <th class="align-left sortable" data-type="number" style="cursor:pointer;">
                         <div class="sort-header">
-                            CARRERAS RELACIONADAS
-                            <span class="sort-indicator">⇅</span>
+                            CARRERAS RELACIONADAS <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
                         </div>
                     </th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
                 @if (Model != null && Model.Any())
                 {
                     foreach (var item in Model)
@@ -67,7 +109,7 @@
                             <td class="align-left" data-label="Materia">@item.MaDenominacion</td>
                             <td data-label="Modalidad">@(item.MaModalidad ?? "-")</td>
                             <td data-label="Módulos">@(item.MaCantModulos?.ToString() ?? "-")</td>
-                            <td class="align-left" data-label="Carreras relacionadas">@(item.CarreraMaterias?.Count ?? 0)</td>
+                            <td class="align-left" data-label="Carreras relacionadas" style="text-align: center !important;">@(item.CarreraMaterias?.Count ?? 0)</td>
                             <td class="action-cell" data-label="Acciones">
                                 <div class="action-buttons">
                                     <a asp-action="Edit" asp-route-MaId="@item.MaId" class="icon-btn btn-edit" title="Editar">
@@ -82,12 +124,26 @@
                 }
                 else
                 {
-                    <tr>
-                        <td colspan="5" style="text-align:center;">No hay materias cargadas todavía.</td>
+                    <tr id="emptyRow">
+                        <td colspan="5" style="text-align:center; padding: 20px;">No hay materias cargadas todavía.</td>
                     </tr>
                 }
             </tbody>
         </table>
+
+        <!-- PAGINACIÓN -->
+        <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px 0; border-top: 1px solid #e2e8f0;">
+            <div class="pagination-info" style="font-size: 0.9rem; color: #64748b; font-weight: 500;">
+                Mostrando <span id="pageStart">0</span> a <span id="pageEnd">0</span> de <span id="totalItems">0</span> materias
+            </div>
+            <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+                <button id="btnFirst" class="btn-page" title="Primera página">&laquo;</button>
+                <button id="btnPrev" class="btn-page" title="Página anterior">&lsaquo;</button>
+                <span id="pageIndicator" style="padding: 0 10px; font-size: 0.9rem; font-weight: 600; color: #003366;">Página 1</span>
+                <button id="btnNext" class="btn-page" title="Página siguiente">&rsaquo;</button>
+                <button id="btnLast" class="btn-page" title="Última página">&raquo;</button>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -97,57 +153,145 @@
         const table = document.querySelector('.crud-materias');
         if (!table) return;
 
-        const tbody = table.querySelector('tbody');
-        let rows = Array.from(tbody.querySelectorAll('tr'));
+        const tbody = document.getElementById('tableBody');
+        let allRows = Array.from(tbody.querySelectorAll('tr'));
         
-        if (rows.length <= 1 && rows[0]?.querySelector('td[colspan]')) return;
+        // Evitar procesar si solo está la fila de "No hay materias"
+        if (allRows.length === 1 && allRows[0].id === 'emptyRow') return;
 
         const headers = Array.from(table.querySelectorAll('thead th'));
         const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
 
-        let activeCol = -1;
-        let isAsc = false;
-        let activeTh = null;
+        // Elementos del DOM
+        const inputBusqueda = document.getElementById('inputBusqueda');
+        const btnFirst = document.getElementById('btnFirst');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnLast = document.getElementById('btnLast');
+        const pageStart = document.getElementById('pageStart');
+        const pageEnd = document.getElementById('pageEnd');
+        const totalItems = document.getElementById('totalItems');
+        const pageIndicator = document.getElementById('pageIndicator');
 
+        // Variables de estado
+        let activeCol = 0; 
+        let isAsc = true;
+        let activeTh = headers[0];
+
+        let currentPage = 1;
+        const itemsPerPage = 20; // 👈 Paginación seteada a 20 ítems por página
+        let filteredRows = [...allRows];
+
+        // Función Principal: Renderiza la tabla calculando la página
+        function updateTable() {
+            const total = filteredRows.length;
+            const totalPages = Math.ceil(total / itemsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, total);
+
+            // Actualizar textos informativos
+            totalItems.textContent = total;
+            pageStart.textContent = total === 0 ? 0 : startIndex + 1;
+            pageEnd.textContent = endIndex;
+            pageIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
+
+            // Actualizar botones (Activar/Desactivar)
+            btnFirst.disabled = currentPage === 1;
+            btnPrev.disabled = currentPage === 1;
+            btnNext.disabled = currentPage === totalPages;
+            btnLast.disabled = currentPage === totalPages;
+
+            // Renderizar las filas en el HTML
+            tbody.innerHTML = '';
+            if (total === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 5;
+                td.style.textAlign = 'center';
+                td.style.padding = '20px';
+                td.textContent = 'No se encontraron materias con esa búsqueda.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            } else {
+                const rowsToShow = filteredRows.slice(startIndex, endIndex);
+                tbody.append(...rowsToShow);
+            }
+        }
+
+        // Función: Ordenar Filas
+        function sortRows() {
+            const isNumber = activeTh.getAttribute('data-type') === 'number';
+            
+            filteredRows.sort((a, b) => {
+                const textA = a.children[activeCol]?.textContent.trim() ?? '';
+                const textB = b.children[activeCol]?.textContent.trim() ?? '';
+                
+                let valA = isNumber ? (parseFloat(textA.replace(',', '.')) || 0) : textA;
+                let valB = isNumber ? (parseFloat(textB.replace(',', '.')) || 0) : textB;
+
+                let comparison = 0;
+                if (isNumber) {
+                    comparison = valA - valB;
+                } else {
+                    comparison = collator.compare(valA, valB);
+                }
+                return isAsc ? comparison : -comparison;
+            });
+            updateTable();
+        }
+
+        // Función: Filtrar Filas (Buscador)
+        function filterRows() {
+            const query = inputBusqueda.value.toLowerCase().trim();
+            if (!query) {
+                filteredRows = [...allRows];
+            } else {
+                filteredRows = allRows.filter(row => {
+                    // Filtra exclusivamente por la primera columna (Nombre de Materia)
+                    const nombre = row.children[0]?.textContent.toLowerCase() ?? '';
+                    return nombre.includes(query);
+                });
+            }
+            currentPage = 1; // Volver a la página 1 al buscar
+            sortRows();
+        }
+
+        // Eventos del Buscador
+        inputBusqueda.addEventListener('input', filterRows);
+
+        // Eventos de Paginación
+        btnFirst.addEventListener('click', () => { currentPage = 1; updateTable(); });
+        btnPrev.addEventListener('click', () => { currentPage--; updateTable(); });
+        btnNext.addEventListener('click', () => { currentPage++; updateTable(); });
+        btnLast.addEventListener('click', () => { 
+            currentPage = Math.ceil(filteredRows.length / itemsPerPage); 
+            updateTable(); 
+        });
+
+        // Eventos de Ordenamiento (Click en Cabeceras)
         table.querySelector('thead').addEventListener('click', function (e) {
             const th = e.target.closest('th.sortable');
             if (!th) return;
 
             const colIndex = headers.indexOf(th);
-            const isSameCol = (colIndex === activeCol);
-
-            if (isSameCol) {
+            
+            if (activeCol === colIndex) {
                 isAsc = !isAsc;
-                rows.reverse();
             } else {
                 if (activeTh) {
                     activeTh.classList.remove('sorted-asc', 'sorted-desc');
                     const prevIndicator = activeTh.querySelector('.sort-indicator');
                     if (prevIndicator) prevIndicator.textContent = '⇅';
                 }
-
                 activeCol = colIndex;
                 activeTh = th;
                 isAsc = true;
-                
-                const isNumber = th.getAttribute('data-type') === 'number';
-                const parsed = rows.map(tr => {
-                    const text = tr.children[colIndex]?.textContent.trim() ?? '';
-                    return {
-                        tr,
-                        val: isNumber ? (parseFloat(text.replace(',', '.')) || 0) : text
-                    };
-                });
-                
-                if (isNumber) {
-                    parsed.sort((a, b) => a.val - b.val);
-                } else {
-                    parsed.sort((a, b) => collator.compare(a.val, b.val));
-                }
-
-                rows = parsed.map(item => item.tr);
             }
-            
+
             th.classList.remove('sorted-asc', 'sorted-desc');
             th.classList.add(isAsc ? 'sorted-asc' : 'sorted-desc');
             const indicator = th.querySelector('.sort-indicator');
@@ -155,12 +299,11 @@
                 indicator.textContent = isAsc ? '▲' : '▼';
             }
 
-            // Single atomic DOM update (triggers 1 reflow instead of N)
-            tbody.append(...rows);
+            sortRows();
         });
 
-        // Trigger default sort by Nombre de la Materia
-        headers[0]?.click();
+        // Inicialización
+        sortRows();
     });
 </script>
 }

@@ -1,0 +1,72 @@
+@model ISFDyT124.Models.ViewModels.RecoveryPasswordViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Contraseña - Sistema de Asistencias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+</head>
+<body class="login-page">
+
+    <div class="auth-wrapper-global">
+
+        <main class="auth-card">
+            <div class="auth-header">
+                <img src="~/images/logo.png" alt="IS 124" class="auth-logo">
+                <div class="auth-title">
+                    <div class="title-small">SISTEMA</div>
+                    <div class="title-large">ASISTENCIAS</div>
+                </div>
+            </div>
+
+            <div class="header-divider-auth"></div>
+
+            <h2 class="form-title-auth">Nueva Contraseña</h2>
+            <p class="auth-instruction">
+                Ingresá tu nueva contraseña y confirmala para poder acceder nuevamente al sistema.
+            </p>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alerta-error" role="alert">
+                    <div class="alerta-texto">
+                        @Html.ValidationSummary(true, "")
+                    </div>
+                </div>
+            }
+
+            <form method="post" asp-controller="Account" asp-action="Recovery" class="auth-form">
+                <input type="hidden" asp-for="UsTokenRecovery" />
+
+                <div class="input-field-auth">
+                    <label asp-for="UsContrasena">Nueva Contraseña</label>
+                    <input asp-for="UsContrasena" type="password" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+                    <span asp-validation-for="UsContrasena"></span>
+                </div>
+
+                <div class="input-field-auth">
+                    <label asp-for="UsContrasena2">Confirmar Contraseña</label>
+                    <input asp-for="UsContrasena2" type="password" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+                    <span asp-validation-for="UsContrasena2"></span>
+                </div>
+
+                <div class="button-container-auth">
+                    <button type="submit" class="btn-enviar-recupero">Guardar Contraseña</button>
+                </div>
+            </form>
+
+            <div class="auth-footer-links">
+                <a asp-controller="Account" asp-action="Login" class="link-volver">← Volver al Login</a>
+            </div>
+        </main>
+
+    </div>
+
+    <script src="~/js/script.js" asp-append-version="true"></script>
+</body>
+</html>

@@ -4,6 +4,40 @@
     ViewData["BodyClass"] = "gestion-page";
 }
 
+<style>
+    /* Estilos exclusivos para los botones de paginación */
+    .btn-page {
+        padding: 6px 12px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #003366;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-page:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #003366;
+        color: #003366;
+    }
+    .btn-page:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f1f5f9;
+    }
+    
+    /* Agrupador de botones para la barra superior */
+    .action-group-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+</style>
+
 <div class="info-banner">
     <div class="info-col-left">
         <p class="info-bold">PANEL DE CONTROL</p>
@@ -19,6 +53,17 @@
 
 <main class="main-container-global">
 
+    <!-- BOTÓN VOLVER ATRÁS -->
+    <div class="contenedor-volver">
+        <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel de Control">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver al Panel
+        </a>
+    </div>
+
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger" style="background: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
@@ -26,38 +71,69 @@
         </div>
     }
 
-    <div class="toolbar-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <div>
-            <a asp-controller="Admin" asp-action="CargaMasivaAlumnos" class="btn-carga-masiva" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc;">
-                <i class="bi bi-file-earmark-spreadsheet-fill"></i> Carga masiva de estudiantes (Excel)
-            </a>
+    <!-- BARRA DE HERRAMIENTAS: Buscador a la izquierda, Carga Masiva y Agregar a la derecha -->
+    <div class="toolbar-container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 20px;">
+        
+        <div class="search-box" style="flex-grow: 1; max-width: 500px; margin-right: auto;">
+            <input type="text" id="inputBusqueda" placeholder="Buscar por nombre o carrera..." autocomplete="off" data-lpignore="true">
+            <button class="btn-search" type="button" style="cursor:default;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
         </div>
-        <div class="add-btn-container">
-            <a asp-controller="Admin" asp-action="UsuarioAgregar" class="btn-add" id="btnAgregar" title="Nuevo Usuario" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">+</a>
+
+        <div class="action-group-right">
+            <a asp-controller="Admin" asp-action="CargaMasivaAlumnos" class="btn-carga-masiva" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; height: 38px; box-sizing: border-box;">
+                <i class="bi bi-file-earmark-spreadsheet-fill"></i> Carga masiva de estudiantes
+            </a>
+            
+            <div class="add-btn-container">
+                <a asp-controller="Admin" asp-action="UsuarioAgregar" class="btn-add" id="btnAgregar" title="Nuevo Usuario" style="text-decoration: none; display: flex; align-items: center; justify-content: center; height: 38px;">+</a>
+            </div>
         </div>
     </div>
 
+    <!-- TABLA GLOBAL -->
     <div class="global-table-container">
-        <table class="global-table crud-usuarios">
+        <table class="global-table crud-usuarios table-responsive-stack">
             <thead>
                 <tr>
-                    <th class="align-left">APELLIDO Y NOMBRE</th>
-                    <th>DNI</th>
-                    <th>ROL</th>
-                    <th class="align-left">CARRERA / COHORTE</th>
-                    <th class="align-left">MATERIAS</th>
+                    <th class="align-left sortable" data-type="text" style="cursor:pointer;">
+                        <div class="sort-header">
+                            APELLIDO Y NOMBRE <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">▲</span>
+                        </div>
+                    </th>
+                    <th class="sortable" data-type="number" style="cursor:pointer;">
+                        <div class="sort-header" style="justify-content: center;">
+                            DNI <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
+                    <th class="sortable" data-type="text" style="cursor:pointer;">
+                        <div class="sort-header" style="justify-content: center;">
+                            ROL <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
+                    <th class="align-left sortable" data-type="text" style="cursor:pointer;">
+                        <div class="sort-header">
+                            CARRERA / COHORTE <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
+                    <th class="align-left sortable" data-type="text" style="cursor:pointer;">
+                        <div class="sort-header">
+                            MATERIAS <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
                 @if (Model != null && Model.Any())
                 {
                     foreach (var item in Model)
                     {
                         <tr>
                             <td class="align-left">@item.UsApellido, @item.UsNombre</td>
-                            <td>@item.UsDni</td>
-                            <td>@(item.RoDenominacion ?? "Sin Rol")</td>
+                            <td style="text-align: center;">@item.UsDni</td>
+                            <td style="text-align: center;">@(item.RoDenominacion ?? "Sin Rol")</td>
                             <td class="align-left">@(item.CarreraCohorteDenominacion ?? "-")</td>
                             <td class="align-left" style="font-size:0.85em;">@(item.MateriasDenominacion ?? "-")</td>
                             <td class="action-cell">
@@ -73,11 +149,176 @@
                 }
                 else
                 {
-                    <tr>
-                        <td colspan="6" style="text-align:center;">No hay usuarios cargados todavía.</td>
+                    <tr id="emptyRow">
+                        <td colspan="6" style="text-align:center; padding: 20px;">No hay usuarios cargados todavía.</td>
                     </tr>
                 }
             </tbody>
         </table>
+
+        <!-- PAGINACIÓN -->
+        <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px 0; border-top: 1px solid #e2e8f0;">
+            <div class="pagination-info" style="font-size: 0.9rem; color: #64748b; font-weight: 500;">
+                Mostrando <span id="pageStart">0</span> a <span id="pageEnd">0</span> de <span id="totalItems">0</span> usuarios
+            </div>
+            <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+                <button id="btnFirst" class="btn-page" title="Primera página">&laquo;</button>
+                <button id="btnPrev" class="btn-page" title="Página anterior">&lsaquo;</button>
+                <span id="pageIndicator" style="padding: 0 10px; font-size: 0.9rem; font-weight: 600; color: #003366;">Página 1</span>
+                <button id="btnNext" class="btn-page" title="Página siguiente">&rsaquo;</button>
+                <button id="btnLast" class="btn-page" title="Última página">&raquo;</button>
+            </div>
+        </div>
     </div>
 </main>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.querySelector('.crud-usuarios');
+        if (!table) return;
+
+        const tbody = document.getElementById('tableBody');
+        let allRows = Array.from(tbody.querySelectorAll('tr'));
+        
+        if (allRows.length === 1 && allRows[0].id === 'emptyRow') return;
+
+        const headers = Array.from(table.querySelectorAll('thead th'));
+        const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true });
+
+        const inputBusqueda = document.getElementById('inputBusqueda');
+        const btnFirst = document.getElementById('btnFirst');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnLast = document.getElementById('btnLast');
+        const pageStart = document.getElementById('pageStart');
+        const pageEnd = document.getElementById('pageEnd');
+        const totalItems = document.getElementById('totalItems');
+        const pageIndicator = document.getElementById('pageIndicator');
+
+        let activeCol = 0; // Ordenar por Nombre por defecto
+        let isAsc = true;
+        let activeTh = headers[0];
+
+        let currentPage = 1;
+        const itemsPerPage = 20; // 20 registros por página
+        let filteredRows = [...allRows];
+
+        function updateTable() {
+            const total = filteredRows.length;
+            const totalPages = Math.ceil(total / itemsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, total);
+
+            totalItems.textContent = total;
+            pageStart.textContent = total === 0 ? 0 : startIndex + 1;
+            pageEnd.textContent = endIndex;
+            pageIndicator.textContent = `Página ${currentPage} de ${totalPages}`;
+
+            btnFirst.disabled = currentPage === 1;
+            btnPrev.disabled = currentPage === 1;
+            btnNext.disabled = currentPage === totalPages;
+            btnLast.disabled = currentPage === totalPages;
+
+            tbody.innerHTML = '';
+            if (total === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 6;
+                td.style.textAlign = 'center';
+                td.style.padding = '20px';
+                td.textContent = 'No se encontraron usuarios con esa búsqueda.';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            } else {
+                const rowsToShow = filteredRows.slice(startIndex, endIndex);
+                tbody.append(...rowsToShow);
+            }
+        }
+
+        function sortRows() {
+            const isNumber = activeTh.getAttribute('data-type') === 'number';
+            
+            filteredRows.sort((a, b) => {
+                const textA = a.children[activeCol]?.textContent.trim() ?? '';
+                const textB = b.children[activeCol]?.textContent.trim() ?? '';
+                
+                let valA = isNumber ? (parseFloat(textA.replace(',', '.')) || 0) : textA;
+                let valB = isNumber ? (parseFloat(textB.replace(',', '.')) || 0) : textB;
+
+                let comparison = 0;
+                if (isNumber) {
+                    comparison = valA - valB;
+                } else {
+                    comparison = collator.compare(valA, valB);
+                }
+                return isAsc ? comparison : -comparison;
+            });
+            updateTable();
+        }
+
+        function filterRows() {
+            const query = inputBusqueda.value.toLowerCase().trim();
+            if (!query) {
+                filteredRows = [...allRows];
+            } else {
+                filteredRows = allRows.filter(row => {
+                    // Filtramos buscando en la Columna 0 (Nombre) y Columna 3 (Carrera)
+                    const nombreUsuario = row.children[0]?.textContent.toLowerCase() ?? '';
+                    const carreraUsuario = row.children[3]?.textContent.toLowerCase() ?? '';
+                    
+                    return nombreUsuario.includes(query) || carreraUsuario.includes(query);
+                });
+            }
+            currentPage = 1; 
+            sortRows();
+        }
+
+        inputBusqueda.addEventListener('input', filterRows);
+
+        btnFirst.addEventListener('click', () => { currentPage = 1; updateTable(); });
+        btnPrev.addEventListener('click', () => { currentPage--; updateTable(); });
+        btnNext.addEventListener('click', () => { currentPage++; updateTable(); });
+        btnLast.addEventListener('click', () => { 
+            currentPage = Math.ceil(filteredRows.length / itemsPerPage); 
+            updateTable(); 
+        });
+
+        table.querySelector('thead').addEventListener('click', function (e) {
+            const th = e.target.closest('th.sortable');
+            if (!th) return;
+
+            const colIndex = headers.indexOf(th);
+            
+            if (activeCol === colIndex) {
+                isAsc = !isAsc;
+            } else {
+                if (activeTh) {
+                    activeTh.classList.remove('sorted-asc', 'sorted-desc');
+                    const prevIndicator = activeTh.querySelector('.sort-indicator');
+                    if (prevIndicator) prevIndicator.textContent = '⇅';
+                }
+                activeCol = colIndex;
+                activeTh = th;
+                isAsc = true;
+            }
+
+            th.classList.remove('sorted-asc', 'sorted-desc');
+            th.classList.add(isAsc ? 'sorted-asc' : 'sorted-desc');
+            const indicator = th.querySelector('.sort-indicator');
+            if (indicator) {
+                indicator.textContent = isAsc ? '▲' : '▼';
+            }
+
+            sortRows();
+        });
+
+        // Inicializar ordenando por la primera columna (Nombre)
+        sortRows();
+    });
+</script>
+}

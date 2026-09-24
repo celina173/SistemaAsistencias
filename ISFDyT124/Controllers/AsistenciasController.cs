@@ -54,9 +54,14 @@ namespace ISFDyT124.Controllers
                 {
                     CaId = c.CaId,
                     CaDenominacion = c.CaDenominacion,
+                    // El "?? new List<>()" que había acá antes rompía la traducción a SQL:
+                    // EF Core no sabe traducir un null-coalesce sobre una navegación dentro de
+                    // una consulta. El "!" es solo una marca para el compilador (no hace nada en
+                    // tiempo de ejecución), así que no afecta la traducción — una navegación null
+                    // simplemente no aporta filas al SelectMany.
                     CarreraMateriasCount =
                         c.CarreraCohortes != null
-                            ? c.CarreraCohortes.SelectMany(cc => cc.CarreraMaterias ?? new List<CarreraMateria>()).Count()
+                            ? c.CarreraCohortes.SelectMany(cc => cc.CarreraMaterias!).Count()
                             : 0,
                     CarreraCohortesCount =
                         c.CarreraCohortes != null ? c.CarreraCohortes.Count() : 0,

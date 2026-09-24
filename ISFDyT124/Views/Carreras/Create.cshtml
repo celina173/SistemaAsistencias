@@ -5,8 +5,14 @@
     ViewData["BodyClass"] = "agregar-page";
 }
 
-<div class="admin-banner">
-    CARRERAS
+<!-- BANNER OFICIAL -->
+<div class="info-banner">
+    <div class="info-col-left">
+        <p class="info-bold">PANEL DE CONTROL</p>
+    </div>
+    <div class="info-col-right">
+        <p class="info-bold">ADMINISTRADOR</p>
+    </div>
 </div>
 
 <div class="page-title-container">
@@ -16,17 +22,24 @@
 <main class="main-container-form">
     <div class="form-card">
         <form asp-action="Create" class="form-grid">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
-            <div class="input-field">
+            <!-- El campo ocupa todo el ancho de la tarjeta -->
+            <div class="input-field" style="grid-column: span 2;">
                 <label asp-for="CaDenominacion"></label>
                 <input asp-for="CaDenominacion" placeholder="Ej: Tec. Sup. en Desarrollo de Software" autocomplete="off">
                 <span asp-validation-for="CaDenominacion" class="text-danger"></span>
             </div>
 
-            <div class="form-buttons">
+            <div class="input-field">
+                <label for="CoAnio">Año de Cohorte</label>
+                <input id="CoAnio" name="CoAnio" type="number" placeholder="Ej: 2026" min="2000" max="2100" inputmode="numeric" pattern="\\d{4}" maxlength="4" autocomplete="off" required />
+                <span id="CoAnioError" data-valmsg-for="CoAnio" data-valmsg-replace="true" class="text-danger"></span>            
+            </div>
+
+            <div class="form-buttons" style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
                 <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
-                <button type="submit" class="btn-save">Guardar</button>
+                <button type="submit" class="btn-save">Guardar Carrera</button>
             </div>
         </form>
     </div>
