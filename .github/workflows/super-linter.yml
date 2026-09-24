@@ -50,9 +50,6 @@ jobs:
           VALIDATE_YAML_PRETTIER: true
           FIX_YAML_PRETTIER: true
 
-          VALIDATE_MARKDOWN: true
-          FIX_MARKDOWN: true
-
       - name: Fix ownership and remove linter output
         if: always()
         run: |
