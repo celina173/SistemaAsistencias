@@ -31,6 +31,12 @@
                 <span asp-validation-for="CaDenominacion" class="text-danger"></span>
             </div>
 
+            <div class="input-field">
+                <label for="CoAnio">Año de Cohorte</label>
+                <input id="CoAnio" name="CoAnio" type="number" placeholder="Ej: 2026" min="2000" max="2100" inputmode="numeric" pattern="\\d{4}" maxlength="4" autocomplete="off" required />
+                <span id="CoAnioError" data-valmsg-for="CoAnio" data-valmsg-replace="true" class="text-danger"></span>            
+            </div>
+
             <div class="form-buttons" style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
                 <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
                 <button type="submit" class="btn-save">Guardar Carrera</button>
