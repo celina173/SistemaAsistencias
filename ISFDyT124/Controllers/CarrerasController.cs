@@ -3,6 +3,7 @@ using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 [Authorize(Roles = "Admin,Dirección")]
 public class CarrerasController : Controller
@@ -46,12 +47,44 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera)
+    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera, [FromForm] string? CohorteAnio)
     {
+        // Validación del año de cohorte: obligatorio, numérico y exactamente 4 dígitos
+        if (string.IsNullOrWhiteSpace(CohorteAnio) || !Regex.IsMatch(CohorteAnio, "^\\d{4}$"))
+        {
+            ModelState.AddModelError("CohorteAnio", "Debe ingresar un año de cohorte válido de 4 dígitos.");
+        }
+        else
+        {
+            if (!int.TryParse(CohorteAnio, out var anio) || anio < 2000 || anio > 2100)
+            {
+                ModelState.AddModelError("CohorteAnio", "Ingrese un año de cohorte entre 2000 y 2100.");
+            }
+        }
+
         if (ModelState.IsValid)
         {
+            // Guardar la carrera
             _context.Add(carrera);
             await _context.SaveChangesAsync();
+
+            // Buscar o crear la cohorte
+            var anioInt = int.Parse(CohorteAnio!);
+            var cohorte = await _context.Cohortes.FirstOrDefaultAsync(c => c.CoAnio == anioInt);
+            if (cohorte == null)
+            {
+                // CoId is configured como ValueGeneratedNever en el DbContext: asignar manualmente el siguiente ID
+                var maxId = await _context.Cohortes.MaxAsync(c => (int?)c.CoId) ?? 0;
+                cohorte = new Cohorte { CoId = maxId + 1, CoAnio = anioInt, CoEstado = true };
+                _context.Cohortes.Add(cohorte);
+                await _context.SaveChangesAsync();
+            }
+
+            // Crear la relación CarreraCohorte
+            var caCo = new CarreraCohorte { CaId = carrera.CaId, CoId = cohorte.CoId };
+            _context.CarreraCohortes.Add(caCo);
+            await _context.SaveChangesAsync();
+
             TempData["SuccessMessage"] = "Carrera agregada correctamente.";
             return RedirectToAction(nameof(Index));
         }
