@@ -157,27 +157,15 @@ namespace ISFDyT124.Controllers
         [Authorize]
         public IActionResult CambiarContrasena()
         {
-            return View();
+            return View(new CambiarContrasenaDto());
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CambiarContrasena(
-            string nuevaContrasena,
-            string confirmarContrasena
-        )
+        public async Task<IActionResult> CambiarContrasena(CambiarContrasenaDto model)
         {
-            if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
-            {
-                ModelState.AddModelError("", "La contraseña debe tener al menos 6 caracteres.");
-                return View();
-            }
-
-            if (nuevaContrasena != confirmarContrasena)
-            {
-                ModelState.AddModelError("", "Las contraseñas no coinciden.");
-                return View();
-            }
+            if (!ModelState.IsValid)
+                return View(model);
 
             // Buscamos el usuario logueado usando el Claim del ID
             var usuario = await _context.Usuarios.FindAsync(
@@ -187,7 +175,7 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction("Salir");
 
             // CAMBIO: la contraseña nueva se guarda hasheada, nunca en texto plano.
-            usuario.UsContrasena = PasswordService.HashPassword(nuevaContrasena);
+            usuario.UsContrasena = PasswordService.HashPassword(model.NuevaContrasena);
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Index", "Home");

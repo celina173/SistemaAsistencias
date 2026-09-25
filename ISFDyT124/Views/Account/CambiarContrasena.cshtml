@@ -1,3 +1,4 @@
+@model ISFDyT124.DTO.CambiarContrasenaDto
 @{
     Layout = null;
 }
@@ -22,12 +23,14 @@
 
             <div class="input-group">
                 <label for="nuevaContrasena">Nueva contraseña</label>
-                <input type="password" id="nuevaContrasena" name="nuevaContrasena" required minlength="6">
+                <input asp-for="NuevaContrasena" type="password" id="nuevaContrasena">
+                <span asp-validation-for="NuevaContrasena" class="text-danger"></span>
             </div>
 
             <div class="input-group">
                 <label for="confirmarContrasena">Confirmar contraseña</label>
-                <input type="password" id="confirmarContrasena" name="confirmarContrasena" required minlength="6">
+                <input asp-for="ConfirmarContrasena" type="password" id="confirmarContrasena">
+                <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
             </div>
 
             <button type="submit" class="btn-save" style="width: 100%; margin-top: 1rem;">
@@ -36,6 +39,9 @@
         </form>
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model ISFDyT124.DTO.UsuarioLoginDto
+@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -43,13 +44,14 @@
             }
             <div class="input-group">
                 <label for="usuario">DNI</label>
-                <input type="text" id="usuario" name="usuario" placeholder="Ingresá tu DNI" required>
+                <input asp-for="Usuario" id="usuario" placeholder="Ingresá tu DNI" autocomplete="off">
+                <span asp-validation-for="Usuario" class="text-danger"></span>
             </div>
 
             <div class="input-group">
                 <label for="contrasena">Contraseña</label>
                 <div class="password-field">
-                    <input type="password" id="contrasena" name="contrasena" placeholder="••••••••" required>
+                    <input asp-for="Contrasena" type="password" id="contrasena" placeholder="••••••••" autocomplete="current-password">
                     <button type="button" class="toggle-password" id="toggleContrasena" aria-label="Mostrar contraseña">
                         <svg class="icono-ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
@@ -61,6 +63,7 @@
                         </svg>
                     </button>
                 </div>
+                <span asp-validation-for="Contrasena" class="text-danger"></span>
             </div>
 
             <button type="submit" class="btn-submit" aria-label="Ingresar">
@@ -73,6 +76,9 @@
         </div>
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/script.js"></script>
     <script>
         // Ticket 6.7 punto 1: mostrar/ocultar la contraseña mientras se escribe.

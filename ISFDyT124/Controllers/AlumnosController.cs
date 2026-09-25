@@ -361,7 +361,6 @@ namespace ISFDyT124.Controllers
             var permitidos = await CaCoIdsPermitidosAsync();
 
             var alumno = await AlumnosVisibles(permitidos)
-                .Include(u => u.UsuarioRoles)
                 .FirstOrDefaultAsync(u => u.UsId == id);
 
             if (alumno == null)
@@ -372,7 +371,6 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
 
             _context.Inscripciones.RemoveRange(inscripciones);
-            _context.UsuarioRoles.RemoveRange(alumno.UsuarioRoles);
             _context.Usuarios.Remove(alumno);
             await _context.SaveChangesAsync();
 

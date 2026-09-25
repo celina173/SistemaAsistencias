@@ -48,8 +48,8 @@
             <form method="post" asp-controller="Account" asp-action="StartRecovery" class="auth-form">
                 <div class="input-field-auth">
                     <label asp-for="UsEmail">Correo Electrónico</label>
-                    <input asp-for="UsEmail" type="email" placeholder="ejemplo@ies124.edu.ar" required autocomplete="off">
-                    <span asp-validation-for="UsEmail"></span>
+                    <input asp-for="UsEmail" type="text" inputmode="email" placeholder="ejemplo@ies124.edu.ar" autocomplete="off">
+                    <span asp-validation-for="UsEmail" class="text-danger"></span>
                 </div>
                 
                 <div class="button-container-auth">
@@ -64,6 +64,9 @@
 
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
 </body>
 </html>

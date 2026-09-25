@@ -2002,6 +2002,14 @@ body {
         padding: 0;
     }
 
+/* Mensajes de validación por campo (asp-validation-for) */
+.text-danger {
+    display: block;
+    color: #991b1b;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
     .alerta-texto li {
         margin: 0;
     }
