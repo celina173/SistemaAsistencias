@@ -81,29 +81,29 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<InstitutoDbContext>();
 
     var rolAdmin = await context.Roles.FirstOrDefaultAsync(r => r.RoDenominacion == "Admin");
-    if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == 1))
+    if (rolAdmin == null && !await context.Roles.AnyAsync(r => r.RoId == RolId.Admin))
     {
-        rolAdmin = new Rol { RoId = 1, RoDenominacion = "Admin" };
+        rolAdmin = new Rol { RoId = RolId.Admin, RoDenominacion = "Admin" };
         context.Roles.Add(rolAdmin);
     }
 
     // Roles del negocio: se busca por RoId (PK fija) y se corrige la denominación si cambió,
     // en vez de buscar por nombre (que en bases con el seed viejo insertaba una fila duplicada
     // y rompía el arranque). Denominaciones definitivas: Docente / Estudiante / Dirección.
-    var rolDocente = await context.Roles.FindAsync(2);
+    var rolDocente = await context.Roles.FindAsync(RolId.Docente);
     if (rolDocente == null)
-        context.Roles.Add(new Rol { RoId = 2, RoDenominacion = "Docente" });
+        context.Roles.Add(new Rol { RoId = RolId.Docente, RoDenominacion = "Docente" });
     else if (rolDocente.RoDenominacion != "Docente")
         rolDocente.RoDenominacion = "Docente";
 
-    var rolEstudiante = await context.Roles.FindAsync(3);
+    var rolEstudiante = await context.Roles.FindAsync(RolId.Estudiante);
     if (rolEstudiante == null)
-        context.Roles.Add(new Rol { RoId = 3, RoDenominacion = "Estudiante" });
+        context.Roles.Add(new Rol { RoId = RolId.Estudiante, RoDenominacion = "Estudiante" });
     else if (rolEstudiante.RoDenominacion != "Estudiante")
         rolEstudiante.RoDenominacion = "Estudiante";
 
-    if (!await context.Roles.AnyAsync(r => r.RoId == 4))
-        context.Roles.Add(new Rol { RoId = 4, RoDenominacion = "Dirección" });
+    if (!await context.Roles.AnyAsync(r => r.RoId == RolId.Direccion))
+        context.Roles.Add(new Rol { RoId = RolId.Direccion, RoDenominacion = "Dirección" });
 
     await context.SaveChangesAsync();
 }

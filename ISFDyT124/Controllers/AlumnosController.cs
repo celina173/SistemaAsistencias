@@ -26,8 +26,6 @@ namespace ISFDyT124.Controllers
     [Authorize(Roles = "Admin,Dirección,Docente")]
     public class AlumnosController : Controller
     {
-        private const int RolEstudianteId = 3;
-
         private readonly InstitutoDbContext _context;
 
         public AlumnosController(InstitutoDbContext context)
@@ -66,7 +64,7 @@ namespace ISFDyT124.Controllers
         /// <summary>Query base de estudiantes visibles según el alcance del usuario actual.</summary>
         private IQueryable<Usuario> AlumnosVisibles(List<int>? caCoIdsPermitidos)
         {
-            var query = _context.Usuarios.Where(u => u.RoId == RolEstudianteId);
+            var query = _context.Usuarios.Where(u => u.RoId == RolId.Estudiante);
 
             if (caCoIdsPermitidos != null)
                 query = query.Where(u =>
@@ -230,7 +228,7 @@ namespace ISFDyT124.Controllers
                 // El estudiante no inicia sesión, pero la columna es NOT NULL: se guarda
                 // el hash del DNI, mismo criterio que UsuarioAgregar en AdminController.
                 UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
-                RoId = RolEstudianteId,
+                RoId = RolId.Estudiante,
                 CaCoId = model.CaCoId,
             };
 
