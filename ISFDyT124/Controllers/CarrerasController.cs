@@ -47,18 +47,18 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera, [FromForm] string? CohorteAnio)
+    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera, [FromForm] string? CoAnio)
     {
         // Validación del año de cohorte: obligatorio, numérico y exactamente 4 dígitos
-        if (string.IsNullOrWhiteSpace(CohorteAnio) || !Regex.IsMatch(CohorteAnio, "^\\d{4}$"))
+        if (string.IsNullOrWhiteSpace(CoAnio) || !Regex.IsMatch(CoAnio, "^\\d{4}$"))
         {
-            ModelState.AddModelError("CohorteAnio", "Debe ingresar un año de cohorte válido de 4 dígitos.");
+            ModelState.AddModelError("CoAnio", "Debe ingresar un año de cohorte válido de 4 dígitos.");
         }
         else
         {
-            if (!int.TryParse(CohorteAnio, out var anio) || anio < 2000 || anio > 2100)
+            if (!int.TryParse(CoAnio, out var anio) || anio < 2000 || anio > 2100)
             {
-                ModelState.AddModelError("CohorteAnio", "Ingrese un año de cohorte entre 2000 y 2100.");
+                ModelState.AddModelError("CoAnio", "Ingrese un año de cohorte entre 2000 y 2100.");
             }
         }
 
@@ -69,11 +69,11 @@ public class CarrerasController : Controller
             await _context.SaveChangesAsync();
 
             // Buscar o crear la cohorte
-            var anioInt = int.Parse(CohorteAnio!);
+            var anioInt = int.Parse(CoAnio!);
             var cohorte = await _context.Cohortes.FirstOrDefaultAsync(c => c.CoAnio == anioInt);
             if (cohorte == null)
             {
-                // CoId is configured como ValueGeneratedNever en el DbContext: asignar manualmente el siguiente ID
+                // CoId is configured como ValueGeneratedNever in the DbContext: assign next ID manually
                 var maxId = await _context.Cohortes.MaxAsync(c => (int?)c.CoId) ?? 0;
                 cohorte = new Cohorte { CoId = maxId + 1, CoAnio = anioInt, CoEstado = true };
                 _context.Cohortes.Add(cohorte);
@@ -88,6 +88,9 @@ public class CarrerasController : Controller
             TempData["SuccessMessage"] = "Carrera agregada correctamente.";
             return RedirectToAction(nameof(Index));
         }
+
+        // Repoblar CoAnio para la vista en caso de error
+        ViewData["CoAnio"] = CoAnio;
         return View(carrera);
     }
 
