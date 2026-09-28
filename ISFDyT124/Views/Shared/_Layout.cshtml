@@ -77,6 +77,12 @@
                 // selector de cátedra para él, solo para Admin/Dirección) sin haber elegido antes
                 // qué carrera/materia está dictando — se lo manda primero a sus cátedras.
                 bool esDocente = User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Docente");
+                // Ticket 8.2: la cola offline (Dexie + offline-asistencia.js) también hace
+                // falta para Admin/Dirección, que tienen su propia pantalla de toma de
+                // asistencia (Asistencias/Asistencia.cshtml) con la misma necesidad de
+                // funcionar sin conexión que la del Docente.
+                bool esAdminODireccion = User.Identity != null && User.Identity.IsAuthenticated
+                    && (User.IsInRole("Admin") || User.IsInRole("Dirección"));
             }
             <li>
                 @if (esDocente)
@@ -142,12 +148,12 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
-    @if (esDocente)
+    @if (esDocente || esAdminODireccion)
     {
-        <!-- Frente 7 (PWA offline): se carga en TODAS las pantallas del docente, no solo
-             en Tomar Asistencia — si no, al guardar sin conexión y navegar a otra pantalla
-             (ej. Mis Cátedras), el listener de 'online' que sincroniza deja de existir y
-             la cola nunca se manda sola al recuperar señal. -->
+        <!-- Frente 7 (PWA offline): se carga en TODAS las pantallas del docente y de
+             Admin/Dirección (ticket 8.2), no solo en Tomar Asistencia — si no, al guardar
+             sin conexión y navegar a otra pantalla, el listener de 'online' que sincroniza
+             deja de existir y la cola nunca se manda sola al recuperar señal. -->
         <script src="~/lib/dexie/dist/dexie.min.js"></script>
         <script src="~/js/offline-asistencia.js" asp-append-version="true"></script>
     }

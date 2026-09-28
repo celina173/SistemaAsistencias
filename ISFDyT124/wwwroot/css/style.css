@@ -584,16 +584,60 @@ body {
     .table-container {
         padding: 0 1rem;
     }
-    
-    .attendance-table th, 
+
+    .attendance-table th,
     .attendance-table td {
         padding: 12px 10px; /* Reducción de padding para optimizar espacio */
         font-size: 0.9rem;
     }
-    
+
     .btn-guardar {
         width: calc(100% - 2rem); /* Botón completo adaptativo en celulares */
         padding: 14px 0;
+    }
+}
+
+/* Toma de asistencia de Admin/Dirección (Asistencias/Asistencia.cshtml, ticket 8.2):
+   varios checkboxes de módulo por fila en vez de un único "Presente". Se agrupan en una
+   fila flexible que envuelve (wrap) en vez de forzar el ancho de la tabla, así la pantalla
+   entra en una sola columna sin scroll horizontal como pasaba con .global-table
+   (min-width: 900px, pensada para el histórico con muchas columnas de fecha). */
+.modules-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    row-gap: 6px;
+}
+
+.modules-group .row-pct {
+    margin-left: 4px;
+    font-weight: 700;
+    color: var(--primary-color, #002e8c);
+    font-size: 0.85rem;
+}
+
+.admin-asistencia-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+@media (max-width: 520px) {
+    .admin-asistencia-buttons {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .admin-asistencia-buttons .btn-guardar {
+        width: 100%;
+    }
+
+    .admin-asistencia-buttons .btn-cancel {
+        text-align: center;
     }
 }
 /* =========================================
@@ -2496,4 +2540,23 @@ html.pwa-standalone body {
         color: var(--primary-color, #002e8c);
         transform: translateX(-4px); /* Efecto elegante: se desliza un poquito hacia atrás */
     }
+
+/* ---- Checkbox táctil: base celular más grande (dedo), se achica en desktop ----
+   Mismo criterio que el resto de esta sección: no toca color/forma, solo el tamaño de
+   toque para que sea cómodo en Tomar Asistencia (Docente y Admin/Dirección), la pantalla
+   de uso diario más común desde el celular. 22px quedaba chico para el dedo (recomendado
+   ~40-44px de área táctil). */
+.custom-checkbox {
+    width: 30px;
+    height: 30px;
+    margin: 0 6px;
+}
+
+@media (min-width: 700px) {
+    .custom-checkbox {
+        width: 22px;
+        height: 22px;
+        margin: 0 4px;
+    }
+}
 

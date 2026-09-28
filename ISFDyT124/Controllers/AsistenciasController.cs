@@ -161,6 +161,10 @@ namespace ISFDyT124.Controllers
             {
                 ViewBag.CarreraNombre = caMa.CarreraCohorte?.Carrera?.CaDenominacion ?? "Carrera";
                 ViewBag.MateriaNombre = caMa.Materia?.MaDenominacion ?? "Materia";
+                // Necesario en la vista para armar la fila de la cola offline (ticket 8.2):
+                // OfflineAsistencia.encolarAsistencia espera el MaId de la materia, igual
+                // que en la pantalla del Docente.
+                ViewBag.MateriaId = caMa.MaId;
 
                 if (caMa.Materia?.MaCantModulos is int cant && cant > 0)
                 {
@@ -168,11 +172,43 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            // Asistencia ya cargada HOY para esta cátedra (para precargar/editar). Antes esto
+            // no se consultaba: reabrir la pantalla el mismo día reseteaba TODOS los checkboxes
+            // a "ausente", y si el Admin guardaba de nuevo sin marcar a nadie (por ejemplo solo
+            // para agregar un alumno tarde) pisaba en silencio la asistencia ya guardada de todo
+            // el curso, marcando a todos como ausentes. El modelo solo guarda el resultado
+            // agregado por alumno (AsPresente/AsJustificacion), no qué módulo puntual se tildó,
+            // así que la reconstrucción es best-effort: si ya estaba presente, se precargan
+            // todos los módulos tildados (mismo % que había, y guardar sin tocar nada da el
+            // mismo resultado); si estaba ausente, quedan destildados. Se agrupa por alumno
+            // (no ToDictionary directo) por el mismo motivo que ProfesorController.Asistencia:
+            // si quedaron dos filas del mismo alumno/fecha, se toma la más reciente.
+            var hoy = DateTime.Today;
+            var existentesPorAlumno = (
+                await _context
+                    .Asistencias.Where(a =>
+                        a.CaMaId == CaMaId && a.AsFecha != null && a.AsFecha.Value.Date == hoy
+                    )
+                    .ToListAsync()
+            )
+                .GroupBy(a => a.UsId ?? 0)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AsId).First());
+
             foreach (var s in estudiantes)
             {
                 var row = new AsistenciaRowViewModel { UsId = s.UsId, FullName = s.FullName };
-                // initialize Modulos list according to MaCantModulos
-                row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
+                if (existentesPorAlumno.TryGetValue(s.UsId, out var previa))
+                {
+                    row.Modulos = Enumerable
+                        .Range(0, maCantModulos)
+                        .Select(_ => previa.AsPresente)
+                        .ToList();
+                    row.AsJustificacion = previa.AsJustificacion;
+                }
+                else
+                {
+                    row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
+                }
                 model.Rows.Add(row);
             }
 
