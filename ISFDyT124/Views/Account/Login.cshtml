@@ -43,7 +43,17 @@
             }
             <div class="input-group">
                 <label for="usuario">DNI</label>
-                <input type="text" id="usuario" name="usuario" placeholder="Ingresá tu DNI" required>
+                <input type="text"
+                       id="usuario"
+                       name="usuario"
+                       placeholder="Ingresá tu DNI"
+                       required
+                       minlength="7"
+                       maxlength="8"
+                       pattern="\d{7,8}"
+                       title="El DNI debe contener entre 7 y 8 números."
+                       inputmode="numeric"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);" />
             </div>
 
             <div class="input-group">
