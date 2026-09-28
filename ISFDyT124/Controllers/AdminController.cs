@@ -55,9 +55,9 @@ namespace ISFDyT124.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.TotalAlumnos = await _context.Usuarios.Where(u => u.RoId == 3).CountAsync();
+            ViewBag.TotalAlumnos = await _context.Usuarios.Where(u => u.RoId == RolId.Estudiante).CountAsync();
 
-            ViewBag.TotalDocentes = await _context.Usuarios.Where(u => u.RoId == 2).CountAsync();
+            ViewBag.TotalDocentes = await _context.Usuarios.Where(u => u.RoId == RolId.Docente).CountAsync();
 
             ViewBag.TotalMaterias = await _context.Materias.CountAsync();
             ViewBag.TotalCarreras = await _context.Carreras.CountAsync();
@@ -80,7 +80,7 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> AuditoriaDocentes()
         {
             var docentes = await _context
-                .Usuarios.Where(u => u.RoId == 2)
+                .Usuarios.Where(u => u.RoId == RolId.Docente)
                 .Include(u => u.CarreraMaterias)
                     .ThenInclude(cm => cm.CarreraCohorte)
                     .ThenInclude(cc => cc!.Carrera)
@@ -99,7 +99,7 @@ namespace ISFDyT124.Controllers
                     // Ahora que la cátedra tiene su propio CaCoId, se cuenta solo esa cohorte.
                     var cantidadAlumnos = catedra.CaCoId.HasValue
                         ? await _context.Usuarios.CountAsync(u =>
-                            u.RoId == 3 && u.CaCoId == catedra.CaCoId.Value
+                            u.RoId == RolId.Estudiante && u.CaCoId == catedra.CaCoId.Value
                         )
                         : 0;
 
@@ -438,7 +438,7 @@ namespace ISFDyT124.Controllers
                     return RedirectToAction(nameof(UsuariosABM));
                 }
 
-                if (usuario.RoId == 1 && await _context.Usuarios.CountAsync(u => u.RoId == 1) <= 1)
+                if (usuario.RoId == RolId.Admin && await _context.Usuarios.CountAsync(u => u.RoId == RolId.Admin) <= 1)
                 {
                     TempData["Error"] = "No se puede eliminar el último Admin del sistema.";
                     return RedirectToAction(nameof(UsuariosABM));
@@ -676,7 +676,7 @@ namespace ISFDyT124.Controllers
                     // Si existe pero no es Alumno (RoId != 3) -> es error
                     if (userExistente.RoId != 3)
                     {
-                        var rolNombre = userExistente.RoId == 2 ? "Docente" : (userExistente.RoId == 1 ? "Admin" : "Dirección");
+                        var rolNombre = userExistente.RoId == RolId.Docente ? "Docente" : (userExistente.RoId == RolId.Admin ? "Admin" : "Dirección");
                         parseResult.Errores.Add(new CargaMasivaFilaErrorDto
                         {
                             Fila = fila.Fila,
@@ -777,7 +777,7 @@ namespace ISFDyT124.Controllers
                             UsNombre = fila.Nombre,
                             UsEmail = fila.Email,
                             UsContrasena = PasswordService.HashPassword(fila.Dni.ToString()),
-                            RoId = 3, // Rol Alumno
+                            RoId = RolId.Estudiante,
                             CaCoId = model.CaCoId
                         };
                         _context.Usuarios.Add(nuevoUsuario);

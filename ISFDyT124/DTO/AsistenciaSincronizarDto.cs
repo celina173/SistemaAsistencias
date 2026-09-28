@@ -9,6 +9,11 @@ namespace ISFDyT124.DTO
         public Guid ClientGuid { get; set; }
         public int? UsId { get; set; }
         public int MaId { get; set; }
+
+        // Nullable a propósito: una fila que quedó encolada en el dispositivo ANTES de este
+        // cambio (v1 de la cola, sin caMaId) puede llegar a sincronizar sin este dato. Ver
+        // el chequeo explícito en AsistenciasApiController.Sincronizar.
+        public int? CaMaId { get; set; }
         public DateTime Fecha { get; set; }
 
         // Momento real en que el docente lo cargó en el dispositivo, offline.
