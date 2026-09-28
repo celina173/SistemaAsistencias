@@ -193,6 +193,7 @@ namespace ISFDyT124.Controllers
             }
 
             var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
+            var hoy = DateTime.Today;
 
             int moduleCount = model.ModuleCount > 0 ? model.ModuleCount : 1;
             foreach (var row in model.Rows)
@@ -205,16 +206,38 @@ namespace ISFDyT124.Controllers
                     porcentaje = Math.Round((decimal)checkedCount / moduleCount * 100, 1);
                 }
 
-                var entity = new Asistencia
-                {
-                    AsFecha = DateTime.Now,
-                    AsPresente = presente,
-                    AsJustificacion = row.AsJustificacion,
-                    UsId = row.UsId,
-                    CaMaId = model.CaMaId,
-                };
+                // Upsert por CaMaId+alumno+fecha (mismo criterio que ya usa
+                // ProfesorController.Asistencia): sin esto, guardar dos veces el mismo día
+                // no actualizaba lo ya cargado, insertaba una fila nueva cada vez — la
+                // asistencia quedaba duplicada y los reportes contaban de más (ticket 5.12,
+                // relacionado con QA-06).
+                var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
+                    a.UsId == row.UsId
+                    && a.CaMaId == model.CaMaId
+                    && a.AsFecha != null
+                    && a.AsFecha.Value.Date == hoy
+                );
 
-                _context.Asistencias.Add(entity);
+                if (existente != null)
+                {
+                    existente.AsPresente = presente;
+                    existente.AsJustificacion = row.AsJustificacion;
+                    _context.Update(existente);
+                }
+                else
+                {
+                    _context.Asistencias.Add(
+                        new Asistencia
+                        {
+                            AsFecha = hoy,
+                            AsPresente = presente,
+                            AsJustificacion = row.AsJustificacion,
+                            UsId = row.UsId,
+                            MaId = carreraMateria?.MaId,
+                            CaMaId = model.CaMaId,
+                        }
+                    );
+                }
             }
 
             await _context.SaveChangesAsync();

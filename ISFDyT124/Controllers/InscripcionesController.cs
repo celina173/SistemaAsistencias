@@ -1,5 +1,6 @@
 ﻿using ISFDyT124.Data;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using System.Text.Json;
 
 namespace ISFDyT124.Controllers
 {
+    [Authorize(Roles = "Admin,Dirección,Docente")]
     public class InscripcionesController : Controller
     {
         private readonly InstitutoDbContext _context;

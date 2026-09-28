@@ -6,6 +6,7 @@
     var existentes = ViewBag.AsistenciasExistentes as Dictionary<int, ISFDyT124.DTO.AsistenciaDetalleDto>
                      ?? new Dictionary<int, ISFDyT124.DTO.AsistenciaDetalleDto>();
     int maId = (int)(ViewBag.MateriaId ?? 0);
+    int caMaId = (int)(ViewBag.CaMaId ?? 0);
     var fecha = (DateTime)(ViewBag.Fecha ?? DateTime.Today);
 }
 
@@ -27,7 +28,7 @@
 
     <form asp-action="Asistencia" method="post" id="formAsistencia" data-offline-asistencia="true">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="maId" value="@maId" />
+        <input type="hidden" name="caMaId" value="@caMaId" />
         <input type="hidden" name="fecha" value="@fecha.ToString("yyyy-MM-dd")" />
 
         <div class="table-container">
@@ -85,6 +86,7 @@
         (function () {
             var form = document.getElementById('formAsistencia');
             var maId = @maId;
+            var caMaId = @caMaId;
             var fecha = '@fecha.ToString("yyyy-MM-dd")';
 
             if (form) {
@@ -110,7 +112,7 @@
 
                     // Misma navegación que haría el servidor tras un guardado normal — la
                     // pantalla se comporta igual haya señal o no, sin carteles de por medio.
-                    window.OfflineAsistencia.encolarAsistencia(maId, fecha, filas).then(function () {
+                    window.OfflineAsistencia.encolarAsistencia(maId, caMaId, fecha, filas).then(function () {
                         window.location.href = '/Profesor';
                     });
                 });
