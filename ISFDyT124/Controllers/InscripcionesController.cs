@@ -276,7 +276,15 @@ namespace ISFDyT124.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ModificarInscripcionMateria(int? inid, [Bind("InId,UsId,CaMaId,Usuarios,Carreras_Materias")] Inscripciones inscripciones)
+        // FIX: el Bind incluía "Usuarios" (navegación a Usuario) y "Carreras_Materias" (nombre
+        // que ni siquiera existe como propiedad, la real es "CarreraMateria"). Al permitir bindear
+        // "Usuarios", un POST manual con campos "Usuarios.UsId"/"Usuarios.UsContrasena"/etc. hacía
+        // que el model binder arme un Usuario anidado y que _context.Update() lo trate como
+        // modificado: cualquier usuario con acceso a esta acción (incluye Docente) podía pisar
+        // datos de OTRO usuario (o el propio hash de contraseña) vía overposting. El formulario
+        // real solo envía InId/UsId/CaMaId, así que sacar "Usuarios" no cambia el comportamiento
+        // legítimo, solo cierra el hueco.
+        public async Task<IActionResult> ModificarInscripcionMateria(int? inid, [Bind("InId,UsId,CaMaId")] Inscripciones inscripciones)
         {
             if (inid != inscripciones.InId)
             {

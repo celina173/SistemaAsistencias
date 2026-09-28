@@ -174,7 +174,20 @@ public class CarrerasController : Controller
             _context.Carreras.Remove(carrera);
         }
 
-        await _context.SaveChangesAsync();
+        // FIX: sin try/catch, cualquier choque de FK al borrar (cascada a CarreraCohorte /
+        // CarreraMateria con datos relacionados) tiraba una DbUpdateException sin capturar
+        // y reventaba la request con un error 500 en vez de avisarle al usuario. Mismo
+        // criterio que ya usa AdminController para sus borrados.
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            TempData["Error"] = "No se pudo eliminar la carrera. Puede tener datos relacionados que lo impiden.";
+            return RedirectToAction(nameof(Index));
+        }
+
         TempData["SuccessMessage"] = "Carrera eliminada correctamente.";
         return RedirectToAction(nameof(Index));
     }

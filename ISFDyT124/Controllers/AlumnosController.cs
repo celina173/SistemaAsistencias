@@ -372,7 +372,19 @@ namespace ISFDyT124.Controllers
             _context.Inscripciones.RemoveRange(inscripciones);
             _context.UsuarioRoles.RemoveRange(alumno.UsuarioRoles);
             _context.Usuarios.Remove(alumno);
-            await _context.SaveChangesAsync();
+
+            // FIX: sin try/catch, cualquier choque de FK al borrar tiraba una
+            // DbUpdateException sin capturar y reventaba la request con un error 500 en vez
+            // de avisarle al usuario. Mismo criterio que ya usa AdminController.UsuarioEliminarConfirmado.
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "No se pudo eliminar el estudiante. Puede tener datos relacionados que lo impiden.";
+                return RedirectToAction(nameof(Index));
+            }
 
             TempData["SuccessMessage"] = "Estudiante eliminado correctamente.";
             return RedirectToAction(nameof(Index));
