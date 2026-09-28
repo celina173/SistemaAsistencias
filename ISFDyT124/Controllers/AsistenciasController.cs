@@ -233,6 +233,7 @@ namespace ISFDyT124.Controllers
                             AsPresente = presente,
                             AsJustificacion = row.AsJustificacion,
                             UsId = row.UsId,
+                            MaId = carreraMateria?.MaId,
                             CaMaId = model.CaMaId,
                         }
                     );
