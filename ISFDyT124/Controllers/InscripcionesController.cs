@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace ISFDyT124.Controllers
@@ -16,6 +17,32 @@ namespace ISFDyT124.Controllers
         {
             _context = context;
         }
+
+        private int UsuarioActualId =>
+            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        private bool EsAdminODireccion =>
+            User.IsInRole("Admin") || User.IsInRole("Dirección");
+
+        /// <summary>
+        /// IDs de CarreraMateria (cátedra puntual) que el usuario actual tiene permitido
+        /// ver/editar. null = sin restricción (Admin/Dirección). Lista = solo las cátedras
+        /// propias del Docente -- antes un Docente veía y editaba inscripciones de
+        /// CUALQUIER carrera del instituto, sin ningún scoping (hallazgo de seguridad).
+        /// </summary>
+        private async Task<List<int>?> CaMaIdsPermitidosAsync()
+        {
+            if (EsAdminODireccion)
+                return null;
+
+            return await _context
+                .Usuarios.Where(u => u.UsId == UsuarioActualId)
+                .SelectMany(u => u.CarreraMaterias)
+                .Select(cm => cm.CaMaId)
+                .Distinct()
+                .ToListAsync();
+        }
+
         public async Task<IActionResult> Index()
         {
             return View(await _context.Inscripciones.ToListAsync());
@@ -24,14 +51,23 @@ namespace ISFDyT124.Controllers
         // GET: INSCRIPCIONESS/GestionInscripcionesMaterias or INSCRIPCIONESS/GestionInscripcionesMaterias/5
         public async Task<IActionResult> GestionInscripcionesMaterias(int? inid)
         {
+            var permitidos = await CaMaIdsPermitidosAsync();
+
             if (inid == null)
             {
                 // No id provided: show the management/list page (the view can render a list or present UI to add/edit)
-                var all = await _context.Inscripciones
+                var query = _context.Inscripciones
                     .Include(i => i.Usuarios)
                     .Include(i => i.CarreraMateria).ThenInclude(cm => cm!.CarreraCohorte).ThenInclude(cc => cc!.Carrera)
                     .Include(i => i.CarreraMateria).ThenInclude(cm => cm.Materia)
-                    .ToListAsync();
+                    .AsQueryable();
+
+                // Un Docente solo ve inscripciones de sus propias cátedras (antes veía las
+                // de cualquier carrera del instituto, sin ningún filtro).
+                if (permitidos != null)
+                    query = query.Where(i => permitidos.Contains(i.CaMaId));
+
+                var all = await query.ToListAsync();
 
                 // Defensive: if any navigation is null, try to load it explicitly to avoid empty cells in the view
                 for (int idx = 0; idx < all.Count; idx++)
@@ -66,6 +102,12 @@ namespace ISFDyT124.Controllers
                 return NotFound();
             }
 
+            // Un Docente no puede ver el detalle de una inscripción de una cátedra ajena.
+            if (permitidos != null && !permitidos.Contains(inscripciones.CaMaId))
+            {
+                return NotFound();
+            }
+
             // return a list with the single record so the view can render uniformly as a list
             return View("GestionInscripcionesMaterias", new List<Inscripciones> { inscripciones });
         }
@@ -92,20 +134,19 @@ namespace ISFDyT124.Controllers
 
             ViewData["UsId"] = new SelectList(estudiantes, "UsId", "FullName");
 
-            // populate Carreras and Materias separately for the autocomplete inputs
-            var carreras = await _context.Carreras
-                .Select(c => new { c.CaId, c.CaDenominacion })
-                .ToListAsync();
+            // Un Docente solo puede inscribir alumnos en sus propias cátedras (antes veía
+            // y podía elegir cualquier carrera/materia del instituto).
+            var permitidos = await CaMaIdsPermitidosAsync();
 
-            var materias = await _context.Materias
-                .Select(m => new { m.MaId, m.MaDenominacion })
-                .ToListAsync();
-
-            // populate Carreras_Materias using concatenated Carrera - Materia as display text (fallback/reference)
-            var cam = await _context.CarreraMaterias
+            var camQuery = _context.CarreraMaterias
                 .Include(cm => cm.CarreraCohorte).ThenInclude(cc => cc!.Carrera)
                 .Include(cm => cm.CarreraCohorte).ThenInclude(cc => cc!.Cohorte)
                 .Include(cm => cm.Materia)
+                .AsQueryable();
+            if (permitidos != null)
+                camQuery = camQuery.Where(cm => permitidos.Contains(cm.CaMaId));
+
+            var cam = await camQuery
                 .Select(cm => new
                 {
                     cm.CaMaId,
@@ -115,6 +156,39 @@ namespace ISFDyT124.Controllers
                 })
                 .ToListAsync();
             ViewData["CaMaId"] = new SelectList(cam, "CaMaId", "Display");
+
+            // populate Carreras and Materias separately for the autocomplete inputs, acotadas
+            // a las que participan en alguna cátedra permitida.
+            List<int> caIdsPermitidos;
+            List<int> maIdsPermitidos;
+            if (permitidos != null)
+            {
+                var camPermitidas = await _context.CarreraMaterias
+                    .Where(cm => permitidos.Contains(cm.CaMaId))
+                    .Include(cm => cm.CarreraCohorte)
+                    .ToListAsync();
+                caIdsPermitidos = camPermitidas
+                    .Where(cm => cm.CarreraCohorte != null)
+                    .Select(cm => cm.CarreraCohorte!.CaId)
+                    .Distinct()
+                    .ToList();
+                maIdsPermitidos = camPermitidas.Select(cm => cm.MaId).Distinct().ToList();
+            }
+            else
+            {
+                caIdsPermitidos = await _context.Carreras.Select(c => c.CaId).ToListAsync();
+                maIdsPermitidos = await _context.Materias.Select(m => m.MaId).ToListAsync();
+            }
+
+            var carreras = await _context.Carreras
+                .Where(c => caIdsPermitidos.Contains(c.CaId))
+                .Select(c => new { c.CaId, c.CaDenominacion })
+                .ToListAsync();
+
+            var materias = await _context.Materias
+                .Where(m => maIdsPermitidos.Contains(m.MaId))
+                .Select(m => new { m.MaId, m.MaDenominacion })
+                .ToListAsync();
 
             // expose JSON for client-side filtering
             ViewData["StudentsJson"] = JsonSerializer.Serialize(estudiantes);
@@ -163,6 +237,14 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            // Un Docente no puede inscribir alumnos en una cátedra que no es suya, ni
+            // aunque arme el POST a mano con un CaMaId ajeno.
+            var permitidosPost = await CaMaIdsPermitidosAsync();
+            if (permitidosPost != null && !permitidosPost.Contains(inscripciones.CaMaId))
+            {
+                ModelState.AddModelError(string.Empty, "No tenés esa cátedra asignada.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -171,9 +253,11 @@ namespace ISFDyT124.Controllers
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(GestionInscripcionesMaterias));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    ModelState.AddModelError(string.Empty, "Error al guardar la inscripción: " + ex.Message);
+                    // No se expone el mensaje crudo de la excepción al usuario -- podía
+                    // filtrar detalles internos de la base de datos (ticket 6.14).
+                    ModelState.AddModelError(string.Empty, "No se pudo guardar la inscripción. Verifique los datos e intente nuevamente.");
                 }
             }
 
@@ -239,6 +323,13 @@ namespace ISFDyT124.Controllers
                 return NotFound();
             }
 
+            // Un Docente no puede entrar a editar una inscripción de una cátedra ajena.
+            var permitidosEdit = await CaMaIdsPermitidosAsync();
+            if (permitidosEdit != null && !permitidosEdit.Contains(inscripciones.CaMaId))
+            {
+                return NotFound();
+            }
+
             // Defensive: if Usuario navigation wasn't loaded for any reason, load explicitly
             if (inscripciones.Usuarios == null && inscripciones.UsId != 0)
             {
@@ -289,6 +380,22 @@ namespace ISFDyT124.Controllers
             if (inid != inscripciones.InId)
             {
                 return NotFound();
+            }
+
+            // Un Docente no puede editar una inscripción que hoy pertenece a una cátedra
+            // ajena, ni reasignarla a una cátedra ajena -- se chequean las dos, la actual
+            // (antes de pisarla con Update) y la nueva que viene en el POST.
+            var permitidosMod = await CaMaIdsPermitidosAsync();
+            if (permitidosMod != null)
+            {
+                var caMaIdActual = await _context.Inscripciones
+                    .Where(i => i.InId == inid)
+                    .Select(i => (int?)i.CaMaId)
+                    .FirstOrDefaultAsync();
+                if (caMaIdActual == null || !permitidosMod.Contains(caMaIdActual.Value) || !permitidosMod.Contains(inscripciones.CaMaId))
+                {
+                    return NotFound();
+                }
             }
 
             if (ModelState.IsValid)

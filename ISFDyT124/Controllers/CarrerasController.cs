@@ -68,13 +68,27 @@ public class CarrerasController : Controller
             _context.Add(carrera);
             await _context.SaveChangesAsync();
 
-            // Buscar o crear la cohorte
+            // Buscar o crear la cohorte. CoId no es IDENTITY (ValueGeneratedNever en el
+            // DbContext) -- se calcula a mano como MAX+1. Todo este bloque va con lock
+            // (UPDLOCK, HOLDLOCK) para que dos altas de carrera simultáneas con el mismo año
+            // nuevo no calculen el mismo CoId ni creen dos cohortes distintas para el mismo
+            // año (ticket 6.13).
             var anioInt = int.Parse(CoAnio!);
-            var cohorte = await _context.Cohortes.FirstOrDefaultAsync(c => c.CoAnio == anioInt);
+            using var transaccionCohorte = await _context.Database.BeginTransactionAsync();
+
+            var cohorte = await _context
+                .Cohortes.FromSqlInterpolated(
+                    $"SELECT * FROM Cohortes WITH (UPDLOCK, HOLDLOCK) WHERE CoAnio = {anioInt}"
+                )
+                .FirstOrDefaultAsync();
+
             if (cohorte == null)
             {
-                // CoId is configured como ValueGeneratedNever in the DbContext: assign next ID manually
-                var maxId = await _context.Cohortes.MaxAsync(c => (int?)c.CoId) ?? 0;
+                var maxId = await _context
+                    .Database.SqlQuery<int>(
+                        $"SELECT ISNULL(MAX(CoId), 0) AS Value FROM Cohortes WITH (UPDLOCK, HOLDLOCK)"
+                    )
+                    .FirstAsync();
                 cohorte = new Cohorte { CoId = maxId + 1, CoAnio = anioInt, CoEstado = true };
                 _context.Cohortes.Add(cohorte);
                 await _context.SaveChangesAsync();
@@ -84,6 +98,8 @@ public class CarrerasController : Controller
             var caCo = new CarreraCohorte { CaId = carrera.CaId, CoId = cohorte.CoId };
             _context.CarreraCohortes.Add(caCo);
             await _context.SaveChangesAsync();
+
+            await transaccionCohorte.CommitAsync();
 
             TempData["SuccessMessage"] = "Carrera agregada correctamente.";
             return RedirectToAction(nameof(Index));
