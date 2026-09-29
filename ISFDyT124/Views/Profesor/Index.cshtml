@@ -1,82 +1,99 @@
 @model IEnumerable<ISFDyT124.DTO.CarreraMateriaDetalleDto>
+
 @{
-    ViewData["Title"] = "Mis Cátedras";
-    ViewData["BodyClass"] = "gestion-page";
+    ViewData["Title"] = "Inicio Docente";
+    ViewData["BodyClass"] = "inicio-page";
 }
 
-@* Réplica del estilo de gestión del sistema (crud-table / main-container-gestion) para el
-   dashboard del profesor: lista SOLO las cátedras (Carrera-Materia) que tiene asignadas. *@
+<div class="page-title-container" style="text-align: center; margin-top: 50px;">
+    <h2 class="page-main-title" style="font-size: 1.8rem; letter-spacing: 2px;">GESTIÓN DE ASISTENCIA</h2>
+    <p style="color: #64748b; margin-top: 10px; font-weight: 500;">Seleccione la carrera y materia para continuar</p>
+</div>
 
-<main class="main-container-global">
+<main class="main-container-form" style="display: flex; justify-content: center; align-items: flex-start; padding: 30px 20px; flex-grow: 1;">
+    <div class="form-card" style="background-color: #ffffff; width: 100%; max-width: 550px; padding: 45px 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);">
+        
+        <form asp-controller="Profesor" asp-action="Asistencia" method="get">
+            
+            <div class="input-field" style="margin-bottom: 30px; display: flex; flex-direction: column;">
+                <label style="font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Carrera</label>
+                <select id="selectCarrera" class="form-control" style="border: none; border-bottom: 1px solid #e2e8f0; padding: 10px 0; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 500; color: #003366; outline: none; background: transparent; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' fill=\'%2364748b\' viewBox=\'0 0 16 16\'><path d=\'M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z\'/></svg>'); background-repeat: no-repeat; background-position: right center;" required>
+                    <option value="" disabled selected>Seleccione una Carrera</option>
+                </select>
+            </div>
 
-    <!-- BOTÓN VOLVER ATRÁS -->
-    <div class="contenedor-volver">
-        <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel de Control">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            Volver al Panel
-        </a>
-    </div>
+            <div class="input-field" style="margin-bottom: 45px; display: flex; flex-direction: column;">
+                <label style="font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Materia</label>
+                <select id="selectMateria" name="caMaId" class="form-control" style="border: none; border-bottom: 1px solid #e2e8f0; padding: 10px 0; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 500; color: #003366; outline: none; background: transparent; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' fill=\'%2364748b\' viewBox=\'0 0 16 16\'><path d=\'M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z\'/></svg>'); background-repeat: no-repeat; background-position: right center;" disabled required>
+                    <option value="" disabled selected>Seleccione una Materia</option>
+                </select>
+            </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="info-banner"><div class="info-col-left"><p class="info-bold">@TempData["SuccessMessage"]</p></div></div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="info-banner"><div class="info-col-left"><p class="info-bold">@TempData["ErrorMessage"]</p></div></div>
-    }
-
-    <div class="info-banner">
-        <div class="info-col-left">
-            <p class="info-bold">Mis Cátedras</p>
-        </div>
-        <div class="info-col-right">
-            <p class="info-bold">@User.Identity?.Name</p>
-        </div>
-    </div>
-
-    <div class="toolbar-container" style="margin: 12px 0; justify-content: flex-start;">
-        <a asp-controller="Alumnos" asp-action="Index" class="btn-edit" style="text-decoration:none;">Gestionar estudiantes</a>
-    </div>
-
-    <div class="global-table-container">
-        <table class="global-table table-responsive-stack">
-            <thead>
-                <tr>
-                    <th class="align-left">Carrera</th>
-                    <th class="align-left">Materia</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var catedra in Model)
-                    {
-                        <tr>
-                            <td class="align-left" data-label="Carrera">@catedra.CarreraDenominacion</td>
-                            <td class="align-left" data-label="Materia">@catedra.MateriaDenominacion</td>
-                            <td class="action-cell" data-label="Acciones">
-                                <div class="action-buttons">
-                                    <a asp-action="Asistencia" asp-route-caMaId="@catedra.CaMaId"
-                                       class="btn-edit" style="text-decoration:none;">Tomar asistencia</a>
-                                    <a asp-action="HistorialAsistencias" asp-route-maId="@catedra.MaId"
-                                       class="btn-edit" style="text-decoration:none;">Historial</a>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="3" style="text-align:center;">No tenés cátedras asignadas.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+            <button type="submit" class="btn-save" style="width: 100%; background-color: #001a8c; color: white; border: none; padding: 16px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s ease;">
+                Configurar Asistencia
+            </button>
+        </form>
     </div>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const catedrasDocente = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model ?? new List<ISFDyT124.DTO.CarreraMateriaDetalleDto>()));
+        
+        const selectCarrera = document.getElementById("selectCarrera");
+        const selectMateria = document.getElementById("selectMateria");
+
+        // 1. Llenar el combo de Carreras sin repetir usando CaCoId
+        const carrerasMap = new Map();
+        catedrasDocente.forEach(c => {
+            // Buscamos las variables (ASP.NET puede enviarlas en PascalCase o camelCase)
+            const caCoId = c.CaCoId !== undefined ? c.CaCoId : c.caCoId;
+            const carreraNombre = c.CarreraDenominacion || c.carreraDenominacion;
+
+            if (caCoId !== undefined && !carrerasMap.has(caCoId)) {
+                carrerasMap.set(caCoId, carreraNombre);
+            }
+        });
+
+        if (carrerasMap.size > 0) {
+            carrerasMap.forEach((nombre, id) => {
+                const option = document.createElement("option");
+                option.value = id;
+                option.textContent = nombre;
+                selectCarrera.appendChild(option);
+            });
+        } else {
+            selectCarrera.innerHTML = '<option value="">No tiene carreras asignadas</option>';
+            selectCarrera.disabled = true;
+        }
+
+        // 2. Efecto Cascada: Al elegir carrera, mostrar sus materias
+        selectCarrera.addEventListener("change", function() {
+            const idSeleccionado = this.value;
+            
+            selectMateria.innerHTML = '<option value="" disabled selected>Seleccione una Materia</option>'; 
+            
+            if (idSeleccionado) {
+                selectMateria.disabled = false; 
+                
+                // Filtramos las materias de esa carrera
+                const materiasFiltradas = catedrasDocente.filter(c => {
+                    const caCoId = c.CaCoId !== undefined ? c.CaCoId : c.caCoId;
+                    return caCoId == idSeleccionado;
+                });
+
+                materiasFiltradas.forEach(m => {
+                    const caMaId = m.CaMaId !== undefined ? m.CaMaId : m.caMaId;
+                    const materiaNombre = m.MateriaDenominacion || m.materiaDenominacion;
+
+                    const option = document.createElement("option");
+                    option.value = caMaId; 
+                    option.textContent = materiaNombre;
+                    selectMateria.appendChild(option);
+                });
+            } else {
+                selectMateria.disabled = true; 
+            }
+        });
+    });
+</script>

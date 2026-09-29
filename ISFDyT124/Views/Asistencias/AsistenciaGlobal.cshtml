@@ -127,6 +127,14 @@
         </a>
     </div>
 
+    <!-- CARTEL DE ÉXITO AL GUARDAR ASISTENCIA -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="info-banner" style="max-width: 1150px; background-color: #d1fae5 !important; border-color: #a7f3d0 !important; margin-bottom: 15px !important; border-radius: 8px;">
+            <div class="info-col-left"><p class="info-bold" style="color: #065f46 !important; margin: 0;">@TempData["SuccessMessage"]</p></div>
+        </div>
+    }
+
     <div class="global-table-container">
         <table class="global-table">
             <thead>

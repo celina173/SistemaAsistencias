@@ -5,7 +5,7 @@
 }
 
 <style>
-    /* Estilos exclusivos para los botones de paginación */
+    /* Estilos de Paginación */
     .btn-page {
         padding: 6px 12px;
         border: 1px solid #cbd5e1;
@@ -29,12 +29,40 @@
         cursor: not-allowed;
         background: #f1f5f9;
     }
-    
-    /* Agrupador de botones para la barra superior */
     .action-group-right {
         display: flex;
         gap: 12px;
         align-items: center;
+    }
+
+    /* Estilos para los botones de Activo/Inactivo */
+    .badge-estado {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        display: inline-block;
+        min-width: 85px;
+    }
+    .estado-activo {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    .estado-activo:hover {
+        background-color: #a7f3d0;
+        transform: scale(1.05);
+    }
+    .estado-inactivo {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+    .estado-inactivo:hover {
+        background-color: #fecaca;
+        transform: scale(1.05);
     }
 </style>
 
@@ -51,25 +79,26 @@
     <h2 class="page-main-title">Estudiantes</h2>
 </div>
 
-<main class="main-container-global">
-
-    <!-- BOTÓN VOLVER ATRÁS -->
-    <div class="contenedor-volver">
-        <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel de Control">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            Volver al Panel
-        </a>
+<!-- CARTEL DE ÉXITO -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="info-banner" style="background-color: #d1fae5 !important; border-color: #a7f3d0 !important; margin-bottom: 15px !important;">
+        <div class="info-col-left"><p class="info-bold" style="color: #065f46 !important;">@TempData["SuccessMessage"]</p></div>
     </div>
+}
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="info-banner" style="background-color: #d1fae5 !important; border-color: #a7f3d0 !important; margin-bottom: 15px !important;">
-            <div class="info-col-left"><p class="info-bold" style="color: #065f46 !important;">@TempData["SuccessMessage"]</p></div>
-        </div>
-    }
+<!-- BOTÓN VOLVER AL PANEL -->
+<div class="contenedor-volver" style="margin-bottom: 15px;">
+    <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Volver al Panel
+    </a>
+</div>
+
+<main class="main-container-global">
 
     <!-- BARRA DE HERRAMIENTAS -->
     <div class="toolbar-container" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 20px;">
@@ -120,6 +149,11 @@
                             CARRERA / COHORTE <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
                         </div>
                     </th>
+                    <th class="sortable" data-type="text" style="cursor:pointer;">
+                        <div class="sort-header" style="justify-content: center;">
+                            ESTADO <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
@@ -133,13 +167,22 @@
                             <td data-label="DNI" style="text-align: center;">@item.UsDni</td>
                             <td class="align-left" data-label="Email">@(item.UsEmail ?? "-")</td>
                             <td class="align-left" data-label="Carrera / Cohorte">@(item.CarreraCohorteDenominacion ?? "-")</td>
+                            <td data-label="Estado" style="text-align: center;">
+                                @{
+                                    bool esActivo = item.UsActivo; 
+                                }
+                                <!-- 💡 Le sumamos la clase form-estado para interceptarlo -->
+                                <form asp-action="CambiarEstado" asp-route-id="@item.UsId" method="post" class="form-estado" style="margin: 0; display: inline-block;">
+                                    <button type="submit" class="badge-estado @(esActivo ? "estado-activo" : "estado-inactivo")" title="Click para cambiar estado">
+                                        @(esActivo ? "ACTIVO" : "INACTIVO")
+                                    </button>
+                                </form>
+                            </td>
                             <td class="action-cell" data-label="Acciones">
                                 <div class="action-buttons">
                                     <a asp-action="Editar" asp-route-id="@item.UsId" class="icon-btn btn-edit" title="Editar">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
                                     </a>
-                                    <!-- Botón Eliminar actualizado para no usar confirm() nativo -->
-                                    <a asp-action="Eliminar" asp-route-id="@item.UsId" class="icon-btn" title="Eliminar" style="text-decoration:none;">🗑️</a>
                                 </div>
                             </td>
                         </tr>
@@ -148,7 +191,7 @@
                 else
                 {
                     <tr id="emptyRow">
-                        <td colspan="5" style="text-align:center; padding: 20px;">No hay estudiantes cargados todavía.</td>
+                        <td colspan="6" style="text-align:center; padding: 20px;">No hay estudiantes cargados todavía.</td>
                     </tr>
                 }
             </tbody>
@@ -172,6 +215,56 @@
 
 @section Scripts {
 <script>
+    // ==========================================
+    // MAGIA AJAX PARA EL ESTADO (Sin recargar)
+    // ==========================================
+    document.addEventListener('submit', async function(e) {
+        // Chequeamos si el formulario que se envió es el de cambio de estado
+        if (e.target && e.target.classList.contains('form-estado')) {
+            e.preventDefault(); // Cortamos la recarga de página al instante
+            
+            const form = e.target;
+            const btn = form.querySelector('.badge-estado');
+            const url = form.action;
+            
+            // Le ponemos tres puntitos para que se sepa que está cargando
+            const textoOriginal = btn.textContent;
+            btn.textContent = '...';
+            
+            try {
+                // Mandamos la orden al servidor por atrás (AJAX)
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: new FormData(form) // Esto ya incluye el token de seguridad
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        // Cambiamos el color y la palabra sin parpadear
+                        if (data.estado) {
+                            btn.classList.remove('estado-inactivo');
+                            btn.classList.add('estado-activo');
+                            btn.textContent = 'ACTIVO';
+                        } else {
+                            btn.classList.remove('estado-activo');
+                            btn.classList.add('estado-inactivo');
+                            btn.textContent = 'INACTIVO';
+                        }
+                    } else {
+                        btn.textContent = textoOriginal; // Si algo falla, vuelve atrás
+                    }
+                }
+            } catch (error) {
+                console.error("Error cambiando estado:", error);
+                btn.textContent = textoOriginal;
+            }
+        }
+    });
+
+    // ==========================================
+    // LÓGICA DE PAGINACIÓN Y BÚSQUEDA
+    // ==========================================
     document.addEventListener('DOMContentLoaded', function () {
         const table = document.querySelector('.crud-estudiantes');
         if (!table) return;
@@ -194,12 +287,12 @@
         const totalItems = document.getElementById('totalItems');
         const pageIndicator = document.getElementById('pageIndicator');
 
-        let activeCol = 0; // Ordenar por Nombre por defecto
+        let activeCol = 0; 
         let isAsc = true;
         let activeTh = headers[0];
 
         let currentPage = 1;
-        const itemsPerPage = 20; // 20 registros por página
+        const itemsPerPage = 20; 
         let filteredRows = [...allRows];
 
         function updateTable() {
@@ -226,7 +319,7 @@
             if (total === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 5;
+                td.colSpan = 6;
                 td.style.textAlign = 'center';
                 td.style.padding = '20px';
                 td.textContent = 'No se encontraron estudiantes con esa búsqueda.';
@@ -265,7 +358,6 @@
                 filteredRows = [...allRows];
             } else {
                 filteredRows = allRows.filter(row => {
-                    // Filtramos buscando en la Columna 0 (Nombre) y Columna 3 (Carrera)
                     const nombreUsuario = row.children[0]?.textContent.toLowerCase() ?? '';
                     const carreraUsuario = row.children[3]?.textContent.toLowerCase() ?? '';
                     
@@ -315,7 +407,6 @@
             sortRows();
         });
 
-        // Inicializar ordenando por la primera columna (Nombre)
         sortRows();
     });
 </script>
