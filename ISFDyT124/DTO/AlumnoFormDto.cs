@@ -52,6 +52,8 @@ namespace ISFDyT124.DTO
         [ForeignKey("CarreraCohorte")]
         public int? CaCoId { get; set; }
 
+        public bool UsActivo { get; set; }
+
         // Materias (CarreraMateria.CaMaId) en las que queda inscripto el estudiante.
         // En alta se crean las Inscripciones; en edición se sincroniza (alta/baja)
         // contra las materias de su carrera. Mismo criterio que la carga masiva.

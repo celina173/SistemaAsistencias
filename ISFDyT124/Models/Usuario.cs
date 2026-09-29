@@ -58,8 +58,10 @@ namespace ISFDyT124.Models
         public string UsContrasena { get; set; }
 
 
-
-
+        // ESTADO (Borrado lógico Activo/Inactivo)
+        [Required]
+        [Display(Name = "Estado")]
+        public bool UsActivo { get; set; } = true; // Por defecto todo usuario es Activo al crearse
 
 
         //Relacion de Usuario - Rol

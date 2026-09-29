@@ -39,7 +39,7 @@ namespace ISFDyT124.DTO
         [Required(ErrorMessage = "Debe ingresar un número de DNI válido (8 dígitos).")]
         [Display(Name = "DNI")]
         public int UsDni { get; set; }
-
+        public bool UsActivo { get; set; }
         public int RoId { get; set; }
         public string? RoDenominacion { get; set; }
         public int? CaCoId { get; set; }
