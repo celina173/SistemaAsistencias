@@ -9,20 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
 {
-    /// <summary>
-    /// Gestión de estudiantes (ticket 3.3). En pantalla todo se rotula "Estudiantes";
-    /// el nombre de código mantiene "Alumno" por consistencia con el resto del proyecto.
-    ///
-    /// Es un CRUD acotado al rol Estudiante (RoId = 3), separado del CRUD genérico de
-    /// AdminController a propósito: acá también entra el Docente, y las acciones de
-    /// AdminController pueden crear/editar CUALQUIER rol (incluido Admin) — abrirlas al
-    /// Docente sería una escalada de privilegios.
-    ///
-    /// Alcance por rol:
-    /// - Admin / Dirección: ven y gestionan todos los estudiantes.
-    /// - Docente: solo los estudiantes de las carreras de sus cátedras (mismo criterio
-    ///   que la planilla de asistencia — vía Usuarios.CaCoId, no por materia).
-    /// </summary>
     [Authorize(Roles = "Admin,Dirección,Docente")]
     public class AlumnosController : Controller
     {
@@ -39,19 +25,11 @@ namespace ISFDyT124.Controllers
         private bool EsAdminODireccion =>
             User.IsInRole("Admin") || User.IsInRole("Dirección");
 
-        /// <summary>
-        /// IDs de CarreraCohorte que el usuario actual tiene permitido ver/asignar.
-        /// null = sin restricción (Admin/Dirección). Lista = las carrera/cohorte de las
-        /// carreras en las que el Docente tiene al menos una cátedra.
-        /// </summary>
         private async Task<List<int>?> CaCoIdsPermitidosAsync()
         {
             if (EsAdminODireccion)
                 return null;
 
-            // Antes se expandía a "todas las cohortes de la misma Carrera" porque
-            // CarreraMateria no sabía a qué cohorte pertenecía la cátedra del Docente.
-            // Ahora la cátedra ya trae su propio CaCoId: se usa directo, sin expandir.
             return await _context
                 .Usuarios.Where(u => u.UsId == UsuarioActualId)
                 .SelectMany(u => u.CarreraMaterias)
@@ -61,7 +39,6 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
         }
 
-        /// <summary>Query base de estudiantes visibles según el alcance del usuario actual.</summary>
         private IQueryable<Usuario> AlumnosVisibles(List<int>? caCoIdsPermitidos)
         {
             var query = _context.Usuarios.Where(u => u.RoId == RolId.Estudiante);
@@ -74,7 +51,6 @@ namespace ISFDyT124.Controllers
             return query;
         }
 
-        /// <summary>Carga en ViewBag la lista de Carrera/Cohorte para los formularios, ya filtrada por alcance.</summary>
         private async Task CargarCarreraCohortesAsync(List<int>? caCoIdsPermitidos)
         {
             var query = _context
@@ -94,14 +70,9 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Repone en ViewBag lo que necesitan los formularios al re-renderizar por error.
-        /// Las materias las trae la vista por AJAX (MateriasPorCarreraCohorte).
-        /// </summary>
         private Task RecargarFormAsync(AlumnoFormDto model, List<int>? caCoIdsPermitidos) =>
             CargarCarreraCohortesAsync(caCoIdsPermitidos);
 
-        /// <summary>De la selección recibida, devuelve solo los CaMaId que realmente son cátedras de esa Carrera-Cohorte.</summary>
         private async Task<List<int>> CaMaIdsValidosAsync(int caCoId, List<int>? seleccion)
         {
             if (seleccion == null || seleccion.Count == 0)
@@ -113,10 +84,6 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Endpoint AJAX para el formulario: materias de la carrera de un CarreraCohorte.
-        /// Acotado al alcance del usuario (un Docente solo puede pedir las de sus carreras).
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> MateriasPorCarreraCohorte(int caCoId)
         {
@@ -155,6 +122,7 @@ namespace ISFDyT124.Controllers
                     UsDni = u.UsDni,
                     RoId = u.RoId,
                     CaCoId = u.CaCoId,
+                    UsActivo = u.UsActivo, // MAPEO AGREGADO PARA EL ESTADO LÓGICO
                     CarreraCohorteDenominacion =
                         u.CaCoId != null && u.CarreraCohorte != null
                             ? u.CarreraCohorte.Carrera!.CaDenominacion
@@ -170,7 +138,10 @@ namespace ISFDyT124.Controllers
         [HttpGet]
         public async Task<IActionResult> Agregar()
         {
-            var model = new AlumnoFormDto();
+            var model = new AlumnoFormDto
+            {
+                UsActivo = true // Por defecto, al abrir el form de agregar, nace activo
+            };
             await RecargarFormAsync(model, await CaCoIdsPermitidosAsync());
             return View(model);
         }
@@ -232,18 +203,15 @@ namespace ISFDyT124.Controllers
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                // El estudiante no inicia sesión, pero la columna es NOT NULL: se guarda
-                // el hash del DNI, mismo criterio que UsuarioAgregar en AdminController.
                 UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
                 RoId = RolId.Estudiante,
                 CaCoId = model.CaCoId,
+                UsActivo = model.UsActivo // ASIGNA EL ESTADO DESDE EL FORMULARIO (Si lo habilitaste en la vista Agregar)
             };
 
             _context.Usuarios.Add(alumno);
             await _context.SaveChangesAsync();
 
-            // Inscripciones a las materias elegidas (mismo criterio que la carga masiva:
-            // la inscripción es lo que hace que se le tome asistencia en esa cátedra).
             var caMaValidos = await CaMaIdsValidosAsync(model.CaCoId.Value, model.SelectedCaMaIds);
             foreach (var caMaId in caMaValidos)
                 _context.Inscripciones.Add(new Inscripciones { UsId = alumno.UsId, CaMaId = caMaId });
@@ -274,6 +242,7 @@ namespace ISFDyT124.Controllers
                 UsEmail = alumno.UsEmail,
                 UsDni = alumno.UsDni,
                 CaCoId = alumno.CaCoId,
+                UsActivo = alumno.UsActivo, // MAPEO DEL ESTADO PARA PRECARGAR EL FORMULARIO DE EDICIÓN
                 SelectedCaMaIds = await _context
                     .Inscripciones.Where(i => i.UsId == alumno.UsId)
                     .Select(i => i.CaMaId)
@@ -331,16 +300,14 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // ACTUALIZACIÓN DE DATOS DEL ESTUDIANTE, INCLUYENDO EL ESTADO LÓGICO
             alumno.UsApellido = model.UsApellido;
             alumno.UsNombre = model.UsNombre;
             alumno.UsDni = model.UsDni;
             alumno.UsEmail = model.UsEmail;
             alumno.CaCoId = model.CaCoId;
+            alumno.UsActivo = model.UsActivo; // ACTUALIZA EL ESTADO DESDE EL FORMULARIO DE EDICIÓN
 
-            // Sincroniza las inscripciones con lo tildado: como el estudiante pertenece a
-            // una sola carrera, su set final de inscripciones = las materias válidas de esa
-            // carrera que quedaron marcadas. Las asistencias ya cargadas (UsId + MaId) no
-            // se tocan; solo cambia de qué cátedras se lo lista de acá en más.
             var caMaValidos = await CaMaIdsValidosAsync(model.CaCoId.Value, model.SelectedCaMaIds);
             var deseadas = caMaValidos.ToHashSet();
             var inscActuales = await _context
@@ -361,6 +328,10 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ─────────────────────────────────────────────────────────────────────
+        // (OPCIONAL) EL MÉTODO ELIMINAR SIGUE EXISTIENDO SI QUERÉS HACER UN BORRADO DEFINITIVO
+        // DESDE OTRO LUGAR, PERO EN LA VISTA YA NO HAY BOTÓN PARA LLAMARLO.
+        // ─────────────────────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
@@ -395,8 +366,33 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            TempData["SuccessMessage"] = "Estudiante eliminado correctamente.";
+            TempData["SuccessMessage"] = "Estudiante eliminado definitivamente.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // CAMBIO DE ESTADO LÓGICO SIN RECARGAR LA PÁGINA (AJAX)
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(int id)
+        {
+            // Le faltaba el token antifalsificación (cualquier sitio externo podía disparar
+            // este POST desde el navegador de un Admin/Docente logueado) y el chequeo de
+            // alcance -- un Docente podía cambiar el estado de un alumno de una carrera que
+            // no es la suya. Se agregan los dos, mismo criterio que el resto del controller.
+            var permitidos = await CaCoIdsPermitidosAsync();
+            var alumno = await AlumnosVisibles(permitidos).FirstOrDefaultAsync(u => u.UsId == id);
+            if (alumno != null)
+            {
+                // Alterna el estado activo/inactivo (Toogle)
+                alumno.UsActivo = !alumno.UsActivo;
+                await _context.SaveChangesAsync();
+
+                // En lugar de recargar la página, devolvemos un JSON de éxito con el nuevo estado
+                return Json(new { success = true, estado = alumno.UsActivo });
+            }
+            return Json(new { success = false });
         }
     }
 }

@@ -35,11 +35,11 @@ namespace ISFDyT124.DTO
             @"^[1-9][0-9]*$",
             ErrorMessage = "Sólo se permiten números de DNI válidos."
         )]
-        [Range(6000000, 99999999, ErrorMessage = "Debe ingresar los 7-8 dígitos del DNI.")]
-        [Required(ErrorMessage = "Debe ingresar un número de DNI válido (8 dígitos).")]
+        [Range(1000000, 99999999, ErrorMessage = "Debe ingresar los 7-8 dígitos del DNI.")]
+        [Required(ErrorMessage = "Debe ingresar un número de DNI válido (7-8 dígitos).")]
         [Display(Name = "DNI")]
         public int UsDni { get; set; }
-
+        public bool UsActivo { get; set; }
         public int RoId { get; set; }
         public string? RoDenominacion { get; set; }
         public int? CaCoId { get; set; }

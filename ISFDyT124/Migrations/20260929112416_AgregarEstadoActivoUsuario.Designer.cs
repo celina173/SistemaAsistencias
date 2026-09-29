@@ -4,6 +4,7 @@ using ISFDyT124.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ISFDyT124.Migrations
 {
     [DbContext(typeof(InstitutoDbContext))]
-    partial class InstitutoDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929112416_AgregarEstadoActivoUsuario")]
+    partial class AgregarEstadoActivoUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,7 +36,7 @@ namespace ISFDyT124.Migrations
                     b.Property<Guid?>("AsClientGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("AsFecha")
+                    b.Property<DateTime>("AsFecha")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("AsFechaCarga")
@@ -321,7 +324,7 @@ namespace ISFDyT124.Migrations
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuario")
                         .WithMany("Asistencias")
                         .HasForeignKey("UsId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("CarreraMateria");
 

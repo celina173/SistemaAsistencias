@@ -6,6 +6,7 @@ using ISFDyT124.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ISFDyT124.Controllers
 {
@@ -13,10 +14,12 @@ namespace ISFDyT124.Controllers
     public class AdminController : Controller
     {
         private readonly InstitutoDbContext _context;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(InstitutoDbContext context)
+        public AdminController(InstitutoDbContext context, ILogger<AdminController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         /// <summary>
@@ -282,14 +285,21 @@ namespace ISFDyT124.Controllers
 
                 await transaccionId.CommitAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
+                _logger.LogError(ex, "DbUpdateException al guardar usuario. Dni: {Dni}, RoleId: {RoleId}, UsId: {UsId}", model.UsDni, selectedRoleId, usuario?.UsId);
                 ModelState.AddModelError(
                     string.Empty,
                     "No se pudo guardar el usuario. Verifique que todos los campos obligatorios estén completos e intente nuevamente."
                 );
                 await CargarListasFormularioUsuarioAsync();
                 return View(model);
+            }
+            catch (Exception ex)
+            {
+                // Registrar cualquier excepción no prevista para poder verla en Azure
+                _logger.LogError(ex, "Error inesperado al crear usuario. RoleId: {RoleId}, Dni: {Dni}", selectedRoleId, model.UsDni);
+                throw;
             }
 
             return RedirectToAction(nameof(UsuariosABM));
