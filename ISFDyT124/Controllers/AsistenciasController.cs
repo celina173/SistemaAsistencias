@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
@@ -21,6 +22,37 @@ namespace ISFDyT124.Controllers
         public AsistenciasController(InstitutoDbContext context)
         {
             _context = context;
+        }
+
+        /// <summary>
+        /// IDs de CarreraMateria (cátedra puntual) que el usuario actual tiene permitido
+        /// ver/tomar asistencia. null = sin restricción (Admin/Dirección). Lista = solo las
+        /// cátedras propias del Docente de la cohorte del año en curso -- antes un Docente
+        /// veía y podía elegir CUALQUIER carrera/materia del instituto en esta pantalla,
+        /// igual que ya se corrigió en Home/Index (mismo bug, pantalla distinta).
+        /// </summary>
+        private async Task<List<int>?> CaMaIdsPermitidosAsync()
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+                return null;
+
+            var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(docenteIdClaim, out int docenteId))
+                return new List<int>();
+
+            int anioActual = DateTime.Today.Year;
+
+            return await _context
+                .Usuarios.Where(u => u.UsId == docenteId)
+                .SelectMany(u => u.CarreraMaterias)
+                .Where(cm =>
+                    cm.CarreraCohorte != null
+                    && cm.CarreraCohorte.Cohorte != null
+                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
+                )
+                .Select(cm => cm.CaMaId)
+                .Distinct()
+                .ToListAsync();
         }
 
         // GET: Asistencias
@@ -49,8 +81,34 @@ namespace ISFDyT124.Controllers
                 if (!string.IsNullOrEmpty(s2) && int.TryParse(s2, out var v2))
                     selectedMateriaId = v2;
             }
-            var carreras = await _context
-                .Carreras.Select(c => new CarreraDetalleDto
+
+            // Un Docente solo debe ver las carreras/materias de sus propias cátedras
+            // asignadas -- antes se listaban TODAS sin importar el rol (mismo bug que ya
+            // se había corregido en Home/Index, pero esta pantalla se había quedado sin
+            // el filtro). Admin/Dirección siguen viendo el listado completo.
+            var permitidos = await CaMaIdsPermitidosAsync();
+            List<int>? caIdsPermitidos = null;
+            List<int>? maIdsPermitidos = null;
+            if (permitidos != null)
+            {
+                var camPermitidas = await _context
+                    .CarreraMaterias.Where(cm => permitidos.Contains(cm.CaMaId))
+                    .Include(cm => cm.CarreraCohorte)
+                    .ToListAsync();
+                caIdsPermitidos = camPermitidas
+                    .Where(cm => cm.CarreraCohorte != null)
+                    .Select(cm => cm.CarreraCohorte!.CaId)
+                    .Distinct()
+                    .ToList();
+                maIdsPermitidos = camPermitidas.Select(cm => cm.MaId).Distinct().ToList();
+            }
+
+            var carrerasQuery = _context.Carreras.AsQueryable();
+            if (caIdsPermitidos != null)
+                carrerasQuery = carrerasQuery.Where(c => caIdsPermitidos.Contains(c.CaId));
+
+            var carreras = await carrerasQuery
+                .Select(c => new CarreraDetalleDto
                 {
                     CaId = c.CaId,
                     CaDenominacion = c.CaDenominacion,
@@ -68,8 +126,12 @@ namespace ISFDyT124.Controllers
                 })
                 .ToListAsync();
 
-            var materias = await _context
-                .Materias.Select(m => new MateriaDetalleDto
+            var materiasQuery = _context.Materias.AsQueryable();
+            if (maIdsPermitidos != null)
+                materiasQuery = materiasQuery.Where(m => maIdsPermitidos.Contains(m.MaId));
+
+            var materias = await materiasQuery
+                .Select(m => new MateriaDetalleDto
                 {
                     MaId = m.MaId,
                     MaDenominacion = m.MaDenominacion,
@@ -99,6 +161,15 @@ namespace ISFDyT124.Controllers
 
                 if (caMa != null)
                 {
+                    // Defensa en profundidad: aunque el listado ya viene acotado a las
+                    // cátedras propias, un Docente podría armar la URL a mano con un
+                    // CaId/MaId que no es suyo -- se rechaza igual acá.
+                    if (permitidos != null && !permitidos.Contains(caMa.CaMaId))
+                    {
+                        ModelState.AddModelError(string.Empty, "No tenés esa cátedra asignada.");
+                        return View(modelDto);
+                    }
+
                     // if query contains _global=1, redirect to AsistenciaGlobal, otherwise to Asistencia
                     var isGlobal =
                         Request.Query.ContainsKey("_global")
@@ -131,6 +202,15 @@ namespace ISFDyT124.Controllers
             if (CaMaId == null)
             {
                 return View(model);
+            }
+
+            // Un Docente no puede ver/tomar asistencia de una cátedra que no es suya,
+            // aunque cambie el CaMaId a mano en la URL (mismo chequeo que ya tiene
+            // ProfesorController.Asistencia).
+            var permitidos = await CaMaIdsPermitidosAsync();
+            if (permitidos != null && !permitidos.Contains(CaMaId.Value))
+            {
+                return NotFound();
             }
 
             model.CaMaId = CaMaId;
@@ -226,6 +306,14 @@ namespace ISFDyT124.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Debe seleccionar una carrera/materia.");
                 return View(model);
+            }
+
+            // Un Docente no puede guardar asistencia de una cátedra que no es suya, ni
+            // aunque arme el POST a mano con un CaMaId ajeno.
+            var permitidosPost = await CaMaIdsPermitidosAsync();
+            if (permitidosPost != null && !permitidosPost.Contains(model.CaMaId.Value))
+            {
+                return NotFound();
             }
 
             var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
