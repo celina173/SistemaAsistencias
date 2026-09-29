@@ -37,12 +37,14 @@
             // Definimos las rutas y variables globales de la sesión
             string targetController = "Home";
             bool esDocente = false;
+            bool esAdminODireccion = false;
 
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
                 {
                     targetController = "Admin";
+                    esAdminODireccion = true;
                 }
                 else if (User.IsInRole("Docente"))
                 {
@@ -152,9 +154,11 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
-    @if (esDocente)
+    @if (esDocente || esAdminODireccion)
     {
-        <!-- Frente 7 (PWA offline) -->
+        <!-- Frente 7 (PWA offline): se carga también para Admin/Dirección (ticket 8.2) --
+             se había perdido esta condición en un cambio anterior, dejando sin la cola
+             offline a la pantalla de Asistencia del Admin otra vez. -->
         <script src="~/lib/dexie/dist/dexie.min.js"></script>
         <script src="~/js/offline-asistencia.js" asp-append-version="true"></script>
     }

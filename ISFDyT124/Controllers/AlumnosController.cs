@@ -374,9 +374,15 @@ namespace ISFDyT124.Controllers
         // CAMBIO DE ESTADO LÓGICO SIN RECARGAR LA PÁGINA (AJAX)
         // ─────────────────────────────────────────────────────────────────────
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarEstado(int id)
         {
-            var alumno = await _context.Usuarios.FindAsync(id);
+            // Le faltaba el token antifalsificación (cualquier sitio externo podía disparar
+            // este POST desde el navegador de un Admin/Docente logueado) y el chequeo de
+            // alcance -- un Docente podía cambiar el estado de un alumno de una carrera que
+            // no es la suya. Se agregan los dos, mismo criterio que el resto del controller.
+            var permitidos = await CaCoIdsPermitidosAsync();
+            var alumno = await AlumnosVisibles(permitidos).FirstOrDefaultAsync(u => u.UsId == id);
             if (alumno != null)
             {
                 // Alterna el estado activo/inactivo (Toogle)

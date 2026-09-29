@@ -118,7 +118,10 @@
             var form = document.getElementById('formAsistencia');
             var maId = @maId;
             var fecha = '@fecha.ToString("yyyy-MM-dd")';
-            var caMaId = '@ViewBag.CaMaId'; // Capturamos la materia actual
+            // Sin comillas a propósito: tiene que ser number, no string -- la cola offline
+            // lo manda tal cual al servidor como JSON, y ASP.NET Core rechaza el POST entero
+            // si "CaMaId" llega como texto en vez de número (ticket 5.12).
+            var caMaId = @ViewBag.CaMaId; // Capturamos la materia actual
 
             if (form) {
                 form.addEventListener('submit', function (e) {
@@ -142,7 +145,7 @@
                     if (filas.length === 0) return;
 
                     // Encola los datos y redirige a Asistencia Global
-                    window.OfflineAsistencia.encolarAsistencia(maId, fecha, filas).then(function () {
+                    window.OfflineAsistencia.encolarAsistencia(maId, caMaId, fecha, filas).then(function () {
                         window.location.href = '/Asistencias/AsistenciaGlobal?caMaId=' + caMaId;
                     });
                 });
