@@ -49,6 +49,7 @@
             <div class="input-field" style="grid-column: span 2;">
                 <label for="CaCoId">Asignar a Carrera - Cohorte</label>
                 @Html.DropDownList("CaCoId", (SelectList)ViewData["CaCoId"], "-- Seleccione carrera y cohorte --", new { @class = "input-select" })
+                <span class="text-danger">@Html.ValidationMessage("CaCoId")</span>
             </div>
 
             <div class="form-buttons" style="grid-column: span 2;">
