@@ -10,11 +10,11 @@ namespace ISFDyT124.Controllers.Api
 {
     /// <summary>
     /// Endpoint para la cola offline de asistencia (frente 7 / PWA): recibe por JSON los
-    /// registros que el docente cargó sin conexión y quedaron guardados en IndexedDB en su
-    /// dispositivo. Separado de ProfesorController porque este lo llama JS vía fetch(), no
-    /// un submit de formulario.
+    /// registros que el docente (o Admin/Dirección, ticket 8.2) cargó sin conexión y
+    /// quedaron guardados en IndexedDB en su dispositivo. Separado de ProfesorController /
+    /// AsistenciasController porque este lo llama JS vía fetch(), no un submit de formulario.
     /// </summary>
-    [Authorize(Roles = "Docente")]
+    [Authorize(Roles = "Docente,Admin,Dirección")]
     [ApiController]
     [Route("api/asistencias")]
     public class AsistenciasApiController : ControllerBase
@@ -49,19 +49,26 @@ namespace ISFDyT124.Controllers.Api
             if (registros == null || registros.Count == 0)
                 return BadRequest("No se recibieron registros para sincronizar.");
 
+            // Admin/Dirección no tienen "cátedras propias" — a diferencia del Docente, pueden
+            // tomar/editar asistencia de cualquier cátedra (mismo criterio que
+            // AsistenciasController, que no tiene ningún chequeo de pertenencia). Ticket 8.2.
+            bool esAdminODireccion = User.IsInRole("Admin") || User.IsInRole("Dirección");
+
             // Cátedras (CarreraMateria puntuales) que realmente son del docente logueado —
             // un docente no puede sincronizar asistencia de una cátedra que no tiene
             // asignada, ni aunque la mande a mano armando el JSON él mismo. Se valida por
             // CaMaId (la cátedra concreta), no por MaId (la materia en general): antes,
             // tener una cátedra de "Programación I" en una carrera alcanzaba para
             // sincronizar asistencia de OTRA cátedra de "Programación I" en una carrera
-            // que no era suya (ticket 5.12/5.16).
-            var catedrasPermitidas = await _context
-                .Usuarios.Where(u => u.UsId == docenteId)
-                .SelectMany(u => u.CarreraMaterias)
-                .Select(cm => cm.CaMaId)
-                .Distinct()
-                .ToListAsync();
+            // que no era suya (ticket 5.12/5.16). No aplica a Admin/Dirección.
+            var catedrasPermitidas = esAdminODireccion
+                ? new List<int>()
+                : await _context
+                    .Usuarios.Where(u => u.UsId == docenteId)
+                    .SelectMany(u => u.CarreraMaterias)
+                    .Select(cm => cm.CaMaId)
+                    .Distinct()
+                    .ToListAsync();
 
             var resultados = new List<SincronizarResultadoItemDto>();
 
@@ -88,7 +95,7 @@ namespace ISFDyT124.Controllers.Api
                     continue;
                 }
 
-                if (!catedrasPermitidas.Contains(dto.CaMaId!.Value))
+                if (!esAdminODireccion && !catedrasPermitidas.Contains(dto.CaMaId!.Value))
                 {
                     resultados.Add(new SincronizarResultadoItemDto
                     {

@@ -225,9 +225,19 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            int nuevoUsId = _context.Usuarios.Any()
-                ? await _context.Usuarios.MaxAsync(u => u.UsId) + 1
-                : 1;
+            // Usuarios.UsId no es IDENTITY (ver InstitutoDbContext) -- se calcula a mano como
+            // MAX+1. Sin lock, dos altas simultáneas podían leer el mismo MAX y chocar al
+            // insertar (ticket 6.13). UPDLOCK+HOLDLOCK dentro de una transacción serializa
+            // el cálculo: la segunda alta espera a que la primera confirme o revierta.
+            using var transaccionId = await _context.Database.BeginTransactionAsync();
+
+            // SqlQuery<T> escalar necesita que la columna se llame literalmente "Value"
+            // (EF Core la envuelve como "SELECT s.Value FROM (...) AS s" por dentro).
+            int nuevoUsId = await _context
+                .Database.SqlQuery<int>(
+                    $"SELECT ISNULL(MAX(UsId), 0) + 1 AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)"
+                )
+                .FirstAsync();
 
             var usuario = new Usuario
             {
@@ -269,6 +279,8 @@ namespace ISFDyT124.Controllers
                     }
                     await _context.SaveChangesAsync();
                 }
+
+                await transaccionId.CommitAsync();
             }
             catch (DbUpdateException)
             {
@@ -729,7 +741,14 @@ namespace ISFDyT124.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                int maxUsId = _context.Usuarios.Any() ? await _context.Usuarios.MaxAsync(u => u.UsId) : 0;
+                // UPDLOCK+HOLDLOCK: mismo motivo que en UsuarioAgregar (ticket 6.13) -- sin
+                // esto, una alta individual simultánea a esta carga masiva podía leer el
+                // mismo MAX y chocar de UsId con la primera fila del lote.
+                int maxUsId = await _context
+                    .Database.SqlQuery<int>(
+                        $"SELECT ISNULL(MAX(UsId), 0) AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)"
+                    )
+                    .FirstAsync();
                 int alumnosNuevos = 0;
                 int alumnosReutilizados = 0;
                 int inscripcionesCreadas = 0;
@@ -829,7 +848,7 @@ namespace ISFDyT124.Controllers
 
                 return View("CargaMasivaResultado", resultadoExitoso);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
@@ -837,7 +856,9 @@ namespace ISFDyT124.Controllers
                 var resultadoFallo = new CargaMasivaResultadoDto
                 {
                     EsExitoso = false,
-                    Mensaje = $"Ocurrió un error inesperado al guardar los datos en la base de datos: {ex.Message}. Se cancelaron todas las operaciones.",
+                    // No se expone ex.Message al usuario: podía filtrar detalles internos
+                    // (nombres de tabla/columna) de la excepción de base de datos (ticket 6.14).
+                    Mensaje = "Ocurrió un error inesperado al guardar los datos. Se cancelaron todas las operaciones.",
                     CarreraCohorteDenominacion = ccDenom,
                     TotalFilas = parseResult.FilasValidas.Count
                 };

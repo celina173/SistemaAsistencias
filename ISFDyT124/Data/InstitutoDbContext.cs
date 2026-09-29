@@ -143,11 +143,17 @@ namespace ISFDyT124.Data
                 .HasFilter("[AsClientGuid] IS NOT NULL");
 
             // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
+            // Restrict (no Cascade): con Cascade, borrar un alumno borraba en silencio todo
+            // su historial de asistencia real, sin ningún aviso ni forma de deshacerlo. Con
+            // Restrict, el borrado del alumno falla si tiene asistencia cargada; los
+            // controllers que borran Usuarios (AdminController, AlumnosController) ya
+            // capturan DbUpdateException y muestran un mensaje claro en vez de un 500
+            // (ticket 3.32).
             modelBuilder.Entity<Asistencia>()
                 .HasOne(a => a.Usuario)
                 .WithMany(u => u.Asistencias)
                 .HasForeignKey(a => a.UsId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Asistencia>()
                 .HasOne(a => a.Materias)

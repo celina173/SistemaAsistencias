@@ -43,7 +43,10 @@
         // mostrando la URL que se pidió de verdad — se usa para dar un mensaje más útil
         // en el caso puntual de Tomar Asistencia (frente 7 / PWA offline).
         (function () {
-            if (window.location.pathname.indexOf('/Profesor/Asistencia') !== -1) {
+            // Ticket 8.2: mismo mensaje para la pantalla de Tomar Asistencia de Admin/Dirección
+            // (Asistencias/Asistencia) que para la del Docente (Profesor/Asistencia).
+            if (window.location.pathname.indexOf('/Profesor/Asistencia') !== -1
+                || window.location.pathname.indexOf('/Asistencias/Asistencia') !== -1) {
                 document.getElementById('offlineMensaje').textContent =
                     'Esta cátedra todavía no se guardó en el dispositivo para poder abrirla sin conexión. ' +
                     'Abrila una vez con wifi o datos (por ejemplo, al llegar al instituto) y va a quedar ' +
