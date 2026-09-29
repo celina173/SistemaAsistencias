@@ -27,9 +27,10 @@
 
             <!-- El campo ocupa todo el ancho de la tarjeta -->
             <div class="input-field" style="grid-column: span 2;">
-                <label asp-for="CaDenominacion"></label>
-                <input asp-for="CaDenominacion" placeholder="Ej: Tec. Sup. en Desarrollo de Software" autocomplete="off">
-                <span asp-validation-for="CaDenominacion" class="text-danger"></span>
+                <input asp-for="CaDenominacion" 
+                 placeholder="Ej: Tec. Sup. en Desarrollo de Software" 
+                 autocomplete="off"
+                 oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
             </div>
 
             <div class="input-field">

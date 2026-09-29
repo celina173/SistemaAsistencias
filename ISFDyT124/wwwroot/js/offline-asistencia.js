@@ -12,6 +12,13 @@
         // que el servidor usa para deduplicar. enviado: 0 = pendiente, 1 = ya sincronizado.
         pendientes: '++id, clientGuid, enviado, maId, fecha',
     });
+    // v2: se suma caMaId (la cátedra puntual, no solo la materia) para que el servidor
+    // pueda guardar/matchear por cátedra y no mezcle asistencia de dos cátedras de la
+    // misma materia (ticket 5.12). Los registros ya encolados en v1 (si quedó alguno
+    // pendiente de sincronizar) simplemente no tienen caMaId hasta que se re-encolen.
+    db.version(2).stores({
+        pendientes: '++id, clientGuid, enviado, maId, caMaId, fecha',
+    });
 
     function getAntiforgeryToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
@@ -30,12 +37,13 @@
 
     /// Encola en IndexedDB una tanda de asistencia (todo el formulario de una cátedra/fecha).
     /// filas: [{ usId, presente, justificacion }, ...]
-    async function encolarAsistencia(maId, fecha, filas) {
+    async function encolarAsistencia(maId, caMaId, fecha, filas) {
         var ahora = new Date().toISOString();
         var registros = filas.map(function (fila) {
             return {
                 clientGuid: generarGuid(),
                 maId: maId,
+                caMaId: caMaId,
                 fecha: fecha,
                 fechaCarga: ahora,
                 usId: fila.usId,
@@ -62,6 +70,7 @@
                 clientGuid: p.clientGuid,
                 usId: p.usId,
                 maId: p.maId,
+                caMaId: p.caMaId,
                 fecha: p.fecha,
                 fechaCarga: p.fechaCarga,
                 presente: p.presente,

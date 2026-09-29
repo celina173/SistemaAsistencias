@@ -12,8 +12,9 @@ namespace ISFDyT124.Models
         [Key]
         public int AsId { get; set; }
 
-        // Fecha y hora exacta en la toma de asistencia.
-        [Required(ErrorMessage = "La fecha es obligatoria")]
+        // Fecha y hora exacta en la toma de asistencia. Nullable de verdad (hay registros
+        // históricos sin fecha) — por eso no lleva [Required], que exigiría un valor en
+        // cualquier ModelState que incluya este campo, algo inconsistente con el tipo.
         [Display(Name = "Fecha y Hora")]
         public DateTime? AsFecha { get; set; }
 

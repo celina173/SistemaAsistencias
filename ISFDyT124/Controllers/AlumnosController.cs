@@ -12,8 +12,6 @@ namespace ISFDyT124.Controllers
     [Authorize(Roles = "Admin,Dirección,Docente")]
     public class AlumnosController : Controller
     {
-        private const int RolEstudianteId = 3;
-
         private readonly InstitutoDbContext _context;
 
         public AlumnosController(InstitutoDbContext context)
@@ -43,7 +41,7 @@ namespace ISFDyT124.Controllers
 
         private IQueryable<Usuario> AlumnosVisibles(List<int>? caCoIdsPermitidos)
         {
-            var query = _context.Usuarios.Where(u => u.RoId == RolEstudianteId);
+            var query = _context.Usuarios.Where(u => u.RoId == RolId.Estudiante);
 
             if (caCoIdsPermitidos != null)
                 query = query.Where(u =>
@@ -187,9 +185,16 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            int nuevoUsId = await _context.Usuarios.AnyAsync()
-                ? await _context.Usuarios.MaxAsync(u => u.UsId) + 1
-                : 1;
+            // Usuarios.UsId no es IDENTITY -- se calcula a mano como MAX+1. Sin lock, dos
+            // altas simultáneas podían leer el mismo MAX y chocar al insertar (ticket 6.13).
+            // UPDLOCK+HOLDLOCK dentro de una transacción serializa el cálculo.
+            using var transaccionId = await _context.Database.BeginTransactionAsync();
+
+            int nuevoUsId = await _context
+                .Database.SqlQuery<int>(
+                    $"SELECT ISNULL(MAX(UsId), 0) + 1 AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)"
+                )
+                .FirstAsync();
 
             var alumno = new Usuario
             {
@@ -199,7 +204,7 @@ namespace ISFDyT124.Controllers
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
                 UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
-                RoId = RolEstudianteId,
+                RoId = RolId.Estudiante,
                 CaCoId = model.CaCoId,
                 UsActivo = model.UsActivo // ASIGNA EL ESTADO DESDE EL FORMULARIO (Si lo habilitaste en la vista Agregar)
             };
@@ -212,6 +217,8 @@ namespace ISFDyT124.Controllers
                 _context.Inscripciones.Add(new Inscripciones { UsId = alumno.UsId, CaMaId = caMaId });
             if (caMaValidos.Count > 0)
                 await _context.SaveChangesAsync();
+
+            await transaccionId.CommitAsync();
 
             TempData["SuccessMessage"] = "Estudiante agregado correctamente.";
             return RedirectToAction(nameof(Index));
@@ -345,7 +352,19 @@ namespace ISFDyT124.Controllers
             _context.Inscripciones.RemoveRange(inscripciones);
             _context.UsuarioRoles.RemoveRange(alumno.UsuarioRoles);
             _context.Usuarios.Remove(alumno);
-            await _context.SaveChangesAsync();
+
+            // FIX: sin try/catch, cualquier choque de FK al borrar tiraba una
+            // DbUpdateException sin capturar y reventaba la request con un error 500 en vez
+            // de avisarle al usuario. Mismo criterio que ya usa AdminController.UsuarioEliminarConfirmado.
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "No se pudo eliminar el estudiante. Puede tener datos relacionados que lo impiden.";
+                return RedirectToAction(nameof(Index));
+            }
 
             TempData["SuccessMessage"] = "Estudiante eliminado definitivamente.";
             return RedirectToAction(nameof(Index));

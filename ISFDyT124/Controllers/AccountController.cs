@@ -137,7 +137,17 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction("CambiarContrasena");
 
             // REDIRECCIÓN PARTE B: Si no tuvo que cambiar la clave, lo mandamos a su panel según el rol.
-            switch (usuario.Rol?.RoDenominacion?.ToUpper())
+            return RedirectPorRol(usuario.Rol?.RoDenominacion);
+        }
+
+        /// <summary>
+        /// A dónde mandar al usuario según su rol, ya logueado. Compartido entre Login y
+        /// CambiarContrasena — antes CambiarContrasena mandaba siempre a Home sin importar
+        /// el rol (ticket 6.6).
+        /// </summary>
+        private IActionResult RedirectPorRol(string? roDenominacion)
+        {
+            switch (roDenominacion?.ToUpper())
             {
                 case "ADMIN":
                     return RedirectToAction("Index", "Admin");
@@ -180,9 +190,11 @@ namespace ISFDyT124.Controllers
             }
 
             // Buscamos el usuario logueado usando el Claim del ID
-            var usuario = await _context.Usuarios.FindAsync(
-                int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
-            );
+            var usuario = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                );
             if (usuario == null)
                 return RedirectToAction("Salir");
 
@@ -190,7 +202,9 @@ namespace ISFDyT124.Controllers
             usuario.UsContrasena = PasswordService.HashPassword(nuevaContrasena);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index", "Home");
+            // Antes mandaba siempre a Home sin importar el rol (ticket 6.6) — mismo
+            // redirect que ya usa Login tras autenticar.
+            return RedirectPorRol(usuario.Rol?.RoDenominacion);
         }
 
         public async Task<IActionResult> Salir()
