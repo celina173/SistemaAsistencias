@@ -68,7 +68,7 @@
 
     <nav class="sidebar" id="sidebarMenu">
         <ul class="sidebar-links">
-            <!-- 1. INICIO INTELIGENTE -->
+            <!-- INICIO INTELIGENTE -->
             <li>
                 <a asp-controller="@targetController" asp-action="Index"><span class="menu-arrow">➔</span>Inicio</a>
             </li>
@@ -99,21 +99,13 @@
                 }
             </li>
 
-            <!-- PANEL ADMIN -->
-            @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
-            {
-                <li>
-                    <a asp-controller="Admin" asp-action="Index"><span class="menu-arrow">➔</span>Panel Admin</a>
-                </li>
-            }
-
             <li>
                 <a asp-controller="Account" asp-action="Login"><span class="menu-arrow">➔</span>Cerrar Sesion</a>
             </li>
         </ul>
     </nav>
 
-    <!-- Barra inferior PWA INTELIGENTE (Usa la misma lógica que el menú lateral) -->
+    <!-- Barra inferior PWA INTELIGENTE -->
     <nav class="pwa-bottom-nav" id="pwaBottomNav">
         <a asp-controller="@targetController" asp-action="Index" class="pwa-bottom-nav-item">
             <i class="bi bi-house"></i>
@@ -148,13 +140,6 @@
             </a>
         }
 
-        @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
-        {
-            <a asp-controller="Admin" asp-action="Index" class="pwa-bottom-nav-item">
-                <i class="bi bi-speedometer2"></i>
-                <span>Panel</span>
-            </a>
-        }
         <a asp-controller="Account" asp-action="Login" class="pwa-bottom-nav-item">
             <i class="bi bi-box-arrow-right"></i>
             <span>Salir</span>
