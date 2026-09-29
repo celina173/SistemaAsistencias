@@ -243,7 +243,7 @@ namespace ISFDyT124.Services
                     {
                         listaErroresFila.Add($"El DNI '{rawDni}' no es numérico.");
                     }
-                    else if (dniNumerico < 6000000 || dniNumerico > 99999999)
+                    else if (dniNumerico < 1000000 || dniNumerico > 99999999)
                     {
                         listaErroresFila.Add($"El DNI '{dniNumerico}' está fuera del rango válido (7 a 8 dígitos).");
                     }
