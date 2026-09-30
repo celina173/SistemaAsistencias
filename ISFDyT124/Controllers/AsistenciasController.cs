@@ -384,7 +384,8 @@ namespace ISFDyT124.Controllers
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
-            return RedirectToAction(nameof(Index));
+            // Lo redireccionamos a AsistenciasController -> AsistenciaGlobal, pasándole el ID de Cátedra
+            return RedirectToAction("AsistenciaGlobal", "Asistencias", new { caMaId = Request.Form["caMaId"] });
         }
 
         // GET: Asistencias/AsistenciaGlobal
