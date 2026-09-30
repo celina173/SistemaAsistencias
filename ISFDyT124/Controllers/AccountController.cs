@@ -173,10 +173,30 @@ namespace ISFDyT124.Controllers
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CambiarContrasena(
+            string contrasenaActual,
             string nuevaContrasena,
             string confirmarContrasena
         )
         {
+            // Buscamos el usuario logueado usando el Claim del ID
+            var usuario = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                );
+            if (usuario == null)
+                return RedirectToAction("Salir");
+
+            // Antes esta acción no pedía ni verificaba la contraseña actual: cualquiera con
+            // la sesión abierta (ej. una cookie robada, un equipo compartido sin cerrar
+            // sesión) podía cambiar la contraseña del usuario sin saber la actual, quedándose
+            // con la cuenta. Mismo verificador que usa el login.
+            if (!PasswordService.VerifyPassword(contrasenaActual, usuario.UsContrasena))
+            {
+                ModelState.AddModelError("", "La contraseña actual no es correcta.");
+                return View();
+            }
+
             if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
             {
                 ModelState.AddModelError("", "La contraseña debe tener al menos 6 caracteres.");
@@ -188,15 +208,6 @@ namespace ISFDyT124.Controllers
                 ModelState.AddModelError("", "Las contraseñas no coinciden.");
                 return View();
             }
-
-            // Buscamos el usuario logueado usando el Claim del ID
-            var usuario = await _context
-                .Usuarios.Include(u => u.Rol)
-                .FirstOrDefaultAsync(u =>
-                    u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
-                );
-            if (usuario == null)
-                return RedirectToAction("Salir");
 
             // CAMBIO: la contraseña nueva se guarda hasheada, nunca en texto plano.
             usuario.UsContrasena = PasswordService.HashPassword(nuevaContrasena);

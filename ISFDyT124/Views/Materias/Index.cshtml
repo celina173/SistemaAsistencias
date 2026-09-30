@@ -41,6 +41,13 @@
     </div>
 </div>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" style="background: #fde8e8; color: #c81e1e; border: 1px solid #f8b4b4; padding: 12px 16px; border-radius: 8px; margin: 15px 0;">
+        <i class="bi bi-exclamation-triangle-fill" style="margin-right: 8px;"></i> @TempData["Error"]
+    </div>
+}
+
 <div class="page-title-container">
     <h2 class="page-main-title">Gestión Materias</h2>
 </div>
