@@ -62,35 +62,61 @@ public class MateriasController : Controller
         ViewData["MaId"] = new SelectList(_context.Materias, "MaId", "MaDenominacion");
         return View();
     }
-
     // POST: MATERIAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaDenominacion,MaModalidad,MaCantModulos")] Materia materia, int? CaCoId)
+    public async Task<IActionResult> Create(
+        [Bind("MaDenominacion,MaModalidad,MaCantModulos")] Materia materia, int? CaCoId)
     {
+        materia.MaDenominacion = materia.MaDenominacion?.Trim();
+
+        // 1) Carrera-Cohorte obligatoria y existente (el mensaje sale bajo el desplegable de Carrera)
+        CarreraCohorte? carreraCohorte = null;
+        if (!CaCoId.HasValue)
+        {
+            ModelState.AddModelError("CaCoId", "Debe seleccionar una Carrera.");
+        }
+        else
+        {
+            carreraCohorte = await _context.CarreraCohortes
+                .FirstOrDefaultAsync(cc => cc.CaCoId == CaCoId.Value);
+
+            if (carreraCohorte == null)
+                ModelState.AddModelError("CaCoId", "La Carrera seleccionada no existe.");
+        }
+
+        // 2) El nombre solo puede repetirse en OTRA carrera
+        if (carreraCohorte != null && !string.IsNullOrEmpty(materia.MaDenominacion))
+        {
+            bool repetidaEnLaCarrera = await (
+                from cm in _context.CarreraMaterias
+                join m in _context.Materias on cm.MaId equals m.MaId
+                join cc in _context.CarreraCohortes on cm.CaCoId equals cc.CaCoId
+                where cc.CaId == carreraCohorte.CaId
+                      && m.MaDenominacion == materia.MaDenominacion
+                select cm.MaId
+            ).AnyAsync();
+
+            if (repetidaEnLaCarrera)
+                ModelState.AddModelError("MaDenominacion",
+                    "Esa Carrera ya tiene una materia con ese nombre.");
+        }
+
         if (ModelState.IsValid)
         {
+            // Un solo SaveChanges: Materia y CarreraMateria se guardan juntas o no se guarda nada
+            materia.CarreraMaterias.Add(new CarreraMateria { CaCoId = CaCoId!.Value });
             _context.Add(materia);
             await _context.SaveChangesAsync();
-            // Si se seleccionó una carrera-cohorte, crear la cátedra en CarreraMateria
-            if (CaCoId.HasValue)
-            {
-                var rel = new CarreraMateria
-                {
-                    CaCoId = CaCoId.Value,
-                    MaId = materia.MaId
-                };
-                _context.CarreraMaterias.Add(rel);
-                await _context.SaveChangesAsync();
-            }
             return RedirectToAction(nameof(Index));
         }
 
         // repoblar selects en caso de error
         ViewData["CaCoId"] = await CarreraCohortesSelectListAsync(CaCoId);
-        ViewData["MaId"] = new SelectList(_context.Materias, "MaId", "MaDenominacion", materia?.MaId);
+        ViewData["MaId"] = new SelectList(_context.Materias, "MaId", "MaDenominacion", materia.MaId);
         return View(materia);
     }
+
 
     // GET: MATERIAS/Edit/5
     public async Task<IActionResult> Edit(int? MaId)
