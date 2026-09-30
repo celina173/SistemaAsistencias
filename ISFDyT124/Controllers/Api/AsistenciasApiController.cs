@@ -128,6 +128,9 @@ namespace ISFDyT124.Controllers.Api
                 }
 
                 bool justificado = dto.Presente ? false : dto.Justificacion;
+                // Cola offline: mismo criterio binario que ProfesorController, sin módulos
+                // parciales (ticket 5.13).
+                decimal porcentaje = dto.Presente ? 100m : 0m;
 
                 // 2) Mismo criterio de upsert que ya usa ProfesorController.Asistencia: si el
                 //    docente (u otro con acceso a la misma cátedra) ya cargó ese alumno+cátedra+
@@ -149,6 +152,7 @@ namespace ISFDyT124.Controllers.Api
                 if (existente != null)
                 {
                     existente.AsPresente = dto.Presente;
+                    existente.AsPorcentaje = porcentaje;
                     existente.AsJustificacion = justificado;
                     existente.AsClientGuid = dto.ClientGuid;
                     existente.AsFechaCarga = dto.FechaCarga;
@@ -160,6 +164,7 @@ namespace ISFDyT124.Controllers.Api
                         AsFecha = dto.Fecha.Date,
                         AsFechaCarga = dto.FechaCarga,
                         AsPresente = dto.Presente,
+                        AsPorcentaje = porcentaje,
                         AsJustificacion = justificado,
                         UsId = dto.UsId,
                         MaId = dto.MaId,
