@@ -40,20 +40,43 @@ namespace ISFDyT124.Controllers
                     Denominacion = cc.Carrera.CaDenominacion + " - " + cc.Cohorte.CoAnio,
                 })
                 .ToListAsync();
-            ViewBag.CarreraMateriasList = await _context
-                .CarreraMaterias.Include(cm => cm.CarreraCohorte)
+
+            // Cargar todas las filas y filtrar las inválidas en memoria para poder loguearlas
+            var materiasRaw = await _context
+                .CarreraMaterias
+                .Include(cm => cm.CarreraCohorte)
                     .ThenInclude(cc => cc!.Carrera)
                 .Include(cm => cm.Materia)
+                .ToListAsync();
+
+            var materiasLimpias = materiasRaw
+                .Where(cm =>
+                    cm.CaMaId > 0 &&
+                    cm.Materia != null &&
+                    !string.IsNullOrWhiteSpace(cm.Materia.MaDenominacion))
                 .Select(cm => new
                 {
                     cm.CaMaId,
                     Denominacion =
-                        (cm.CarreraCohorte != null
-                            ? cm.CarreraCohorte.Carrera!.CaDenominacion
+                        (cm.CarreraCohorte != null && cm.CarreraCohorte.Carrera != null
+                            ? cm.CarreraCohorte.Carrera.CaDenominacion
                             : "Sin carrera")
-                        + " / " + cm.Materia!.MaDenominacion,
+                        + " / " + cm.Materia!.MaDenominacion
                 })
-                .ToListAsync();
+                .ToList();
+
+            var excluidos = materiasRaw
+                .Where(cm => cm.CaMaId <= 0 || cm.Materia == null || string.IsNullOrWhiteSpace(cm.Materia.MaDenominacion))
+                .Select(cm => new { cm.CaMaId, cm.MaId })
+                .ToList();
+
+            if (excluidos.Any())
+            {
+                _logger.LogWarning("CarreraMaterias inválidas excluidas al poblar formulario. CaMaId/MaId: {Items}", 
+                    string.Join(",", excluidos.Select(e => $"{e.CaMaId}/{e.MaId}")));
+            }
+
+            ViewBag.CarreraMateriasList = materiasLimpias;
         }
 
         public async Task<IActionResult> Index()
@@ -201,6 +224,18 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // Validación de email único (previene duplicados a nivel de aplicación)
+            if (!string.IsNullOrWhiteSpace(model.UsEmail))
+            {
+                var emailExists = await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail);
+                if (emailExists)
+                {
+                    ModelState.AddModelError("UsEmail", "El email ya se encuentra registrado.");
+                    await CargarListasFormularioUsuarioAsync();
+                    return View(model);
+                }
+            }
+
             if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
             {
                 ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
@@ -228,14 +263,8 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Usuarios.UsId no es IDENTITY (ver InstitutoDbContext) -- se calcula a mano como
-            // MAX+1. Sin lock, dos altas simultáneas podían leer el mismo MAX y chocar al
-            // insertar (ticket 6.13). UPDLOCK+HOLDLOCK dentro de una transacción serializa
-            // el cálculo: la segunda alta espera a que la primera confirme o revierta.
             using var transaccionId = await _context.Database.BeginTransactionAsync();
 
-            // SqlQuery<T> escalar necesita que la columna se llame literalmente "Value"
-            // (EF Core la envuelve como "SELECT s.Value FROM (...) AS s" por dentro).
             int nuevoUsId = await _context
                 .Database.SqlQuery<int>(
                     $"SELECT ISNULL(MAX(UsId), 0) + 1 AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)"
@@ -249,10 +278,6 @@ namespace ISFDyT124.Controllers
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                // CAMBIO: la contraseña inicial (el propio DNI) se guarda hasheada. Sigue
-                // siendo el mismo valor de contraseña por defecto, solo cambia cómo se
-                // almacena; el chequeo de "debe cambiar contraseña" en AccountController
-                // ahora verifica el hash en vez de comparar strings.
                 UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
                 RoId = selectedRoleId,
                 CaCoId = selectedRoleId == 3 ? model.CaCoId : null,
@@ -265,17 +290,17 @@ namespace ISFDyT124.Controllers
 
                 if (selectedRoleId == 2 && model.SelectedCaMaIds != null)
                 {
-                    // usuario es un objeto recién creado (no vino de un Include), así que EF
-                    // no sabe que su colección CarreraMaterias está "cargada". Sin esto, el
-                    // Add() de abajo tira InvalidOperationException al guardar ("el valor de
-                    // la FK de la tabla intermedia es desconocido") porque no puede resolver
-                    // el estado de la relación muchos a muchos. Como es un usuario nuevo,
-                    // sabemos con certeza que la colección está vacía.
                     _context.Entry(usuario).Collection(u => u.CarreraMaterias).IsLoaded = true;
 
-                    var materias = await _context
-                        .CarreraMaterias.Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
+                    var materias = await _context.CarreraMaterias
+                        .Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId) && cm.CaMaId > 0 && cm.Materia != null)
                         .ToListAsync();
+
+                    var invalidIds = model.SelectedCaMaIds.Except(materias.Select(m => m.CaMaId)).ToList();
+                    if (invalidIds.Any())
+                    {
+                        _logger.LogWarning("Se ignoraron CaMaIds inválidos seleccionados por UI: {Ids}", string.Join(",", invalidIds));
+                    }
                     foreach (var cm in materias)
                     {
                         usuario.CarreraMaterias.Add(cm);
@@ -297,7 +322,6 @@ namespace ISFDyT124.Controllers
             }
             catch (Exception ex)
             {
-                // Registrar cualquier excepción no prevista para poder verla en Azure
                 _logger.LogError(ex, "Error inesperado al crear usuario. RoleId: {RoleId}, Dni: {Dni}", selectedRoleId, model.UsDni);
                 throw;
             }
@@ -361,6 +385,18 @@ namespace ISFDyT124.Controllers
             if (usuario == null)
                 return NotFound();
 
+            // Validación de email único al editar (ignora el propio usuario)
+            if (!string.IsNullOrWhiteSpace(model.UsEmail))
+            {
+                var emailExists = await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail && u.UsId != id);
+                if (emailExists)
+                {
+                    ModelState.AddModelError("UsEmail", "El email ya se encuentra registrado por otro usuario.");
+                    await CargarListasFormularioUsuarioAsync();
+                    return View(model);
+                }
+            }
+
             if (selectedRoleId == 3 && model.CaCoId == null)
             {
                 ModelState.AddModelError(
@@ -411,8 +447,9 @@ namespace ISFDyT124.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
+                _logger.LogError(ex, "DbUpdateException al editar usuario. UsId: {UsId}, Dni: {Dni}", id, model.UsDni);
                 ModelState.AddModelError(
                     string.Empty,
                     "No se pudo guardar el usuario. Verifique que todos los campos obligatorios estén completos e intente nuevamente."
@@ -510,19 +547,17 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> ObtenerMateriasPorCarreraCohorte(int caCoId)
         {
             var cc = await _context.CarreraCohortes.FirstOrDefaultAsync(x => x.CaCoId == caCoId);
-            if (cc == null)
-            {
-                return Json(new List<object>());
-            }
+            if (cc == null) return Json(new List<object>());
 
             var materias = await _context.CarreraMaterias
-                .Where(cm => cm.CaCoId == cc.CaCoId)
+                .Where(cm => cm.CaCoId == cc.CaCoId && cm.CaMaId > 0 && cm.Materia != null && !string.IsNullOrWhiteSpace(cm.Materia.MaDenominacion))
                 .Include(cm => cm.Materia)
                 .Select(cm => new
                 {
                     caMaId = cm.CaMaId,
-                    denominacion = cm.Materia.MaDenominacion,
-                    modalidad = cm.Materia.MaModalidad,
+                    denominacion = (cm.CarreraCohorte != null && cm.CarreraCohorte.Carrera != null ? cm.CarreraCohorte.Carrera.CaDenominacion + " / " : string.Empty)
+                                  + cm.Materia!.MaDenominacion,
+                    modalidad = cm.Materia!.MaModalidad,
                     modulos = cm.Materia.MaCantModulos
                 })
                 .ToListAsync();
