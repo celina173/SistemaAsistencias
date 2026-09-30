@@ -1,0 +1,32 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+context: |
+  Sistema de Asistencias (ISFDyT124) — ASP.NET Core MVC (.NET, EF Core + SQL Server).
+  Ver CLAUDE.md en la raíz del repo para reglas de trabajo (ramas, cadena de conexión, contexto de datos).
+  Rama de trabajo: Development. master solo se toca con orden explícita del usuario.
+  El código real del proyecto vive en la carpeta ISFDyT124/.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

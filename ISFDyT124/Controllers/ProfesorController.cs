@@ -39,19 +39,14 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            // Solo cátedras de la cohorte del año en curso — una cátedra de una
-            // cohorte pasada (ej. 2026 cuando ya estamos en 2027) no debe seguir
-            // apareciendo en el panel del docente.
-            int anioActual = DateTime.Today.Year;
-
+            // No se filtra por año de cohorte: la cohorte de una cátedra puede representar
+            // el año de ingreso de esa camada (ej. una materia de 2do año de la carrera
+            // queda atada a la cohorte del año anterior), así que se listan todas las
+            // cátedras asignadas al docente sin importar el año.
             var catedras = await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
-                .Where(cm =>
-                    cm.CarreraCohorte != null
-                    && cm.CarreraCohorte.Cohorte != null
-                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
-                )
+                .Where(cm => cm.CarreraCohorte != null)
                 .Select(cm => new CarreraMateriaDetalleDto
                 {
                     CaMaId = cm.CaMaId,
@@ -229,9 +224,15 @@ namespace ISFDyT124.Controllers
                     && a.AsFecha.Value.Date == fecha.Date
                 );
 
+                // Esta pantalla no tiene módulos parciales -- presente/ausente es binario,
+                // así que el porcentaje es directamente 100 o 0 (ticket 5.13, mismo campo
+                // que usa AsistenciasController para el detalle con módulos).
+                decimal porcentaje = presente ? 100m : 0m;
+
                 if (existente != null)
                 {
                     existente.AsPresente = presente;
+                    existente.AsPorcentaje = porcentaje;
                     existente.AsJustificacion = justificado;
                     _context.Update(existente);
                 }
@@ -242,6 +243,7 @@ namespace ISFDyT124.Controllers
                         {
                             AsFecha = fecha.Date,
                             AsPresente = presente,
+                            AsPorcentaje = porcentaje,
                             AsJustificacion = justificado,
                             UsId = dto.UsId,
                             MaId = maId,
@@ -259,27 +261,20 @@ namespace ISFDyT124.Controllers
 
         /// <summary>
         /// Verifica que la cátedra (CarreraMateria puntual) sea una de las que tiene
-        /// asignadas el docente EN LA COHORTE DEL AÑO EN CURSO, antes de dejarlo ver/editar
-        /// su asistencia. Chequea por CaMaId (la cátedra concreta), no por MaId (la
-        /// materia en general): antes, un docente con una cátedra de "Programación I" en
-        /// una carrera quedaba autorizado para cualquier otra cátedra de "Programación I"
-        /// en OTRA carrera que no era suya. Una cátedra de una cohorte pasada (ej. el
-        /// docente tenía una carrera de la cohorte 2026 y ya estamos en 2027) tampoco
-        /// cuenta como propia, aunque la relación siga existiendo en la base.
+        /// asignadas el docente, antes de dejarlo ver/editar su asistencia. Chequea por
+        /// CaMaId (la cátedra concreta), no por MaId (la materia en general): antes, un
+        /// docente con una cátedra de "Programación I" en una carrera quedaba autorizado
+        /// para cualquier otra cátedra de "Programación I" en OTRA carrera que no era suya.
+        /// No se filtra por año de cohorte: la cohorte puede representar el año de ingreso
+        /// de esa camada (ej. una materia de 2do año queda atada a la cohorte del año
+        /// anterior), así que una cátedra de un año pasado sigue siendo válida.
         /// </summary>
         private async Task<bool> EsCatedraDelDocenteAsync(int docenteId, int caMaId)
         {
-            int anioActual = DateTime.Today.Year;
-
             return await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
-                .AnyAsync(cm =>
-                    cm.CaMaId == caMaId
-                    && cm.CarreraCohorte != null
-                    && cm.CarreraCohorte.Cohorte != null
-                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
-                );
+                .AnyAsync(cm => cm.CaMaId == caMaId && cm.CarreraCohorte != null);
         }
 
         #endregion
