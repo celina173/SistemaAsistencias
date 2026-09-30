@@ -26,10 +26,14 @@ namespace ISFDyT124.Controllers
 
         /// <summary>
         /// IDs de CarreraMateria (cátedra puntual) que el usuario actual tiene permitido
-        /// ver/tomar asistencia. null = sin restricción (Admin/Dirección). Lista = solo las
-        /// cátedras propias del Docente de la cohorte del año en curso -- antes un Docente
-        /// veía y podía elegir CUALQUIER carrera/materia del instituto en esta pantalla,
-        /// igual que ya se corrigió en Home/Index (mismo bug, pantalla distinta).
+        /// ver/tomar asistencia. null = sin restricción (Admin/Dirección). Lista = las
+        /// cátedras propias del Docente -- antes un Docente veía y podía elegir CUALQUIER
+        /// carrera/materia del instituto en esta pantalla, igual que ya se corrigió en
+        /// Home/Index (mismo bug, pantalla distinta).
+        /// No se filtra por año de cohorte: la cohorte de una cátedra puede representar el
+        /// año de ingreso de esa camada (ej. una materia de 2do año de la carrera queda
+        /// atada a la cohorte del año anterior), así que una cátedra de un año pasado sigue
+        /// siendo una cátedra vigente que el docente tiene que poder usar.
         /// </summary>
         private async Task<List<int>?> CaMaIdsPermitidosAsync()
         {
@@ -40,16 +44,9 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return new List<int>();
 
-            int anioActual = DateTime.Today.Year;
-
             return await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
-                .Where(cm =>
-                    cm.CarreraCohorte != null
-                    && cm.CarreraCohorte.Cohorte != null
-                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
-                )
                 .Select(cm => cm.CaMaId)
                 .Distinct()
                 .ToListAsync();
