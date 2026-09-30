@@ -319,7 +319,23 @@ namespace ISFDyT124.Controllers
             var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
             var hoy = DateTime.Today;
 
-            int moduleCount = model.ModuleCount > 0 ? model.ModuleCount : 1;
+            // La cantidad real de módulos se resuelve acá, del lado servidor, en vez de
+            // confiar en model.ModuleCount -- ese campo nunca viaja en el POST (el form no
+            // tiene un <input> para él), así que siempre llegaba en 0 y el cálculo caía al
+            // fallback de "1 módulo", haciendo que tildar un solo módulo de cualquier
+            // materia diera 100% en vez del porcentaje real (ticket 5.13).
+            int moduleCount = 1;
+            if (carreraMateria != null)
+            {
+                var maCantModulosDb = await _context
+                    .Materias.Where(m => m.MaId == carreraMateria.MaId)
+                    .Select(m => (int?)m.MaCantModulos)
+                    .FirstOrDefaultAsync();
+                if (maCantModulosDb is int cant && cant > 0)
+                {
+                    moduleCount = cant;
+                }
+            }
             foreach (var row in model.Rows)
             {
                 var checkedCount = row.Modulos != null ? row.Modulos.Count(x => x) : 0;
@@ -345,6 +361,7 @@ namespace ISFDyT124.Controllers
                 if (existente != null)
                 {
                     existente.AsPresente = presente;
+                    existente.AsPorcentaje = porcentaje;
                     existente.AsJustificacion = row.AsJustificacion;
                     _context.Update(existente);
                 }
@@ -355,6 +372,7 @@ namespace ISFDyT124.Controllers
                         {
                             AsFecha = hoy,
                             AsPresente = presente,
+                            AsPorcentaje = porcentaje,
                             AsJustificacion = row.AsJustificacion,
                             UsId = row.UsId,
                             MaId = carreraMateria?.MaId,
@@ -446,7 +464,10 @@ namespace ISFDyT124.Controllers
                 .OrderBy(f => f)
                 .ToList();
 
-            // Armar filas por alumno usando AsPorcentaje si existe, sino AsPresente como 100/0
+            // Armar filas por alumno usando el porcentaje real (AsPorcentaje) cuando está
+            // cargado -- para registros históricos, previos a este campo, se usa AsPresente
+            // (100/0) como fallback (ticket 5.13: antes, un registro con solo 1 de 3 módulos
+            // marcados quedaba AsPresente=true y se mostraba como 100% de asistencia).
             foreach (var alumno in estudiantes)
             {
                 var asistenciasAlumno = todasLasAsistencias
@@ -463,20 +484,7 @@ namespace ISFDyT124.Controllers
                     decimal pct = 0m;
                     if (registro != null)
                     {
-                        // Si existe AsPorcentaje en el registro, usarlo; si no, fallback a AsPresente (100/0)
-                        var prop = registro.GetType().GetProperty("AsPorcentaje");
-                        if (prop != null)
-                        {
-                            var val = prop.GetValue(registro);
-                            if (val is decimal d)
-                                pct = d;
-                            else if (val is decimal?)
-                                pct = ((decimal?)val) ?? 0m;
-                        }
-                        else
-                        {
-                            pct = registro.AsPresente ? 100m : 0m;
-                        }
+                        pct = registro.AsPorcentaje ?? (registro.AsPresente ? 100m : 0m);
                     }
                     asistenciaPorFecha[fecha] = pct;
                     sumaPorcentajes += pct;

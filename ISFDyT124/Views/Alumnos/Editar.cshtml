@@ -49,6 +49,14 @@
             </div>
 
             <div class="input-field" style="grid-column: span 2;">
+                <label asp-for="UsActivo">Estado del Estudiante</label>
+                <select asp-for="UsActivo" required>
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+
+            <div class="input-field" style="grid-column: span 2;">
                 <label asp-for="CaCoId">Carrera / Cohorte</label>
                 <select asp-for="CaCoId" id="selectCaCoId" required data-msg-required="Debe seleccionar una Carrera / Cohorte.">
                     <option value="">Seleccione Carrera / Cohorte</option>

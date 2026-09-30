@@ -229,9 +229,15 @@ namespace ISFDyT124.Controllers
                     && a.AsFecha.Value.Date == fecha.Date
                 );
 
+                // Esta pantalla no tiene módulos parciales -- presente/ausente es binario,
+                // así que el porcentaje es directamente 100 o 0 (ticket 5.13, mismo campo
+                // que usa AsistenciasController para el detalle con módulos).
+                decimal porcentaje = presente ? 100m : 0m;
+
                 if (existente != null)
                 {
                     existente.AsPresente = presente;
+                    existente.AsPorcentaje = porcentaje;
                     existente.AsJustificacion = justificado;
                     _context.Update(existente);
                 }
@@ -242,6 +248,7 @@ namespace ISFDyT124.Controllers
                         {
                             AsFecha = fecha.Date,
                             AsPresente = presente,
+                            AsPorcentaje = porcentaje,
                             AsJustificacion = justificado,
                             UsId = dto.UsId,
                             MaId = maId,
@@ -253,7 +260,8 @@ namespace ISFDyT124.Controllers
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
-            return RedirectToAction(nameof(Index));
+            // Lo redireccionamos a AsistenciasController -> AsistenciaGlobal, pasándole el ID de Cátedra
+            return RedirectToAction("AsistenciaGlobal", "Asistencias", new { caMaId = Request.Form["caMaId"] });
         }
 
         /// <summary>
