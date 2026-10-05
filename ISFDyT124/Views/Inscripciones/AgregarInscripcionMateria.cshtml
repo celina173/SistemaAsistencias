@@ -14,7 +14,7 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <form id="formInscripcion" class="form-grid" method="post" asp-action="AgregarInscripcionMateria" asp-controller="Inscripciones">
+        <form id="formInscripcion" class="form-grid" method="post" asp-action="AgregarInscripcionMateria" asp-controller="Inscripciones" novalidate>
             @Html.AntiForgeryToken()
             @* Mostrar errores de validación del servidor para diagnosticar por qué no se guarda *@
             <div class="validation-summary" style="color:#c00; margin-bottom:10px;">@Html.ValidationSummary(true)</div>

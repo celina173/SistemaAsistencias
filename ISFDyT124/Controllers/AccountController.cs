@@ -167,17 +167,19 @@ namespace ISFDyT124.Controllers
         [Authorize]
         public IActionResult CambiarContrasena()
         {
-            return View();
+            return View(new CambiarContrasenaDto());
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CambiarContrasena(
-            string contrasenaActual,
-            string nuevaContrasena,
-            string confirmarContrasena
+            CambiarContrasenaDto model,
+            string contrasenaActual
         )
         {
+            if (!ModelState.IsValid)
+                return View(model);
+
             // Buscamos el usuario logueado usando el Claim del ID
             var usuario = await _context
                 .Usuarios.Include(u => u.Rol)
@@ -194,23 +196,11 @@ namespace ISFDyT124.Controllers
             if (!PasswordService.VerifyPassword(contrasenaActual, usuario.UsContrasena))
             {
                 ModelState.AddModelError("", "La contraseña actual no es correcta.");
-                return View();
-            }
-
-            if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
-            {
-                ModelState.AddModelError("", "La contraseña debe tener al menos 6 caracteres.");
-                return View();
-            }
-
-            if (nuevaContrasena != confirmarContrasena)
-            {
-                ModelState.AddModelError("", "Las contraseñas no coinciden.");
-                return View();
+                return View(model);
             }
 
             // CAMBIO: la contraseña nueva se guarda hasheada, nunca en texto plano.
-            usuario.UsContrasena = PasswordService.HashPassword(nuevaContrasena);
+            usuario.UsContrasena = PasswordService.HashPassword(model.NuevaContrasena);
             await _context.SaveChangesAsync();
 
             // Antes mandaba siempre a Home sin importar el rol (ticket 6.6) — mismo
