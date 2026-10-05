@@ -45,7 +45,7 @@ namespace ISFDyT124.Controllers
             return View();
         }
         */
-        
+
         // RECIBIR DATOS POST: Se ejecuta al enviar el formulario. Usamos el DTO por buenas prácticas.
         [HttpPost]
         public async Task<IActionResult> Login(UsuarioLoginDto model)
@@ -137,7 +137,17 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction("CambiarContrasena");
 
             // REDIRECCIÓN PARTE B: Si no tuvo que cambiar la clave, lo mandamos a su panel según el rol.
-            switch (usuario.Rol?.RoDenominacion?.ToUpper())
+            return RedirectPorRol(usuario.Rol?.RoDenominacion);
+        }
+
+        /// <summary>
+        /// A dónde mandar al usuario según su rol, ya logueado. Compartido entre Login y
+        /// CambiarContrasena — antes CambiarContrasena mandaba siempre a Home sin importar
+        /// el rol (ticket 6.6).
+        /// </summary>
+        private IActionResult RedirectPorRol(string? roDenominacion)
+        {
+            switch (roDenominacion?.ToUpper())
             {
                 case "ADMIN":
                     return RedirectToAction("Index", "Admin");
@@ -162,23 +172,40 @@ namespace ISFDyT124.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CambiarContrasena(CambiarContrasenaDto model)
+        public async Task<IActionResult> CambiarContrasena(
+            CambiarContrasenaDto model,
+            string contrasenaActual
+        )
         {
             if (!ModelState.IsValid)
                 return View(model);
 
             // Buscamos el usuario logueado usando el Claim del ID
-            var usuario = await _context.Usuarios.FindAsync(
-                int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
-            );
+            var usuario = await _context
+                .Usuarios.Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+                );
             if (usuario == null)
                 return RedirectToAction("Salir");
+
+            // Antes esta acción no pedía ni verificaba la contraseña actual: cualquiera con
+            // la sesión abierta (ej. una cookie robada, un equipo compartido sin cerrar
+            // sesión) podía cambiar la contraseña del usuario sin saber la actual, quedándose
+            // con la cuenta. Mismo verificador que usa el login.
+            if (!PasswordService.VerifyPassword(contrasenaActual, usuario.UsContrasena))
+            {
+                ModelState.AddModelError("", "La contraseña actual no es correcta.");
+                return View(model);
+            }
 
             // CAMBIO: la contraseña nueva se guarda hasheada, nunca en texto plano.
             usuario.UsContrasena = PasswordService.HashPassword(model.NuevaContrasena);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index", "Home");
+            // Antes mandaba siempre a Home sin importar el rol (ticket 6.6) — mismo
+            // redirect que ya usa Login tras autenticar.
+            return RedirectPorRol(usuario.Rol?.RoDenominacion);
         }
 
         public async Task<IActionResult> Salir()
@@ -192,7 +219,7 @@ namespace ISFDyT124.Controllers
 
         //Recuperación de contraseña
 
-        [HttpGet] 
+        [HttpGet]
         public ActionResult StartRecovery()
         {
             RecoveryViewModel model = new RecoveryViewModel(); // Crea un modelo vacío para el formulario de recuperación

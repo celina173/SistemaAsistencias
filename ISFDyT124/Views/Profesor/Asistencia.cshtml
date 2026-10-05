@@ -9,34 +9,46 @@
     var fecha = (DateTime)(ViewBag.Fecha ?? DateTime.Today);
 }
 
-@* Réplica dinámica de Views/Home/Asistencia.cshtml (mismas clases: attendance-table,
-   custom-checkbox, justification-cell, btn-guardar, info-banner) integrada al _Layout. *@
-
 <main class="main-container-asistencia">
 
-    <div class="info-banner">
+    <!-- BANNER AZUL OFICIAL -->
+    <div class="info-banner" style="max-width: 1000px; border-radius: 12px; margin-bottom: 20px;">
         <div class="info-col-left">
-            <p>@fecha.ToString("dd/MM/yyyy")</p>
+            <p>@fecha.ToString("dd/MM/yyyy") @DateTime.Now.ToString("HH:mm")HS</p>
             <p class="info-bold">@ViewBag.CarreraNombre</p>
         </div>
         <div class="info-col-right">
-            <p class="info-bold">@User.Identity?.Name</p>
-            <p class="info-bold">@ViewBag.MateriaNombre</p>
+            <p class="info-bold" style="text-align: right; margin: 0;">@User.Identity?.Name</p>
+            <p class="info-bold" style="text-align: right; margin: 0;">@ViewBag.MateriaNombre</p>
         </div>
     </div>
 
-    <form asp-action="Asistencia" method="post" id="formAsistencia" data-offline-asistencia="true">
+    <!-- BOTÓN VOLVER AL INICIO -->
+    <div class="contenedor-volver" style="max-width: 1000px; margin: 0 auto 20px auto;">
+        <a asp-controller="Profesor" asp-action="Index" class="btn-volver-atras" title="Volver al inicio">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver al inicio
+        </a>
+    </div>
+
+    <!-- FORMULARIO DE ASISTENCIA -->
+    <form asp-action="Asistencia" method="post" id="formAsistencia" data-offline-asistencia="true" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         @Html.AntiForgeryToken()
         <input type="hidden" name="maId" value="@maId" />
+        <!-- Este input viaja al controlador para la redirección -->
+        <input type="hidden" name="caMaId" value="@ViewBag.CaMaId" /> 
         <input type="hidden" name="fecha" value="@fecha.ToString("yyyy-MM-dd")" />
 
         <div class="table-container">
             <table class="attendance-table">
                 <thead>
                     <tr>
-                        <th style="width: 50%;">Apellido y Nombre</th>
-                        <th style="width: 25%; text-align: center;">Presente</th>
-                        <th style="width: 25%; text-align: center;">Justificación</th>
+                        <th style="width: 50%;">APELLIDO Y NOMBRE</th>
+                        <th style="width: 25%; text-align: center;">PRESENTE</th>
+                        <th style="width: 25%; text-align: center;">JUSTIFICACIÓN</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,11 +63,13 @@
                                 <td>@alumno.UsApellido, @alumno.UsNombre</td>
                                 <td class="modules-cell" style="text-align: center;">
                                     <input type="hidden" name="asistencias[@i].UsId" value="@alumno.UsId" />
-                                    <input type="checkbox" class="custom-checkbox"
+                                    <!-- Agregamos la clase chk-presente -->
+                                    <input type="checkbox" class="custom-checkbox chk-presente"
                                            name="asistencias[@i].AsPresente" value="true" @(presente ? "checked" : "") />
                                 </td>
                                 <td class="justification-cell" style="text-align: center;">
-                                    <input type="checkbox" class="custom-checkbox"
+                                    <!-- Agregamos la clase chk-justificado -->
+                                    <input type="checkbox" class="custom-checkbox chk-justificado"
                                            name="asistencias[@i].AsJustificacion" value="true" @(justificado ? "checked" : "") />
                                 </td>
                             </tr>
@@ -65,31 +79,53 @@
                     else
                     {
                         <tr>
-                            <td colspan="3" style="text-align:center;">No hay alumnos inscriptos en esta cátedra.</td>
+                            <td colspan="3" style="text-align:center; padding: 20px;">No hay alumnos inscriptos en esta cátedra.</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
 
-        <button type="submit" class="btn-guardar">Guardar Asistencia</button>
+        @if (Model != null && Model.Any())
+        {
+            <button type="submit" class="btn-guardar">Guardar Asistencia</button>
+        }
     </form>
 </main>
 
 @section Scripts {
-    @* Dexie y offline-asistencia.js ya se cargan en _Layout.cshtml para todo docente. *@
     <script>
-        // Frente 7 (PWA offline): si no hay señal al guardar, encola en IndexedDB en vez de
-        // mandar el formulario, sin avisos ni botones — se sincroniza sola cuando vuelva la
-        // señal. Con señal, el comportamiento de siempre no cambia en nada.
+        // 1. Lógica Visual: Alternar checkmarks automáticamente
+        document.addEventListener('DOMContentLoaded', function () {
+            const filas = document.querySelectorAll('.attendance-table tbody tr');
+            filas.forEach(fila => {
+                const chkPresente = fila.querySelector('.chk-presente');
+                const chkJustificado = fila.querySelector('.chk-justificado');
+
+                if (chkPresente && chkJustificado) {
+                    chkPresente.addEventListener('change', function() {
+                        if (this.checked) chkJustificado.checked = false;
+                    });
+                    chkJustificado.addEventListener('change', function() {
+                        if (this.checked) chkPresente.checked = false;
+                    });
+                }
+            });
+        });
+
+        // 2. Lógica PWA Offline (Modificada para redirigir a Asistencia Global)
         (function () {
             var form = document.getElementById('formAsistencia');
             var maId = @maId;
             var fecha = '@fecha.ToString("yyyy-MM-dd")';
+            // Sin comillas a propósito: tiene que ser number, no string -- la cola offline
+            // lo manda tal cual al servidor como JSON, y ASP.NET Core rechaza el POST entero
+            // si "CaMaId" llega como texto en vez de número (ticket 5.12).
+            var caMaId = @ViewBag.CaMaId; // Capturamos la materia actual
 
             if (form) {
                 form.addEventListener('submit', function (e) {
-                    if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, sin cambios
+                    if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, va al C#
 
                     e.preventDefault();
 
@@ -97,8 +133,8 @@
                     form.querySelectorAll('tbody tr').forEach(function (tr) {
                         var usIdInput = tr.querySelector('input[name$=".UsId"]');
                         if (!usIdInput) return;
-                        var presenteInput = tr.querySelector('input[name$=".AsPresente"]');
-                        var justificacionInput = tr.querySelector('input[name$=".AsJustificacion"]');
+                        var presenteInput = tr.querySelector('.chk-presente');
+                        var justificacionInput = tr.querySelector('.chk-justificado');
                         filas.push({
                             usId: parseInt(usIdInput.value, 10),
                             presente: !!(presenteInput && presenteInput.checked),
@@ -108,10 +144,9 @@
 
                     if (filas.length === 0) return;
 
-                    // Misma navegación que haría el servidor tras un guardado normal — la
-                    // pantalla se comporta igual haya señal o no, sin carteles de por medio.
-                    window.OfflineAsistencia.encolarAsistencia(maId, fecha, filas).then(function () {
-                        window.location.href = '/Profesor';
+                    // Encola los datos y redirige a Asistencia Global
+                    window.OfflineAsistencia.encolarAsistencia(maId, caMaId, fecha, filas).then(function () {
+                        window.location.href = '/Asistencias/AsistenciaGlobal?caMaId=' + caMaId;
                     });
                 });
             }

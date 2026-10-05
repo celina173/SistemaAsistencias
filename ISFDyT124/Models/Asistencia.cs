@@ -1,6 +1,7 @@
 ﻿using ISFDyT124.Models;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ISFDyT124.Models
 {
@@ -12,8 +13,9 @@ namespace ISFDyT124.Models
         [Key]
         public int AsId { get; set; }
 
-        // Fecha y hora exacta en la toma de asistencia.
-        [Required(ErrorMessage = "La fecha es obligatoria")]
+        // Fecha y hora exacta en la toma de asistencia. Nullable de verdad (hay registros
+        // históricos sin fecha) — por eso no lleva [Required], que exigiría un valor en
+        // cualquier ModelState que incluya este campo, algo inconsistente con el tipo.
         [Display(Name = "Fecha y Hora")]
         public DateTime? AsFecha { get; set; }
 
@@ -32,6 +34,13 @@ namespace ISFDyT124.Models
         //Bloque horario de la clase.
         [Display(Name = "Presente")]
         public bool AsPresente { get; set; } = false;
+
+        // Porcentaje real de asistencia del día (módulos asistidos / módulos totales * 100).
+        // Nullable porque registros históricos, anteriores a este campo, no lo tienen cargado
+        // -- para esos, AsistenciaGlobal sigue usando AsPresente (100/0) como fallback.
+        [Display(Name = "Porcentaje")]
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? AsPorcentaje { get; set; }
 
         // Motivo o justificación en caso de ausencia.
         [Display(Name = "Justificación")]

@@ -15,11 +15,16 @@
     <partial name="_PwaInstallBanner" />
     <div class="login-card">
         <h2>Cambiar Contraseña</h2>
-        <p>Tu contraseña actual es tu DNI. Por seguridad, debés cambiarla.</p>
+        <p>Si es tu primer ingreso, tu contraseña actual es tu DNI.</p>
 
         <form method="post" action="/Account/CambiarContrasena">
             @Html.AntiForgeryToken()
             @Html.ValidationSummary(true)
+
+            <div class="input-group">
+                <label for="contrasenaActual">Contraseña actual</label>
+                <input type="password" id="contrasenaActual" name="contrasenaActual" required>
+            </div>
 
             <div class="input-group">
                 <label for="nuevaContrasena">Nueva contraseña</label>

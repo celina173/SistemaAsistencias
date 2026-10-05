@@ -15,10 +15,8 @@ namespace ISFDyT124.Data
         //public DbSet<Login> Logins { get; set; } = null!;
         public DbSet<Materia> Materias { get; set; } = null!;
         public DbSet<Carrera> Carreras { get; set; } = null!;
-
         public DbSet<Cohorte> Cohortes { get; set; } = null!;
         public DbSet<Asistencia> Asistencias { get; set; } = null!;
-
         public DbSet<CarreraCohorte> CarreraCohortes { get; set; } = null!;
         public DbSet<CarreraMateria> CarreraMaterias { get; set; } = null!;
         public DbSet<Inscripciones> Inscripciones { get; set; } = null!;
@@ -27,7 +25,6 @@ namespace ISFDyT124.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Mapeo explícito y desactivación de autoincremento para PKs manuales (ya que no tienen IDENTITY en el SQL)
             modelBuilder.Entity<Rol>().Property(r => r.RoId).ValueGeneratedNever();
             modelBuilder.Entity<Usuario>().Property(u => u.UsId).ValueGeneratedNever();
             //modelBuilder.Entity<Login>().Property(l => l.LoId).ValueGeneratedNever();
@@ -46,12 +43,9 @@ namespace ISFDyT124.Data
             // Configurar DNI único de la tabla USUARIOS
             modelBuilder.Entity<Usuario>().HasIndex(u => u.UsDni).IsUnique();
 
-            // Restricciones de unicidad (ticket 4.14): nada más impedía cargar la misma
-            // combinación dos veces. Requiere que la base ya esté libre de duplicados.
-            // Filtrado (WHERE CaCoId IS NOT NULL): CaCoId es opcional mientras una cátedra
-            // no tenga cohorte asignada todavía (ticket 4.12); SQL Server trata NULL como
-            // valor comparable en un índice único, así que sin el filtro dos cátedras sin
-            // cohorte asignada de la misma materia chocarían entre sí.
+            // Añadir índice único para el email de usuario
+            modelBuilder.Entity<Usuario>().HasIndex(u => u.UsEmail).IsUnique();
+
             modelBuilder.Entity<CarreraMateria>()
                 .HasIndex(cm => new { cm.CaCoId, cm.MaId })
                 .IsUnique()
@@ -81,11 +75,6 @@ namespace ISFDyT124.Data
                 .HasForeignKey(cc => cc.CoId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación CARRERA_MATERIA -> CARRERA_COHORTE y MATERIAS. Una cátedra (Carrera+Materia)
-            // queda atada a una cohorte concreta: "Inglés I" de la cohorte 2025 es una cátedra
-            // distinta de "Inglés I" de la cohorte 2026. CaCoId es opcional (SetNull) para no
-            // bloquear el borrado de una CarreraCohorte ni forzar a elegir cohorte al crear la
-            // cátedra (ticket 4.12 todavía no tiene alta de Cohorte/CarreraCohorte terminada).
             modelBuilder.Entity<CarreraMateria>()
                 .HasOne(cm => cm.CarreraCohorte)
                 .WithMany(cc => cc.CarreraMaterias)
@@ -107,12 +96,11 @@ namespace ISFDyT124.Data
                 .IsUnique()
                 .HasFilter("[AsClientGuid] IS NOT NULL");
 
-            // Relación ASISTENCIAS -> USUARIOS (Alumno) y MATERIAS
             modelBuilder.Entity<Asistencia>()
                 .HasOne(a => a.Usuario)
                 .WithMany(u => u.Asistencias)
                 .HasForeignKey(a => a.UsId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Asistencia>()
                 .HasOne(a => a.Materias)
@@ -120,22 +108,12 @@ namespace ISFDyT124.Data
                 .HasForeignKey(a => a.MaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relación ASISTENCIAS -> CARRERA_MATERIA. Sin esto, la navegación CarreraMateria de
-            // Asistencia quedaba sin configurar y EF Core le creaba su propia columna sombra
-            // (CarreraMateriaCaMaId) separada de CaMaId, que el código real nunca usa.
-            // NO ACTION (no Cascade): Materias ya cascadea a Asistencias directo por MaId: si
-            // esta también cascadeara, SQL Server rechaza el esquema por "multiple cascade
-            // paths" (Materias -> Asistencias directo, y Materias -> CarreraMateria ->
-            // Asistencias indirecto).
             modelBuilder.Entity<Asistencia>()
                 .HasOne(a => a.CarreraMateria)
                 .WithMany()
                 .HasForeignKey(a => a.CaMaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Relación INSCRIPCIONES -> USUARIOS y CARRERA_MATERIA. Mismo problema que arriba:
-            // sin configurar, EF creaba UsuariosUsId / CarreraMateriaCaMaId como columnas sombra
-            // separadas de UsId / CaMaId, siempre en null.
             modelBuilder.Entity<Inscripciones>()
                 .HasOne(i => i.Usuarios)
                 .WithMany()
@@ -148,8 +126,6 @@ namespace ISFDyT124.Data
                 .HasForeignKey(i => i.CaMaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Muchos a muchos Usuario <-> CarreraMateria (docentes asignados a cátedras),
-            // mapeada a la tabla existente UsuarioCarreraMateria (columnas CarreraMateriasCaMaId / UsuariosUsId).
             modelBuilder.Entity<Usuario>()
                 .HasMany(u => u.CarreraMaterias)
                 .WithMany()

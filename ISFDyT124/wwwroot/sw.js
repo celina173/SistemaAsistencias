@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'is124-v4';
+const CACHE_VERSION = 'is124-v5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 // A propósito NO atada a CACHE_VERSION: acá se va acumulando cada pantalla real
 // que el docente visitó con señal. Si la atamos a la versión, cada vez que

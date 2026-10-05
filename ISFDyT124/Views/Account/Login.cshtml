@@ -44,7 +44,9 @@
             }
             <div class="input-group">
                 <label for="usuario">DNI</label>
-                <input asp-for="Usuario" id="usuario" placeholder="Ingresá tu DNI" autocomplete="off">
+                <input asp-for="Usuario" id="usuario" placeholder="Ingresá tu DNI" autocomplete="off"
+                       inputmode="numeric" maxlength="8"
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);">
                 <span asp-validation-for="Usuario" class="text-danger"></span>
             </div>
 

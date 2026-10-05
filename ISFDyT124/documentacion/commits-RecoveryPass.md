@@ -52,7 +52,7 @@ que nunca pidió recuperar su contraseña.
 ## Mapa de archivos tocados
 
 | Archivo | Estado |
-|---|---|
+| --- | --- |
 | `Models/Usuario.cs` | Modificado — campo nuevo |
 | `Models/ViewModels/RecoveryViewModel.cs` | **Nuevo** |
 | `Models/ViewModels/RecoveryPasswordViewModel.cs` | **Nuevo** |
@@ -240,7 +240,7 @@ nombre de la acción y se la conectó al backend.
 solo de cableado:
 
 | Antes (prototipo) | Ahora |
-|---|---|
+| --- | --- |
 | sin `@model` | `@model RecoveryViewModel` + `Layout = null` |
 | `href="style.css"` | `href="~/css/style.css" asp-append-version="true"` |
 | `src="img/logo.png"` | `src="~/images/logo.png"` |
@@ -303,7 +303,7 @@ encajar en el diseño que ya estaba.
 ## 7. Mensajes de error y de éxito
 
 | Mensaje | Mecanismo | Dónde se muestra |
-|---|---|---|
+| --- | --- | --- |
 | "El campo Email es obligatorio" / formato inválido | DataAnnotations → `asp-validation-for` | StartRecovery |
 | "No se encontró una cuenta asociada a ese correo electrónico." | `ViewBag.Error` | StartRecovery |
 | "Token no válido." | `TempData["Error"]` | StartRecovery (tras redirect) |

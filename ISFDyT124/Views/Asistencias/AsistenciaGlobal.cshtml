@@ -5,19 +5,69 @@
     ViewData["BodyClass"] = "global-page";
 }
 
+<style>
+    /* 1. Contenedor para alinear los elementos con la tabla */
+    .seccion-centrada {
+        width: 100%;
+        max-width: 1150px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        box-sizing: border-box;
+    }
+
+    /* 2. Ajustes Responsive para Celulares */
+    @@media (max-width: 768px) {
+        #banner-movil {
+            display: block !important;
+            padding: 15px 1rem !important;
+        }
+        #banner-movil .info-col-right {
+            display: block !important;
+            margin-top: 10px !important;
+        }
+        #banner-movil .info-col-right p {
+            text-align: left !important;
+        }
+
+        .seccion-centrada {
+            padding: 0 1rem !important;
+        }
+
+        .filtro-catedra-form {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 15px !important;
+        }
+        .filtro-catedra-form button {
+            width: 100% !important;
+            margin-top: 5px !important;
+        }
+
+        /* ====== FIX PARA LA TABLA ROTA ====== */
+        .global-table {
+            min-width: 100% !important; /* Anula los 900px fijos de PC */
+        }
+        
+        .global-table-container {
+            padding: 0 1rem 15px !important;
+            width: 100% !important;
+            overflow-x: auto !important; /* Habilita el scroll horizontal si hay muchas fechas */
+            -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            box-sizing: border-box !important;
+        }
+    }
+</style>
+
 <main class="main-container-global">
 
-    <!-- 1. EL BANNER AZUL DINÁMICO -->
+    <!-- BANNER AZUL DINÁMICO -->
     @if (Model.CaMaId != null)
     {
-        <div class="info-banner">
+        <div id="banner-movil" class="info-banner" style="margin-bottom: 25px !important; border-bottom: 1px solid #cbd5e1;">
             <div class="info-col-left">
-                <!-- Imprime la fecha y hora real del servidor -->
                 <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")HS</p>
                 <p class="info-bold">@ViewBag.CarreraNombre</p>
             </div>
-
-            <!-- Alineamos la materia a la derecha ya que sacamos al docente -->
             <div class="info-col-right" style="display: flex; align-items: center; justify-content: flex-end;">
                 <p class="info-bold" style="text-align: right; margin: 0; font-size: 1.1em;">
                     @ViewBag.MateriaNombre
@@ -26,98 +76,105 @@
         </div>
     }
 
-    <!-- 2. EL FILTRO DEL ADMIN QUEDA ABAJO DEL BANNER -->
+    <!-- FILTRO DEL ADMIN -->
     @if (User.Identity != null && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
     {
-        <div class="admin-filter-container" style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <form asp-action="AsistenciaGlobal" method="get" class="filtro-catedra-form">
-
-                <!-- Primer Desplegable: CARRERA -->
-                <div style="flex-grow: 1; width: 100%;">
-                    <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
-                        1. Seleccione la Carrera:
-                    </label>
-                    <select id="selectCarrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
-                        <option value="">-- Elija una Carrera --</option>
-                    </select>
-                </div>
-
-                <!-- Segundo Desplegable: MATERIA -->
-                <div style="flex-grow: 1; width: 100%;">
-                    <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
-                        <i class="bi bi-search"></i> 2. Seleccione la Materia:
-                    </label>
-                    <!-- Al elegir la materia, se envía el CaMaId oculto al controlador -->
-                    <select id="selectMateria" name="CaMaId" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;" disabled required>
-                        <option value="">-- Primero elija una Carrera --</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="padding: 10px 24px; background-color: #0b2361; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; height: 45px;">
-                    Ver Calendario
-                </button>
-            </form>
+        <div class="seccion-centrada" style="margin-bottom: 25px;">
+            <div class="admin-filter-container" style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <form asp-action="AsistenciaGlobal" method="get" class="filtro-catedra-form" style="display: flex; gap: 15px; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">1. Seleccione la Carrera:</label>
+                        <select id="selectCarrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                            <option value="">-- Elija una Carrera --</option>
+                        </select>
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;"><i class="bi bi-search"></i> 2. Seleccione la Materia:</label>
+                        <select id="selectMateria" name="CaMaId" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;" disabled required>
+                            <option value="">-- Primero elija una Carrera --</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 24px; background-color: #0b2361; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; height: 45px; flex-shrink: 0;">
+                        Ver Calendario
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <!-- CÓDIGO PARA CONECTAR LOS DESPLEGABLES -->
         <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    // Traemos los datos de C# a JavaScript
-                    const catedras = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TodasLasCatedras));
-                    const selectCarrera = document.getElementById("selectCarrera");
-                    const selectMateria = document.getElementById("selectMateria");
+            document.addEventListener("DOMContentLoaded", function() {
+                const catedras = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.TodasLasCatedras));
+                const selectCarrera = document.getElementById("selectCarrera");
+                const selectMateria = document.getElementById("selectMateria");
 
-                    // A. Llenar el primer combo sin repetir carreras
-                    const caIdsAgregados = new Set();
-                    if (catedras) {
-                        catedras.forEach(item => {
-                            if (!caIdsAgregados.has(item.CaId)) {
-                                caIdsAgregados.add(item.CaId);
-                                const option = document.createElement("option");
-                                option.value = item.CaId;
-                                option.textContent = item.Carrera;
-                                selectCarrera.appendChild(option);
-                            }
-                        });
-                    }
-
-                    // B. Cuando el usuario cambia la carrera, llenamos las materias correspondientes
-                    selectCarrera.addEventListener("change", function() {
-                        const caIdSeleccionada = this.value;
-                        selectMateria.innerHTML = '<option value="">-- Elija una Materia --</option>'; // Limpiar
-
-                        if (caIdSeleccionada) {
-                            selectMateria.disabled = false; // Habilitamos el segundo combo
-
-                            // Filtramos solo las materias de la carrera que eligió
-                            const materiasFiltradas = catedras.filter(c => c.CaId == caIdSeleccionada);
-                            materiasFiltradas.forEach(m => {
-                                const option = document.createElement("option");
-                                option.value = m.CaMaId; // Esto es lo que viaja a C#
-                                option.textContent = m.Materia;
-                                selectMateria.appendChild(option);
-                            });
-                        } else {
-                            selectMateria.disabled = true; // Volvemos a bloquear si elige "-- Elija una Carrera --"
+                const caIdsAgregados = new Set();
+                if (catedras) {
+                    catedras.forEach(item => {
+                        if (!caIdsAgregados.has(item.CaId)) {
+                            caIdsAgregados.add(item.CaId);
+                            const option = document.createElement("option");
+                            option.value = item.CaId;
+                            option.textContent = item.Carrera;
+                            selectCarrera.appendChild(option);
                         }
                     });
+                }
 
-                    // C. Si la página se recargó tras buscar, volvemos a poner lo que había seleccionado
-                    const selectedCaMaId = '@(Model.CaMaId?.ToString() ?? "")';
-                    if (selectedCaMaId && catedras) {
-                        const catedraSeleccionada = catedras.find(c => c.CaMaId == selectedCaMaId);
-                        if (catedraSeleccionada) {
-                            selectCarrera.value = catedraSeleccionada.CaId;
-                            selectCarrera.dispatchEvent(new Event("change")); // Avisamos que cambió la carrera
-                            selectMateria.value = catedraSeleccionada.CaMaId; // Seleccionamos la materia
-                        }
+                selectCarrera.addEventListener("change", function() {
+                    const caIdSeleccionada = this.value;
+                    selectMateria.innerHTML = '<option value="">-- Elija una Materia --</option>'; 
+
+                    if (caIdSeleccionada) {
+                        selectMateria.disabled = false; 
+                        const materiasFiltradas = catedras.filter(c => c.CaId == caIdSeleccionada);
+                        materiasFiltradas.forEach(m => {
+                            const option = document.createElement("option");
+                            option.value = m.CaMaId; 
+                            option.textContent = m.Materia;
+                            selectMateria.appendChild(option);
+                        });
+                    } else {
+                        selectMateria.disabled = true; 
                     }
                 });
+
+                const selectedCaMaId = '@(Model.CaMaId?.ToString() ?? "")';
+                if (selectedCaMaId && catedras) {
+                    const catedraSeleccionada = catedras.find(c => c.CaMaId == selectedCaMaId);
+                    if (catedraSeleccionada) {
+                        selectCarrera.value = catedraSeleccionada.CaId;
+                        selectCarrera.dispatchEvent(new Event("change")); 
+                        selectMateria.value = catedraSeleccionada.CaMaId; 
+                    }
+                }
+            });
         </script>
     }
 
+    <!-- BOTÓN VOLVER ATRÁS -->
+    <div class="seccion-centrada" style="margin-bottom: 15px;">
+        <a href="javascript:history.back()" class="btn-volver-atras" title="Volver">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Volver
+        </a>
+    </div>
 
-    <div class="global-table-container">
+    <!-- CARTEL DE ÉXITO AL GUARDAR ASISTENCIA -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="seccion-centrada" style="margin-bottom: 20px;">
+            <div class="alerta-exito" style="margin: 0;">
+                <i class="bi bi-check-circle-fill icono-alerta"></i>
+                <div class="alerta-texto" style="font-weight: 600;">@TempData["SuccessMessage"]</div>
+            </div>
+        </div>
+    }
+
+    <!-- TABLA GLOBAL -->
+    <div class="global-table-container" style="margin-top: 0;">
         <table class="global-table">
             <thead>
                 <tr>
@@ -163,5 +220,3 @@
         </table>
     </div>
 </main>
-
-<!-- El script principal se carga desde _Layout.cshtml; evitar incluirlo de nuevo aquí -->

@@ -33,7 +33,7 @@ namespace ISFDyT124.Migrations
                     b.Property<Guid?>("AsClientGuid")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("AsFecha")
+                    b.Property<DateTime?>("AsFecha")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("AsFechaCarga")
@@ -41,6 +41,9 @@ namespace ISFDyT124.Migrations
 
                     b.Property<bool>("AsJustificacion")
                         .HasColumnType("bit");
+
+                    b.Property<decimal?>("AsPorcentaje")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<bool>("AsPresente")
                         .HasColumnType("bit");
@@ -228,6 +231,9 @@ namespace ISFDyT124.Migrations
                     b.Property<int>("RoId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("UsActivo")
+                        .HasColumnType("bit");
+
                     b.Property<string>("UsApellido")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -265,6 +271,9 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("UsDni")
                         .IsUnique();
 
+                    b.HasIndex("UsEmail")
+                        .IsUnique();
+
                     b.ToTable("Usuarios");
                 });
 
@@ -298,7 +307,7 @@ namespace ISFDyT124.Migrations
                     b.HasOne("ISFDyT124.Models.Usuario", "Usuario")
                         .WithMany("Asistencias")
                         .HasForeignKey("UsId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CarreraMateria");
 

@@ -39,19 +39,14 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            // Solo cátedras de la cohorte del año en curso — una cátedra de una
-            // cohorte pasada (ej. 2026 cuando ya estamos en 2027) no debe seguir
-            // apareciendo en el panel del docente.
-            int anioActual = DateTime.Today.Year;
-
+            // No se filtra por año de cohorte: la cohorte de una cátedra puede representar
+            // el año de ingreso de esa camada (ej. una materia de 2do año de la carrera
+            // queda atada a la cohorte del año anterior), así que se listan todas las
+            // cátedras asignadas al docente sin importar el año.
             var catedras = await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
-                .Where(cm =>
-                    cm.CarreraCohorte != null
-                    && cm.CarreraCohorte.Cohorte != null
-                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
-                )
+                .Where(cm => cm.CarreraCohorte != null)
                 .Select(cm => new CarreraMateriaDetalleDto
                 {
                     CaMaId = cm.CaMaId,
@@ -110,7 +105,7 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            if (!await EsCatedraDelDocenteAsync(docenteId, maId))
+            if (!await EsCatedraDelDocenteAsync(docenteId, caMaId))
                 return NotFound();
 
             ViewBag.CaMaId = caMaId;
@@ -145,9 +140,12 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
 
             // Asistencias ya registradas ese día (para precargar/editar), como dict UsId -> DTO.
+            // Filtra por CaMaId (la cátedra puntual), no por MaId (la materia en general):
+            // si el alumno está anotado a más de una cátedra de la misma materia, filtrar
+            // solo por MaId mezclaba la asistencia de una cátedra con la de otra (ticket 5.12).
             var existentes = await _context
                 .Asistencias.Where(a =>
-                    a.MaId == maId && a.AsFecha != null && a.AsFecha.Value.Date == fechaFiltro.Date
+                    a.CaMaId == caMaId && a.AsFecha != null && a.AsFecha.Value.Date == fechaFiltro.Date
                 )
                 .Select(a => new AsistenciaDetalleDto
                 {
@@ -177,7 +175,7 @@ namespace ISFDyT124.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Asistencia(
-            int maId,
+            int caMaId,
             DateTime fecha,
             List<AsistenciaCrearDto> asistencias
         )
@@ -194,7 +192,17 @@ namespace ISFDyT124.Controllers
             if (!int.TryParse(docenteIdClaim, out int docenteId))
                 return Unauthorized();
 
-            if (!await EsCatedraDelDocenteAsync(docenteId, maId))
+            if (!await EsCatedraDelDocenteAsync(docenteId, caMaId))
+                return NotFound();
+
+            // Se necesita el MaId de la cátedra para seguir escribiéndolo también en el
+            // registro (HistorialAsistencias todavía filtra por materia, no por cátedra).
+            var maId = await _context
+                .CarreraMaterias.Where(cm => cm.CaMaId == caMaId)
+                .Select(cm => (int?)cm.MaId)
+                .FirstOrDefaultAsync();
+
+            if (maId == null)
                 return NotFound();
 
             foreach (var dto in asistencias)
@@ -206,16 +214,25 @@ namespace ISFDyT124.Controllers
                 // Regla de negocio: si asistió, no corresponde justificación de falta.
                 bool justificado = presente ? false : dto.AsJustificacion;
 
+                // Upsert por CaMaId (la cátedra puntual), no por MaId: si el alumno está
+                // anotado a más de una cátedra de la misma materia, matchear solo por MaId
+                // podía pisar o "perder" el guardado de la cátedra correcta (ticket 5.12).
                 var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
                     a.UsId == dto.UsId
-                    && a.MaId == maId
+                    && a.CaMaId == caMaId
                     && a.AsFecha != null
                     && a.AsFecha.Value.Date == fecha.Date
                 );
 
+                // Esta pantalla no tiene módulos parciales -- presente/ausente es binario,
+                // así que el porcentaje es directamente 100 o 0 (ticket 5.13, mismo campo
+                // que usa AsistenciasController para el detalle con módulos).
+                decimal porcentaje = presente ? 100m : 0m;
+
                 if (existente != null)
                 {
                     existente.AsPresente = presente;
+                    existente.AsPorcentaje = porcentaje;
                     existente.AsJustificacion = justificado;
                     _context.Update(existente);
                 }
@@ -226,9 +243,11 @@ namespace ISFDyT124.Controllers
                         {
                             AsFecha = fecha.Date,
                             AsPresente = presente,
+                            AsPorcentaje = porcentaje,
                             AsJustificacion = justificado,
                             UsId = dto.UsId,
                             MaId = maId,
+                            CaMaId = caMaId,
                         }
                     );
                 }
@@ -236,29 +255,26 @@ namespace ISFDyT124.Controllers
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
-            return RedirectToAction(nameof(Index));
+            // Lo redireccionamos a AsistenciasController -> AsistenciaGlobal, pasándole el ID de Cátedra
+            return RedirectToAction("AsistenciaGlobal", "Asistencias", new { caMaId = Request.Form["caMaId"] });
         }
 
         /// <summary>
-        /// Verifica que la materia pertenezca a alguna de las cátedras (CarreraMaterias)
-        /// que tiene asignadas el docente EN LA COHORTE DEL AÑO EN CURSO, antes de
-        /// dejarlo ver/editar su asistencia. Una cátedra de una cohorte pasada (ej. el
-        /// docente tenía una carrera de la cohorte 2026 y ya estamos en 2027) no cuenta
-        /// como propia, aunque la relación siga existiendo en la base.
+        /// Verifica que la cátedra (CarreraMateria puntual) sea una de las que tiene
+        /// asignadas el docente, antes de dejarlo ver/editar su asistencia. Chequea por
+        /// CaMaId (la cátedra concreta), no por MaId (la materia en general): antes, un
+        /// docente con una cátedra de "Programación I" en una carrera quedaba autorizado
+        /// para cualquier otra cátedra de "Programación I" en OTRA carrera que no era suya.
+        /// No se filtra por año de cohorte: la cohorte puede representar el año de ingreso
+        /// de esa camada (ej. una materia de 2do año queda atada a la cohorte del año
+        /// anterior), así que una cátedra de un año pasado sigue siendo válida.
         /// </summary>
-        private async Task<bool> EsCatedraDelDocenteAsync(int docenteId, int maId)
+        private async Task<bool> EsCatedraDelDocenteAsync(int docenteId, int caMaId)
         {
-            int anioActual = DateTime.Today.Year;
-
             return await _context
                 .Usuarios.Where(u => u.UsId == docenteId)
                 .SelectMany(u => u.CarreraMaterias)
-                .AnyAsync(cm =>
-                    cm.MaId == maId
-                    && cm.CarreraCohorte != null
-                    && cm.CarreraCohorte.Cohorte != null
-                    && cm.CarreraCohorte.Cohorte.CoAnio == anioActual
-                );
+                .AnyAsync(cm => cm.CaMaId == caMaId && cm.CarreraCohorte != null);
         }
 
         #endregion

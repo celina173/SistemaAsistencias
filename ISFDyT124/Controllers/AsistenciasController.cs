@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
@@ -21,6 +22,34 @@ namespace ISFDyT124.Controllers
         public AsistenciasController(InstitutoDbContext context)
         {
             _context = context;
+        }
+
+        /// <summary>
+        /// IDs de CarreraMateria (cátedra puntual) que el usuario actual tiene permitido
+        /// ver/tomar asistencia. null = sin restricción (Admin/Dirección). Lista = las
+        /// cátedras propias del Docente -- antes un Docente veía y podía elegir CUALQUIER
+        /// carrera/materia del instituto en esta pantalla, igual que ya se corrigió en
+        /// Home/Index (mismo bug, pantalla distinta).
+        /// No se filtra por año de cohorte: la cohorte de una cátedra puede representar el
+        /// año de ingreso de esa camada (ej. una materia de 2do año de la carrera queda
+        /// atada a la cohorte del año anterior), así que una cátedra de un año pasado sigue
+        /// siendo una cátedra vigente que el docente tiene que poder usar.
+        /// </summary>
+        private async Task<List<int>?> CaMaIdsPermitidosAsync()
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+                return null;
+
+            var docenteIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(docenteIdClaim, out int docenteId))
+                return new List<int>();
+
+            return await _context
+                .Usuarios.Where(u => u.UsId == docenteId)
+                .SelectMany(u => u.CarreraMaterias)
+                .Select(cm => cm.CaMaId)
+                .Distinct()
+                .ToListAsync();
         }
 
         // GET: Asistencias
@@ -49,8 +78,34 @@ namespace ISFDyT124.Controllers
                 if (!string.IsNullOrEmpty(s2) && int.TryParse(s2, out var v2))
                     selectedMateriaId = v2;
             }
-            var carreras = await _context
-                .Carreras.Select(c => new CarreraDetalleDto
+
+            // Un Docente solo debe ver las carreras/materias de sus propias cátedras
+            // asignadas -- antes se listaban TODAS sin importar el rol (mismo bug que ya
+            // se había corregido en Home/Index, pero esta pantalla se había quedado sin
+            // el filtro). Admin/Dirección siguen viendo el listado completo.
+            var permitidos = await CaMaIdsPermitidosAsync();
+            List<int>? caIdsPermitidos = null;
+            List<int>? maIdsPermitidos = null;
+            if (permitidos != null)
+            {
+                var camPermitidas = await _context
+                    .CarreraMaterias.Where(cm => permitidos.Contains(cm.CaMaId))
+                    .Include(cm => cm.CarreraCohorte)
+                    .ToListAsync();
+                caIdsPermitidos = camPermitidas
+                    .Where(cm => cm.CarreraCohorte != null)
+                    .Select(cm => cm.CarreraCohorte!.CaId)
+                    .Distinct()
+                    .ToList();
+                maIdsPermitidos = camPermitidas.Select(cm => cm.MaId).Distinct().ToList();
+            }
+
+            var carrerasQuery = _context.Carreras.AsQueryable();
+            if (caIdsPermitidos != null)
+                carrerasQuery = carrerasQuery.Where(c => caIdsPermitidos.Contains(c.CaId));
+
+            var carreras = await carrerasQuery
+                .Select(c => new CarreraDetalleDto
                 {
                     CaId = c.CaId,
                     CaDenominacion = c.CaDenominacion,
@@ -68,8 +123,12 @@ namespace ISFDyT124.Controllers
                 })
                 .ToListAsync();
 
-            var materias = await _context
-                .Materias.Select(m => new MateriaDetalleDto
+            var materiasQuery = _context.Materias.AsQueryable();
+            if (maIdsPermitidos != null)
+                materiasQuery = materiasQuery.Where(m => maIdsPermitidos.Contains(m.MaId));
+
+            var materias = await materiasQuery
+                .Select(m => new MateriaDetalleDto
                 {
                     MaId = m.MaId,
                     MaDenominacion = m.MaDenominacion,
@@ -99,6 +158,15 @@ namespace ISFDyT124.Controllers
 
                 if (caMa != null)
                 {
+                    // Defensa en profundidad: aunque el listado ya viene acotado a las
+                    // cátedras propias, un Docente podría armar la URL a mano con un
+                    // CaId/MaId que no es suyo -- se rechaza igual acá.
+                    if (permitidos != null && !permitidos.Contains(caMa.CaMaId))
+                    {
+                        ModelState.AddModelError(string.Empty, "No tenés esa cátedra asignada.");
+                        return View(modelDto);
+                    }
+
                     // if query contains _global=1, redirect to AsistenciaGlobal, otherwise to Asistencia
                     var isGlobal =
                         Request.Query.ContainsKey("_global")
@@ -133,6 +201,15 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // Un Docente no puede ver/tomar asistencia de una cátedra que no es suya,
+            // aunque cambie el CaMaId a mano en la URL (mismo chequeo que ya tiene
+            // ProfesorController.Asistencia).
+            var permitidos = await CaMaIdsPermitidosAsync();
+            if (permitidos != null && !permitidos.Contains(CaMaId.Value))
+            {
+                return NotFound();
+            }
+
             model.CaMaId = CaMaId;
 
             // Alumnos inscriptos a esta cátedra vía Inscripciones (la inscripción ya es la prueba
@@ -161,6 +238,10 @@ namespace ISFDyT124.Controllers
             {
                 ViewBag.CarreraNombre = caMa.CarreraCohorte?.Carrera?.CaDenominacion ?? "Carrera";
                 ViewBag.MateriaNombre = caMa.Materia?.MaDenominacion ?? "Materia";
+                // Necesario en la vista para armar la fila de la cola offline (ticket 8.2):
+                // OfflineAsistencia.encolarAsistencia espera el MaId de la materia, igual
+                // que en la pantalla del Docente.
+                ViewBag.MateriaId = caMa.MaId;
 
                 if (caMa.Materia?.MaCantModulos is int cant && cant > 0)
                 {
@@ -168,11 +249,43 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            // Asistencia ya cargada HOY para esta cátedra (para precargar/editar). Antes esto
+            // no se consultaba: reabrir la pantalla el mismo día reseteaba TODOS los checkboxes
+            // a "ausente", y si el Admin guardaba de nuevo sin marcar a nadie (por ejemplo solo
+            // para agregar un alumno tarde) pisaba en silencio la asistencia ya guardada de todo
+            // el curso, marcando a todos como ausentes. El modelo solo guarda el resultado
+            // agregado por alumno (AsPresente/AsJustificacion), no qué módulo puntual se tildó,
+            // así que la reconstrucción es best-effort: si ya estaba presente, se precargan
+            // todos los módulos tildados (mismo % que había, y guardar sin tocar nada da el
+            // mismo resultado); si estaba ausente, quedan destildados. Se agrupa por alumno
+            // (no ToDictionary directo) por el mismo motivo que ProfesorController.Asistencia:
+            // si quedaron dos filas del mismo alumno/fecha, se toma la más reciente.
+            var hoy = DateTime.Today;
+            var existentesPorAlumno = (
+                await _context
+                    .Asistencias.Where(a =>
+                        a.CaMaId == CaMaId && a.AsFecha != null && a.AsFecha.Value.Date == hoy
+                    )
+                    .ToListAsync()
+            )
+                .GroupBy(a => a.UsId ?? 0)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AsId).First());
+
             foreach (var s in estudiantes)
             {
                 var row = new AsistenciaRowViewModel { UsId = s.UsId, FullName = s.FullName };
-                // initialize Modulos list according to MaCantModulos
-                row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
+                if (existentesPorAlumno.TryGetValue(s.UsId, out var previa))
+                {
+                    row.Modulos = Enumerable
+                        .Range(0, maCantModulos)
+                        .Select(_ => previa.AsPresente)
+                        .ToList();
+                    row.AsJustificacion = previa.AsJustificacion;
+                }
+                else
+                {
+                    row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
+                }
                 model.Rows.Add(row);
             }
 
@@ -192,9 +305,34 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
+            // Un Docente no puede guardar asistencia de una cátedra que no es suya, ni
+            // aunque arme el POST a mano con un CaMaId ajeno.
+            var permitidosPost = await CaMaIdsPermitidosAsync();
+            if (permitidosPost != null && !permitidosPost.Contains(model.CaMaId.Value))
+            {
+                return NotFound();
+            }
 
-            int moduleCount = model.ModuleCount > 0 ? model.ModuleCount : 1;
+            var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
+            var hoy = DateTime.Today;
+
+            // La cantidad real de módulos se resuelve acá, del lado servidor, en vez de
+            // confiar en model.ModuleCount -- ese campo nunca viaja en el POST (el form no
+            // tiene un <input> para él), así que siempre llegaba en 0 y el cálculo caía al
+            // fallback de "1 módulo", haciendo que tildar un solo módulo de cualquier
+            // materia diera 100% en vez del porcentaje real (ticket 5.13).
+            int moduleCount = 1;
+            if (carreraMateria != null)
+            {
+                var maCantModulosDb = await _context
+                    .Materias.Where(m => m.MaId == carreraMateria.MaId)
+                    .Select(m => (int?)m.MaCantModulos)
+                    .FirstOrDefaultAsync();
+                if (maCantModulosDb is int cant && cant > 0)
+                {
+                    moduleCount = cant;
+                }
+            }
             foreach (var row in model.Rows)
             {
                 var checkedCount = row.Modulos != null ? row.Modulos.Count(x => x) : 0;
@@ -205,21 +343,46 @@ namespace ISFDyT124.Controllers
                     porcentaje = Math.Round((decimal)checkedCount / moduleCount * 100, 1);
                 }
 
-                var entity = new Asistencia
-                {
-                    AsFecha = DateTime.Now,
-                    AsPresente = presente,
-                    AsJustificacion = row.AsJustificacion,
-                    UsId = row.UsId,
-                    CaMaId = model.CaMaId,
-                };
+                // Upsert por CaMaId+alumno+fecha (mismo criterio que ya usa
+                // ProfesorController.Asistencia): sin esto, guardar dos veces el mismo día
+                // no actualizaba lo ya cargado, insertaba una fila nueva cada vez — la
+                // asistencia quedaba duplicada y los reportes contaban de más (ticket 5.12,
+                // relacionado con QA-06).
+                var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
+                    a.UsId == row.UsId
+                    && a.CaMaId == model.CaMaId
+                    && a.AsFecha != null
+                    && a.AsFecha.Value.Date == hoy
+                );
 
-                _context.Asistencias.Add(entity);
+                if (existente != null)
+                {
+                    existente.AsPresente = presente;
+                    existente.AsPorcentaje = porcentaje;
+                    existente.AsJustificacion = row.AsJustificacion;
+                    _context.Update(existente);
+                }
+                else
+                {
+                    _context.Asistencias.Add(
+                        new Asistencia
+                        {
+                            AsFecha = hoy,
+                            AsPresente = presente,
+                            AsPorcentaje = porcentaje,
+                            AsJustificacion = row.AsJustificacion,
+                            UsId = row.UsId,
+                            MaId = carreraMateria?.MaId,
+                            CaMaId = model.CaMaId,
+                        }
+                    );
+                }
             }
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
-            return RedirectToAction(nameof(Index));
+            // Lo redireccionamos a AsistenciasController -> AsistenciaGlobal, pasándole el ID de Cátedra
+            return RedirectToAction("AsistenciaGlobal", "Asistencias", new { caMaId = Request.Form["caMaId"] });
         }
 
         // GET: Asistencias/AsistenciaGlobal
@@ -247,6 +410,16 @@ namespace ISFDyT124.Controllers
             if (CaMaId == null)
             {
                 return View(model); // Retorna la vista vacía si el Admin no eligió nada aún
+            }
+
+            // Un Docente solo puede ver el reporte global de sus propias cátedras -- antes
+            // cualquier Docente autenticado podía pedir el reporte de asistencia de una
+            // cátedra ajena con solo cambiar el CaMaId en la URL (ticket 5.16). Mismo
+            // criterio de propiedad que ya usan Index y Asistencia en este controller.
+            var permitidos = await CaMaIdsPermitidosAsync();
+            if (permitidos != null && !permitidos.Contains(CaMaId.Value))
+            {
+                return NotFound();
             }
 
             model.CaMaId = CaMaId;
@@ -299,7 +472,10 @@ namespace ISFDyT124.Controllers
                 .OrderBy(f => f)
                 .ToList();
 
-            // Armar filas por alumno usando AsPorcentaje si existe, sino AsPresente como 100/0
+            // Armar filas por alumno usando el porcentaje real (AsPorcentaje) cuando está
+            // cargado -- para registros históricos, previos a este campo, se usa AsPresente
+            // (100/0) como fallback (ticket 5.13: antes, un registro con solo 1 de 3 módulos
+            // marcados quedaba AsPresente=true y se mostraba como 100% de asistencia).
             foreach (var alumno in estudiantes)
             {
                 var asistenciasAlumno = todasLasAsistencias
@@ -316,20 +492,7 @@ namespace ISFDyT124.Controllers
                     decimal pct = 0m;
                     if (registro != null)
                     {
-                        // Si existe AsPorcentaje en el registro, usarlo; si no, fallback a AsPresente (100/0)
-                        var prop = registro.GetType().GetProperty("AsPorcentaje");
-                        if (prop != null)
-                        {
-                            var val = prop.GetValue(registro);
-                            if (val is decimal d)
-                                pct = d;
-                            else if (val is decimal?)
-                                pct = ((decimal?)val) ?? 0m;
-                        }
-                        else
-                        {
-                            pct = registro.AsPresente ? 100m : 0m;
-                        }
+                        pct = registro.AsPorcentaje ?? (registro.AsPresente ? 100m : 0m);
                     }
                     asistenciaPorFecha[fecha] = pct;
                     sumaPorcentajes += pct;

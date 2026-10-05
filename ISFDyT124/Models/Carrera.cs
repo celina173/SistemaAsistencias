@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ISFDyT124.Models
@@ -11,13 +12,11 @@ namespace ISFDyT124.Models
         [Required(ErrorMessage = "Debe ingresar una denominación para la carrera.")]
         [StringLength(100, ErrorMessage = "No se permiten más de 100 caracteres.")]
         [RegularExpression(
-            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s.,()-]*$",
-            ErrorMessage = "Ingrese una denominación válida."
+            @"^[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s]+$",
+            ErrorMessage = "Ingrese una denominación válida (solo letras y espacios)."
         )]
         [Display(Name = "Denominación")]
-        public string CaDenominacion { get; set; }
-
-
+        public string CaDenominacion { get; set; } = null!;
 
         // RELACION
         // CarreraMateria ya no cuelga directo de Carrera: una cátedra (Carrera+Materia)

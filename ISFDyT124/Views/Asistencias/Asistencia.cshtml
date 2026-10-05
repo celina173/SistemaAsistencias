@@ -2,9 +2,14 @@
 
 @{
     ViewData["Title"] = "Toma de Asistencia";
+    // Antes esta pantalla no tenía BodyClass y quedaba sin el fondo/alto de página que sí
+    // tienen el resto de las pantallas de asistencia (reutiliza la misma clase que
+    // Profesor/Asistencia.cshtml, no hace falta una nueva).
+    ViewData["BodyClass"] = "asistencia-page";
 }
 
-<main class="main-container-global">
+<main class="main-container-asistencia">
+
     <div class="info-banner">
         <div class="info-col-left">
             <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
@@ -15,44 +20,53 @@
         </div>
     </div>
 
-    <form asp-action="Asistencia" method="post">
+    <form asp-action="Asistencia" method="post" id="formAsistencia">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="CaMaId" />
 
-        <div class="global-table-container">
-            <table class="global-table">
+        @* Se reutiliza .table-container/.attendance-table (mismas clases que
+           Profesor/Asistencia.cshtml) en vez de .global-table-container/.global-table:
+           esas últimas están pensadas para una grilla tipo planilla de escritorio
+           (min-width: 900px, pensada para AsistenciaGlobal/histórico con muchas columnas
+           de fecha) y en el celular obligaban a hacer scroll horizontal para tomar
+           asistencia del día a día. Esta pantalla tiene solo 3 columnas fijas, entra
+           perfecto en una sola columna sin scroll horizontal. *@
+        <div class="table-container">
+            <table class="attendance-table admin-modulos-table">
                 <thead>
                     <tr>
-                        <th class="align-left">Apellido y Nombre</th>
-                        <th class="align-left">Modulos</th>
-                        <th>Justificacion</th>
+                        <th style="width: 40%;">Apellido y Nombre</th>
+                        <th style="width: 40%; text-align: center;">Módulos</th>
+                        <th style="width: 20%; text-align: center;">Justificación</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for (int i = 0; i < Model.Rows.Count; i++)
                     {
                         <tr>
-                            <td class="align-left">@Model.Rows[i].FullName
+                            <td>@Model.Rows[i].FullName
                                 <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
                             </td>
-                            <td class="align-left">
+                            <td class="modules-cell" style="text-align: center;">
                                 @{
                                     var moduleCount = ViewData["MaCantModulos"] as int? ?? Model.ModuleCount;
                                 }
-                                @for (int m = 0; m < moduleCount; m++)
-                                {
-                                    var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
-                                    <input type="checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") style="margin-right:6px;" />
-                                }
-                                @{
-                                    var mc = moduleCount > 0 ? moduleCount : 1;
-                                    var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
-                                    var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
-                                }
-                                <span class="row-pct" data-row="@i" style="margin-left:8px;font-weight:bold;">@pct%</span>
+                                <div class="modules-group">
+                                    @for (int m = 0; m < moduleCount; m++)
+                                    {
+                                        var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
+                                        <input type="checkbox" class="custom-checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") />
+                                    }
+                                    @{
+                                        var mc = moduleCount > 0 ? moduleCount : 1;
+                                        var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
+                                        var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
+                                    }
+                                    <span class="row-pct" data-row="@i">@pct%</span>
+                                </div>
                             </td>
-                            <td>
-                                <input type="checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
+                            <td class="justification-cell" style="text-align: center;">
+                                <input type="checkbox" class="custom-checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
                                 <input type="hidden" name="Rows[@i].AsPresente" value="@(Model.Rows[i].AsPresente ? "true" : "false")" />
                             </td>
                         </tr>
@@ -61,9 +75,9 @@
             </table>
         </div>
 
-        <div style="text-align:center;margin-top:24px;display:flex;justify-content:center;gap:12px;">
-            <button type="submit" class="btn btn-primary" style="background:#083c8a;border-radius:26px;padding:12px 40px;border:none;">Guardar</button>
-            <a asp-action="Index" asp-controller="Asistencias" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
+        <div class="admin-asistencia-buttons">
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <a asp-action="Index" asp-controller="Asistencias" class="btn-cancel">Cancelar</a>
         </div>
     </form>
 </main>
@@ -98,5 +112,62 @@
                 });
             });
         });
+    })();
+</script>
+
+@* Ticket 8.2: portar la cola offline (Dexie) de Views/Profesor/Asistencia.cshtml a esta
+   pantalla de Admin/Dirección. Dexie y offline-asistencia.js ya se cargan en _Layout.cshtml
+   para esDocente || esAdminODireccion. *@
+<script>
+    // Frente 7 (PWA offline) para Admin/Dirección: si no hay señal al guardar, encola en
+    // IndexedDB en vez de dejar que el submit nativo falle, sin avisos ni botones — se
+    // sincroniza sola cuando vuelva la señal. Con señal, el comportamiento de siempre no
+    // cambia en nada.
+    (function () {
+        var form = document.getElementById('formAsistencia');
+        var maId = @(ViewBag.MateriaId ?? 0);
+        var caMaId = @(Model.CaMaId ?? 0);
+        // El formulario del Admin no tiene selector de fecha propio: el POST siempre usa
+        // DateTime.Today del servidor. Para que el resultado offline sea idéntico, se manda
+        // "hoy" calculado en el mismo formato que ya usa la cola del Docente (yyyy-MM-dd).
+        var fecha = '@DateTime.Today.ToString("yyyy-MM-dd")';
+
+        if (form && caMaId) {
+            form.addEventListener('submit', function (e) {
+                if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, sin cambios
+
+                e.preventDefault();
+
+                var filas = [];
+                form.querySelectorAll('tbody tr').forEach(function (tr) {
+                    var usIdInput = tr.querySelector('input[name$=".UsId"]');
+                    if (!usIdInput) return;
+
+                    // Réplica exacta del cálculo que hace AsistenciasController.Asistencia (POST):
+                    // presente = cantidad de módulos tildados > 0. No hay un solo checkbox
+                    // "Presente" en esta pantalla, son checkboxes por módulo.
+                    var moduloCheckboxes = tr.querySelectorAll('input[type=checkbox][name*=".Modulos["]');
+                    var checkedCount = 0;
+                    moduloCheckboxes.forEach(function (ch) { if (ch.checked) checkedCount++; });
+                    var presente = checkedCount > 0;
+
+                    var justificacionInput = tr.querySelector('input[name$=".AsJustificacion"]');
+
+                    filas.push({
+                        usId: parseInt(usIdInput.value, 10),
+                        presente: presente,
+                        justificacion: !!(justificacionInput && justificacionInput.checked),
+                    });
+                });
+
+                if (filas.length === 0) return;
+
+                // Misma navegación que haría el servidor tras un guardado normal (redirige a
+                // Asistencias/Index) — la pantalla se comporta igual haya señal o no.
+                window.OfflineAsistencia.encolarAsistencia(maId, caMaId, fecha, filas).then(function () {
+                    window.location.href = '/Asistencias';
+                });
+            });
+        }
     })();
 </script>
