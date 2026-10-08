@@ -412,6 +412,16 @@ namespace ISFDyT124.Controllers
                 return View(model); // Retorna la vista vacía si el Admin no eligió nada aún
             }
 
+            // Un Docente solo puede ver el reporte global de sus propias cátedras -- antes
+            // cualquier Docente autenticado podía pedir el reporte de asistencia de una
+            // cátedra ajena con solo cambiar el CaMaId en la URL (ticket 5.16). Mismo
+            // criterio de propiedad que ya usan Index y Asistencia en este controller.
+            var permitidos = await CaMaIdsPermitidosAsync();
+            if (permitidos != null && !permitidos.Contains(CaMaId.Value))
+            {
+                return NotFound();
+            }
+
             model.CaMaId = CaMaId;
 
             // NUEVO: Buscamos los nombres reales de la Carrera y Materia
