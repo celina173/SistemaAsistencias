@@ -184,8 +184,15 @@ namespace ISFDyT124.Controllers
                 .FirstOrDefaultAsync(u =>
                     u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
                 );
+
+
+            //Cierra la cookie y manda al login.
             if (usuario == null)
-                return RedirectToAction("Salir");
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("Login");
+            }
+
 
             // Antes esta acción no pedía ni verificaba la contraseña actual: cualquiera con
             // la sesión abierta (ej. una cookie robada, un equipo compartido sin cerrar
@@ -218,17 +225,17 @@ namespace ISFDyT124.Controllers
             return RedirectPorRol(usuario.Rol?.RoDenominacion);
         }
 
+        // Cierra la sesión del servidor y redirige al login (ticket 6.8). Solo POST.
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Salir()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
 
-
-
-
         //Recuperación de contraseña
-
         [HttpGet]
         public ActionResult StartRecovery()
         {
