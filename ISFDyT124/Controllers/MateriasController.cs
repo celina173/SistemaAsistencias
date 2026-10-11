@@ -71,7 +71,6 @@ public class MateriasController : Controller
         if (ModelState.IsValid)
         {
             _context.Add(materia);
-            await _context.SaveChangesAsync();
             // Si se seleccionó una carrera-cohorte, crear la cátedra en CarreraMateria
             if (CaCoId.HasValue)
             {
@@ -81,8 +80,10 @@ public class MateriasController : Controller
                     MaId = materia.MaId
                 };
                 _context.CarreraMaterias.Add(rel);
-                await _context.SaveChangesAsync();
             }
+            await _context.SaveChangesAsync();
+            // Mensaje de éxito
+            TempData["SuccessMessage"] = $"Materia '{materia.MaDenominacion}' creada correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -124,6 +125,7 @@ public class MateriasController : Controller
 
         if (ModelState.IsValid)
         {
+            // POST: Edit — después del SaveChangesAsync y antes del redirect
             try
             {
                 _context.Update(materia);
@@ -140,6 +142,8 @@ public class MateriasController : Controller
                     throw;
                 }
             }
+
+            TempData["SuccessMessage"] = $"Materia '{materia.MaDenominacion}' modificada correctamente.";
             return RedirectToAction(nameof(Index));
         }
         return View(materia);
@@ -190,6 +194,8 @@ public class MateriasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
+        // Mensaje de éxito
+        TempData["SuccessMessage"] = "Materia eliminada correctamente.";
         return RedirectToAction(nameof(Index));
     }
 

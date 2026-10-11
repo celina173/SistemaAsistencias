@@ -309,6 +309,11 @@ namespace ISFDyT124.Controllers
                 }
 
                 await transaccionId.CommitAsync();
+
+                // Añadir mensaje de éxito
+                TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente.";
+
+                return RedirectToAction(nameof(UsuariosABM));
             }
             catch (DbUpdateException ex)
             {
@@ -458,6 +463,7 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' actualizado correctamente.";
             return RedirectToAction(nameof(UsuariosABM));
         }
 
@@ -516,6 +522,10 @@ namespace ISFDyT124.Controllers
                     TempData["Error"] = "No se pudo eliminar el usuario. Puede tener datos relacionados que lo impiden.";
                     return RedirectToAction(nameof(UsuariosABM));
                 }
+
+                // Mensaje de éxito al eliminar
+                TempData["SuccessMessage"] = "Usuario eliminado correctamente.";
+                return RedirectToAction(nameof(UsuariosABM));
             }
 
             return RedirectToAction(nameof(UsuariosABM));

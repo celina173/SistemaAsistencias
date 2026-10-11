@@ -48,6 +48,14 @@
     </div>
 }
 
+@* Mostrar mensaje de éxito si existe *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="info-banner" style="background-color: #d1fae5 !important; border-color: #a7f3d0 !important; margin-bottom: 15px !important;">
+        <div class="info-col-left"><p class="info-bold" style="color: #065f46 !important;">@TempData["SuccessMessage"]</p></div>
+    </div>
+}
+
 <div class="page-title-container">
     <h2 class="page-main-title">Gestión Materias</h2>
 </div>
