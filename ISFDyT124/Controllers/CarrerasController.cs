@@ -16,10 +16,39 @@ public class CarrerasController : Controller
     }
 
     // GET: CARRERAS
+
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Carreras.ToListAsync());
+        var carreras = await _context.Carreras.ToListAsync();
+
+        var relacionesCohorte = await (
+            from cc in _context.CarreraCohortes
+            join co in _context.Cohortes
+                on cc.CoId equals co.CoId
+            select new
+            {
+                cc.CaId,
+                co.CoAnio
+            }
+        ).ToListAsync();
+
+        var cohortesPorCarrera = relacionesCohorte
+            .GroupBy(c => c.CaId)
+            .ToDictionary(
+                grupo => grupo.Key,
+                grupo => string.Join(
+                    ", ",
+                    grupo.Select(c => c.CoAnio)
+                        .Distinct()
+                        .OrderBy(anio => anio)
+                )
+            );
+
+        ViewData["CohortesPorCarrera"] = cohortesPorCarrera;
+
+        return View(carreras);
     }
+
 
     // GET: CARRERAS/Details/5
     public async Task<IActionResult> Details(int? CaId)

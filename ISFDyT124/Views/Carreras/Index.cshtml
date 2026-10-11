@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Carreras";
     ViewData["BodyClass"] = "gestion-page";
+    var cohortesPorCarrera =
+    ViewData["CohortesPorCarrera"] as Dictionary<int, string> ?? new Dictionary<int, string>();
 }
 
 <style>
@@ -101,6 +103,12 @@
                             @Html.DisplayNameFor(model => model.CaDenominacion) <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
                         </div>
                     </th>
+                    <th class="sortable" data-type="number" style="cursor:pointer;">
+                        <div class="sort-header" style="justify-content: center;">
+                            COHORTE
+                            <span class="sort-indicator" style="font-size:0.8em; margin-left:4px;">⇅</span>
+                        </div>
+                    </th>
                     <th>ACCIONES</th>
                 </tr>
             </thead>
@@ -112,6 +120,11 @@
                         <tr>
                             <td data-label="@Html.DisplayNameFor(m => m.CaId)" style="text-align: center;">@Html.DisplayFor(modelItem => item.CaId)</td>
                             <td class="align-left" data-label="@Html.DisplayNameFor(m => m.CaDenominacion)">@Html.DisplayFor(modelItem => item.CaDenominacion)</td>
+                            <td data-label="Cohorte" style="text-align: center;">
+                                @(cohortesPorCarrera.TryGetValue(item.CaId, out var aniosCohorte)
+                                    ? aniosCohorte
+                                    : "Sin cohorte")
+                            </td>
                             <td class="action-cell" data-label="Acciones">
                                 <div class="action-buttons">
                                     <a asp-action="Edit" asp-route-CaId="@item.CaId" class="icon-btn btn-edit" title="Editar">
@@ -127,7 +140,7 @@
                 else
                 {
                     <tr id="emptyRow">
-                        <td colspan="3" style="text-align:center; padding: 20px;">No hay carreras cargadas todavía.</td>
+                        <td colspan="4" style="text-align:center; padding: 20px;">No hay carreras cargadas todavía.</td>
                     </tr>
                 }
             </tbody>
@@ -205,7 +218,7 @@
             if (total === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 3;
+                td.colSpan = 4;
                 td.style.textAlign = 'center';
                 td.style.padding = '20px';
                 td.textContent = 'No se encontraron carreras con esa búsqueda.';
