@@ -539,7 +539,6 @@ body {
     margin: 0 4px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     vertical-align: middle;
-    display: inline-block;
 }
 
 .custom-checkbox:hover {
@@ -936,12 +935,6 @@ body {
     padding: 0 8px;
     outline: none; 
     -webkit-tap-highlight-color: transparent; 
-}
-
-.btn-search:focus,
-.btn-search:active,
-.btn-search svg {
-    outline: none; /* Asegura que ni el botón ni el vector se recuadren */
 }
 
 /* Botón Agregar (+) */
@@ -1353,7 +1346,7 @@ body {
 }
 
 .btn-add:hover {
-    background-color: #000d4d;
+    background-color: #000d4d; /* Oscurecimiento sutil al pasar el mouse */
 }
 
 /* Forzar alineación izquierda limpia para textos de gran tamaño */
@@ -1362,10 +1355,9 @@ body {
     padding-left: 16px !important;
 }
 
-/* ALINEACIÓN DE COLUMNAS (Tabla de Carreras - 5 Columnas)
-   Centra quirúrgicamente Resolución (1), Duración (3), Modalidad (4) y Acciones (5) */
-.crud-carreras th:nth-child(1),
-.crud-carreras td:nth-child(1),
+/* Centra el DNI (Columna 2) y las Acciones (Columna 5) */
+.crud-carreras th:nth-child(2),
+.crud-carreras td:nth-child(2),
 .crud-carreras th:nth-child(3),
 .crud-carreras td:nth-child(3),
 .crud-carreras th:nth-child(4),
@@ -1403,7 +1395,7 @@ body {
 }
 
 .btn-delete svg {
-    stroke: #ef4444;
+    stroke: #ef4444; /* Rojo moderno lineal */
 }
 
 /* =========================================
@@ -2558,5 +2550,48 @@ html.pwa-standalone body {
         height: 22px;
         margin: 0 4px;
     }
+}
+
+/* Parche: evitar desbordes en formularios y dar espacio inferior en la tarjeta */
+.form-grid,
+.main-container-form .form-card {
+  min-width: 0;          /* permite que columnas flex/grid se encojan */
+  overflow-x: hidden;    /* evita scroll horizontal por elementos largos */
+  box-sizing: border-box;
+}
+
+/* Cada item de la grilla puede reducir su ancho sin forzar el padre */
+.form-grid .input-field,
+.input-field {
+  min-width: 0;
+}
+
+/* Inputs no deben exceder el ancho del contenedor */
+.input-field input,
+.input-field select,
+.input-field textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+/* Añade padding inferior en la tarjeta para que las líneas inferiores no queden pegadas */
+.main-container-form .form-card {
+  padding-bottom: 48px; /* incrementable si es necesario */
+}
+
+/* Pequeño ajuste visual para que la línea inferior no sobresalga en casos límite */
+.input-field input,
+.input-field select {
+  padding-bottom: 10px;
+}
+
+/* Estilo visual del asterisco añadido por JS */
+label.required-asterisk > .required-asterisk-span {
+  color: #ef4444;
+  font-weight: 700;
+  margin-left: 6px;
+  font-size: 0.95em;
 }
 
