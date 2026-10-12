@@ -42,6 +42,9 @@ namespace ISFDyT124.Migrations
                     b.Property<bool>("AsJustificacion")
                         .HasColumnType("bit");
 
+                    b.Property<string>("AsObservacion")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("AsPorcentaje")
                         .HasColumnType("decimal(5,2)");
 
