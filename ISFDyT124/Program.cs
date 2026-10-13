@@ -31,9 +31,9 @@ builder
     .Services.AddAuthentication("Cookies") // Define el esquema de autenticaci�n llamado "Cookies"
     .AddCookie(
         "Cookies",
-        options => // Configura opciones para autenticaci�n por cookies
+        options => // Configura opciones para autenticacion por cookies
         {
-            options.LoginPath = "/Account/Login"; // Ruta a la p�gina de login para redirecci�n en caso de no autenticado
+            options.LoginPath = "/Account/Login"; // Ruta a la pagina de login para redirecci�n en caso de no autenticado
             options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesi�n
             // 30 días (antes 30 minutos): ahora que la cookie se persiste, este es el tiempo
             // real que el docente puede estar sin llegar al servidor y seguir logueado. Con 30
@@ -73,7 +73,7 @@ builder
         }
     );
 
-var app = builder.Build(); // Construye la aplicaci�n con la configuraci�n realizada
+var app = builder.Build(); // Construye la aplicacion con la configuracion realizada
 
 // Seed: crear roles y usuario admin si no existen
 using (var scope = app.Services.CreateScope())
@@ -125,9 +125,9 @@ if (!app.Environment.IsDevelopment())
 
 //Middleware
 app.UseHttpsRedirection(); // Redirige solicitudes HTTP a HTTPS
-app.UseStaticFiles(); // Habilita servir archivos est�ticos (CSS, JS, im�genes)
+app.UseStaticFiles(); // Habilita servir archivos esteticos
 app.UseRouting(); // Habilita el enrutamiento de solicitudes HTTP
-app.UseAuthentication(); // Habilita la autenticaci�n en middleware para validar usuarios
-app.UseAuthorization(); // Habilita autorizaci�n para acceso a recursos // Define la ruta por defecto para las peticiones MVC: controlador, acci�n y par�metro opcional id
+app.UseAuthentication(); // Habilita la autenticacion en middleware para validar usuarios
+app.UseAuthorization(); // Habilita autorizacion para acceso a recursos // Define la ruta por defecto para las peticiones MVC: controlador, accion y parametro opcional id
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
-app.Run(); // Ejecuta la aplicaci�n web
+app.Run(); // Ejecuta la aplicacion web
