@@ -37,7 +37,7 @@ namespace ISFDyT124.DTO
             @"^[1-9][0-9]*$",
             ErrorMessage = "Sólo se permiten números de DNI válidos."
         )]
-        [Range(1000000, 99999999, ErrorMessage = "Debe ingresar los 7-8 dígitos del DNI.")] // Valida que el DNI tenga un rango válido entre 7 y 8 dígitos
+        [Range(1000000, 99999999, ErrorMessage = "Debe ingresar un DNI válido de 7 u 8 dígitos (entre 1.000.000 y 99.999.999).")] // Valida que el DNI tenga un rango válido entre 7 y 8 dígitos (1.000.000 a 99.999.999)
         [Required(ErrorMessage = "Debe ingresar un número de DNI válido (7-8 dígitos).")] // Campo obligatorio
         [Display(Name = "DNI")] // Etiqueta para mostrar en vistas y formularios
         public int UsDni { get; set; }
