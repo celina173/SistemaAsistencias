@@ -26,27 +26,24 @@ builder.Services.AddControllersWithViews();
 // lo lee.
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
-// Configura la autenticaci�n basada en cookies
+// Configura la autenticacion basada en cookies
 builder
-    .Services.AddAuthentication("Cookies") // Define el esquema de autenticaci�n llamado "Cookies"
+    .Services.AddAuthentication("Cookies") // Define el esquema de autenticación llamado "Cookies"
     .AddCookie(
         "Cookies",
         options => // Configura opciones para autenticacion por cookies
         {
-            options.LoginPath = "/Account/Login"; // Ruta a la pagina de login para redirecci�n en caso de no autenticado
-            options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesi�n
-            // 30 días (antes 30 minutos): ahora que la cookie se persiste, este es el tiempo
-            // real que el docente puede estar sin llegar al servidor y seguir logueado. Con 30
-            // minutos, alguien que se logueaba con wifi a la mañana y llegaba al aula sin señal
+            options.LoginPath = "/Account/Login"; // Ruta a la pagina de login para redireccion en caso de no autenticado
+            options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesión
             // un par de horas después ya aparecía deslogueado y no podía tomar asistencia.
             options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            options.SlidingExpiration = true; // Renueva el tiempo de expiraci�n al solicitar recursos si el usuario est� activo
-            options.AccessDeniedPath = "/Home/Privacy"; // Ruta a la que redirige si el usuario no tiene permisos
+            options.SlidingExpiration = true; // Renueva el tiempo de expiración al solicitar recursos si el usuario está activo
 
-            // Sin esto, un fetch() a /api/* con la cookie vencida recibe un 302 a
-            // /Account/Login (HTML) en vez de un 401 — el JS de sincronización no
-            // puede reaccionar bien a eso. Para rutas /api devolvemos el status code
-            // crudo; el resto de la app sigue redirigiendo como siempre.
+            // Solución QA-11: Ruta propia para acceso no autorizado en lugar de /Home/Privacy
+            options.AccessDeniedPath = "/Home/AccessDenied";
+
+            // Mantiene el manejo especial para rutas /api (para que el fetch() de sincronización
+            // reciba un 401/403 en crudo en vez de una redirección HTML a la página de Login).
             options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
             {
                 OnRedirectToLogin = context =>
@@ -87,9 +84,6 @@ using (var scope = app.Services.CreateScope())
         context.Roles.Add(rolAdmin);
     }
 
-    // Roles del negocio: se busca por RoId (PK fija) y se corrige la denominación si cambió,
-    // en vez de buscar por nombre (que en bases con el seed viejo insertaba una fila duplicada
-    // y rompía el arranque). Denominaciones definitivas: Docente / Estudiante / Dirección.
     var rolDocente = await context.Roles.FindAsync(RolId.Docente);
     if (rolDocente == null)
         context.Roles.Add(new Rol { RoId = RolId.Docente, RoDenominacion = "Docente" });
@@ -108,9 +102,6 @@ using (var scope = app.Services.CreateScope())
     await context.SaveChangesAsync();
 }
 
-// Railway (y cualquier proxy inverso) termina el HTTPS en su borde y reenvía la request al
-// contenedor por HTTP simple — sin esto, UseHttpsRedirection/UseHsts ven cada request como HTTP
-// y la vuelven a mandar a HTTPS, generando un loop de redirects infinito para el visitante.
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -119,8 +110,10 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 // Configuraciones para ambientes que NO son de desarrollo
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error"); // Manejo global de excepciones, lleva a la p�gina de error
-    app.UseHsts(); // Usa HTTP Strict Transport Security para proteger la app en producci�n
+    app.UseExceptionHandler("/Home/Error"); // Manejo global de excepciones, lleva a la página de error
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
+    app.UseHsts(); // Usa HTTP Strict Transport Security para proteger la app en producción
 }
 
 //Middleware
@@ -128,6 +121,6 @@ app.UseHttpsRedirection(); // Redirige solicitudes HTTP a HTTPS
 app.UseStaticFiles(); // Habilita servir archivos esteticos
 app.UseRouting(); // Habilita el enrutamiento de solicitudes HTTP
 app.UseAuthentication(); // Habilita la autenticacion en middleware para validar usuarios
-app.UseAuthorization(); // Habilita autorizacion para acceso a recursos // Define la ruta por defecto para las peticiones MVC: controlador, accion y parametro opcional id
+app.UseAuthorization(); // Habilita autorizacion para acceso a recursos 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run(); // Ejecuta la aplicacion web
