@@ -124,48 +124,47 @@
     </div>
 </div>
 
+@if (TempData["SuccessMessage"] != null || TempData["Mensaje"] != null)
+{
+    <div class="operation-notice operation-notice-success"
+         role="status"
+         id="operationSuccess">
+        <div class="operation-notice-icon" aria-hidden="true">✓</div>
 
-    @if (TempData["Mensaje"] != null)
-    {
-        <div class="operation-notice operation-notice-success"
-             role="status"
-             id="operationSuccess">
-            <div class="operation-notice-icon" aria-hidden="true">✓</div>
-
-            <div class="operation-notice-content">
-                <strong>Operación completada</strong>
-                <p>@TempData["Mensaje"]</p>
-            </div>
-
-            <button type="button"
-                    class="operation-notice-close"
-                    aria-label="Cerrar notificación"
-                    onclick="this.parentElement.remove()">
-                &times;
-            </button>
+        <div class="operation-notice-content">
+            <strong>Operación completada</strong>
+            <p>@(TempData["SuccessMessage"] ?? TempData["Mensaje"])</p>
         </div>
-    }
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="operation-notice operation-notice-error"
-             role="alert"
-             id="operationError">
-            <div class="operation-notice-icon" aria-hidden="true">!</div>
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
 
-            <div class="operation-notice-content">
-                <strong>No se pudo completar la operación</strong>
-                <p>@TempData["Error"]</p>
-            </div>
+@if (TempData["Error"] != null)
+{
+    <div class="operation-notice operation-notice-error"
+         role="alert"
+         id="operationError">
+        <div class="operation-notice-icon" aria-hidden="true">!</div>
 
-            <button type="button"
-                    class="operation-notice-close"
-                    aria-label="Cerrar notificación"
-                    onclick="this.parentElement.remove()">
-                &times;
-            </button>
+        <div class="operation-notice-content">
+            <strong>No se pudo completar la operación</strong>
+            <p>@TempData["Error"]</p>
         </div>
-    }
+
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
 
 
 <div class="page-title-container">
