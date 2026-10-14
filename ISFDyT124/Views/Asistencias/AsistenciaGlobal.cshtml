@@ -151,10 +151,15 @@
         </script>
     }
 
-    <!-- BOTÓN VOLVER ATRÁS -->
+    <!-- BOTÓN VOLVER AL ÍNDICE DE ASISTENCIAS -->
     <div class="seccion-centrada" style="margin-bottom: 15px;">
-        <a href="javascript:history.back()" class="btn-volver-atras" title="Volver">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <a asp-controller="Profesor"
+           asp-action="Index"
+           class="btn-volver-atras"
+           title="Volver al índice de asistencias">
+            <svg width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>

@@ -5,40 +5,469 @@
     ViewData["BodyClass"] = "agregar-page";
 }
 
-<!-- BANNER OFICIAL -->
 <div class="info-banner">
     <div class="info-col-left">
-        <p class="info-bold">PANEL DE CONTROL</p>
+        <span class="info-bold">Instituto Superior de Formación Docente y Técnica N.º 124</span>
     </div>
     <div class="info-col-right">
-        <p class="info-bold">ADMINISTRADOR</p>
+        <span class="info-bold">Sistema de Gestión de Asistencias</span>
     </div>
 </div>
 
-<div class="page-title-container">
-    <h2 class="page-main-title">Eliminar Carrera</h2>
-</div>
 
-<main class="main-container-form">
-    <div class="form-card">
-        <h3 style="margin-bottom: 25px;">¿Está seguro de eliminar esta carrera?</h3>
+@if (TempData["Mensaje"] != null)
+{
+    <div class="operation-notice operation-notice-success"
+         role="status"
+         id="operationSuccess">
+        <div class="operation-notice-icon" aria-hidden="true">✓</div>
 
-        <div class="input-field">
-            <label>@Html.DisplayNameFor(model => model.CaId)</label>
-            <input value="@Model.CaId" readonly style="background-color: #f9fafb;">
+        <div class="operation-notice-content">
+            <strong>Operación completada</strong>
+            <p>@TempData["Mensaje"]</p>
         </div>
 
-        <div class="input-field">
-            <label>@Html.DisplayNameFor(model => model.CaDenominacion)</label>
-            <input value="@Model.CaDenominacion" readonly style="background-color: #f9fafb;">
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="operation-notice operation-notice-error"
+         role="alert"
+         id="operationError">
+        <div class="operation-notice-icon" aria-hidden="true">!</div>
+
+        <div class="operation-notice-content">
+            <strong>No se pudo completar la operación</strong>
+            <p>@TempData["Error"]</p>
         </div>
 
-        <form asp-action="Delete">
-            <input type="hidden" asp-for="CaId" />
-            <div class="form-buttons" style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 20px;">
-                <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
-                <button type="submit" class="btn-save">Eliminar</button>
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
+
+
+<div class="main-container-form">
+    <div class="form-card delete-confirmation-card">
+
+        <div class="delete-header">
+            <div class="delete-icon" aria-hidden="true">!</div>
+            <div>
+                <h2>Eliminar carrera</h2>
+                <p class="delete-subtitle">
+                    Revisá la información y las relaciones asociadas antes de continuar.
+                </p>
             </div>
+        </div>
+
+        <div class="delete-warning" role="alert">
+            <div class="delete-warning-title">
+                <span aria-hidden="true">⚠</span>
+                Atención: operación delicada
+            </div>
+
+            <p>
+                La eliminación de esta carrera puede afectar las cohortes,
+                las asignaciones de materias y los registros históricos asociados.
+                Revisá las cantidades antes de continuar.
+            </p>
+
+            <div class="delete-stats">
+                <div class="delete-stat">
+                    <span class="delete-stat-label">Cohortes relacionadas</span>
+                    <strong>@ViewData["CantidadCohortes"]</strong>
+                </div>
+
+                <div class="delete-stat">
+                    <span class="delete-stat-label">Asignaciones de materias</span>
+                    <strong>@ViewData["CantidadAsignaciones"]</strong>
+                </div>
+
+                <div class="delete-stat">
+                    <span class="delete-stat-label">Alumnos inscriptos únicos</span>
+                    <strong>@ViewData["CantidadAlumnos"]</strong>
+                </div>
+
+                <div class="delete-stat">
+                    <span class="delete-stat-label">Asistencias vinculadas</span>
+                    <strong>@ViewData["CantidadAsistencias"]</strong>
+                </div>
+            </div>
+
+            <p class="delete-warning-detail">
+                Al eliminar la carrera se eliminarán sus relaciones con las cohortes.
+                Las asignaciones de materias podrían quedar desvinculadas de la carrera.
+                Esta operación también podría verse afectada por las restricciones
+                de las relaciones existentes en la base de datos.
+            </p>
+        </div>
+
+        <div class="delete-section-title">
+            <span class="delete-section-number">1</span>
+            Datos de la carrera
+        </div>
+
+        <div class="delete-fields">
+            <div class="input-field">
+                <label asp-for="CaId">ID de la carrera</label>
+                <input asp-for="CaId"
+                       class="form-control"
+                       readonly />
+            </div>
+
+            <div class="input-field">
+                <label asp-for="CaDenominacion">Denominación</label>
+                <input asp-for="CaDenominacion"
+                       class="form-control"
+                       readonly />
+            </div>
+        </div>
+
+        <div class="delete-section-title">
+            <span class="delete-section-number">2</span>
+            Confirmación
+        </div>
+
+        <form asp-action="Delete"
+              method="post"
+              id="deleteCarreraForm">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="CaId" />
+
+            <div class="delete-confirmation-box">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="ConfirmarEliminacion"
+                           name="ConfirmarEliminacion"
+                           value="true"
+                           required />
+
+                    <label class="form-check-label"
+                           for="ConfirmarEliminacion">
+                        <strong>Confirmo que revisé los registros relacionados.</strong>
+                        Entiendo las posibles consecuencias y deseo continuar
+                        con la eliminación de esta carrera.
+                    </label>
+                </div>
+            </div>
+
+            <div class="delete-actions">
+                <a asp-action="Index" class="btn-cancel">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                        id="btnConfirmarEliminacion"
+                        class="btn-save delete-submit-btn"
+                        disabled>
+                    Confirmar eliminación
+                </button>
+            </div>
+
+            <p class="delete-footer-note" id="deleteFooterNote">
+                Marcá la casilla de confirmación para habilitar el botón.
+            </p>
         </form>
+
     </div>
-</main>
+</div>
+
+<style>
+    .delete-confirmation-card {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto 30px;
+        box-sizing: border-box;
+    }
+
+    .delete-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .delete-header h2 {
+            margin: 0 0 6px;
+        }
+
+    .delete-subtitle {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.94rem;
+        line-height: 1.5;
+    }
+
+    .delete-icon {
+        display: flex;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 1.7rem;
+        font-weight: 800;
+    }
+
+    .delete-warning {
+        padding: 20px;
+        margin-bottom: 26px;
+        border: 1px solid #bfdbfe;
+        border-left: 5px solid #3b82f6;
+        border-radius: 12px;
+        background: #eff6ff;
+        color: #1e3a8a;
+    }
+
+    .delete-warning-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 12px;
+        font-size: 1.02rem;
+        font-weight: 700;
+    }
+
+        .delete-warning-title span {
+            font-size: 1.2rem;
+        }
+
+    .delete-warning p {
+        margin: 0 0 14px;
+        line-height: 1.6;
+    }
+
+    .delete-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 18px 0;
+    }
+
+    .delete-stat {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        padding: 15px;
+        border: 1px solid #bfdbfe;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.75);
+    }
+
+    .delete-stat-label {
+        font-size: 0.84rem;
+        line-height: 1.4;
+    }
+
+    .delete-stat strong {
+        font-size: 1.5rem;
+        color: #1d4ed8;
+    }
+
+    .delete-warning .delete-warning-detail {
+        margin: 0;
+        padding-top: 14px;
+        border-top: 1px solid #bfdbfe;
+        font-size: 0.88rem;
+    }
+
+    .delete-section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 24px 0 16px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .delete-section-number {
+        display: flex;
+        width: 29px;
+        height: 29px;
+        flex: 0 0 29px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #e8eef8;
+        color: #294b7a;
+        font-size: 0.9rem;
+    }
+
+    .delete-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+    }
+
+        .delete-fields .input-field:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .delete-fields .form-control {
+            background-color: #f8fafc;
+            color: #4b5563;
+            cursor: default;
+        }
+
+    .delete-confirmation-box {
+        padding: 17px;
+        margin-bottom: 22px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        background: #f9fafb;
+    }
+
+        .delete-confirmation-box .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding-left: 0;
+        }
+
+        .delete-confirmation-box .form-check-input {
+            position: static;
+            float: none;
+            flex: 0 0 18px;
+            width: 18px;
+            height: 18px;
+            margin: 3px 0 0;
+            cursor: pointer;
+        }
+
+        .delete-confirmation-box .form-check-label {
+            cursor: pointer;
+            line-height: 1.6;
+        }
+
+    .delete-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding-top: 18px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .delete-submit-btn {
+        transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+        .delete-submit-btn:disabled {
+            opacity: 0.45;
+            filter: grayscale(0.5);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+    .delete-footer-note {
+        margin: 12px 0 0;
+        color: #6b7280;
+        font-size: 0.82rem;
+        text-align: right;
+    }
+
+    @@media (max-width: 576px) {
+        .delete-confirmation-card {
+            padding: 18px;
+        }
+
+        .delete-header {
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .delete-icon {
+            display: flex;
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-size: 1.7rem;
+            font-weight: 800;
+        }
+
+        .delete-stats,
+        .delete-fields {
+            grid-template-columns: 1fr;
+        }
+
+            .delete-fields .input-field:first-child {
+                grid-column: auto;
+            }
+
+        .delete-actions {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+            .delete-actions .btn-cancel,
+            .delete-actions .delete-submit-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+        .delete-footer-note {
+            text-align: center;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkbox = document.getElementById("ConfirmarEliminacion");
+        const button = document.getElementById("btnConfirmarEliminacion");
+        const form = document.getElementById("deleteCarreraForm");
+        const note = document.getElementById("deleteFooterNote");
+
+        if (!checkbox || !button || !form) {
+            return;
+        }
+
+        function actualizarConfirmacion() {
+            button.disabled = !checkbox.checked;
+
+            if (note) {
+                note.textContent = checkbox.checked
+                    ? "Confirmación marcada. Podés continuar si revisaste toda la información."
+                    : "Marcá la casilla de confirmación para habilitar el botón.";
+            }
+        }
+
+        checkbox.addEventListener("change", actualizarConfirmacion);
+
+        form.addEventListener("submit", function (event) {
+            if (!checkbox.checked) {
+                event.preventDefault();
+                actualizarConfirmacion();
+                checkbox.focus();
+            }
+        });
+
+        actualizarConfirmacion();
+    });
+</script>

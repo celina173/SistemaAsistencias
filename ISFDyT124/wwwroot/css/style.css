@@ -617,13 +617,26 @@ body {
     font-size: 0.85rem;
 }
 
+
 .admin-asistencia-buttons {
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     gap: 12px;
-    margin-top: 24px;
 }
+
+.admin-asistencia-buttons .btn-guardar,
+.admin-asistencia-buttons .btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 42px;
+    margin: 0;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
 
 @media (max-width: 520px) {
     .admin-asistencia-buttons {
@@ -631,13 +644,13 @@ body {
         align-items: stretch;
     }
 
-    .admin-asistencia-buttons .btn-guardar {
-        width: 100%;
-    }
+        .admin-asistencia-buttons .btn-guardar {
+            width: 100%;
+        }
 
-    .admin-asistencia-buttons .btn-cancel {
-        text-align: center;
-    }
+        .admin-asistencia-buttons .btn-cancel {
+            text-align: center;
+        }
 }
 /* =========================================
    PANTALLA: ASISTENCIA GLOBAL

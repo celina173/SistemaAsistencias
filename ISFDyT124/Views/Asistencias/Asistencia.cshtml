@@ -54,8 +54,20 @@
                                 <div class="modules-group">
                                     @for (int m = 0; m < moduleCount; m++)
                                     {
-                                        var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
-                                        <input type="checkbox" class="custom-checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") />
+                                        var isChecked =
+                                            Model.Rows[i].Modulos != null &&
+                                            Model.Rows[i].Modulos.Count > m &&
+                                            Model.Rows[i].Modulos[m];
+
+                                        <input type="checkbox"
+                                               class="custom-checkbox"
+                                               name="Rows[@i].Modulos[@m]"
+                                               value="true"
+                                               @(isChecked ? "checked" : "") />
+
+                                        <input type="hidden"
+                                               name="Rows[@i].Modulos[@m]"
+                                               value="false" />
                                     }
                                     @{
                                         var mc = moduleCount > 0 ? moduleCount : 1;
@@ -77,7 +89,7 @@
 
         <div class="admin-asistencia-buttons">
             <button type="submit" class="btn-guardar">Guardar</button>
-            <a asp-action="Index" asp-controller="Asistencias" class="btn-cancel">Cancelar</a>
+            <a asp-action="Index" asp-controller="Profesor" class="btn-cancel">Cancelar</a>
         </div>
     </form>
 </main>

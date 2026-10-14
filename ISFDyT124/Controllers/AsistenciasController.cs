@@ -214,16 +214,18 @@ namespace ISFDyT124.Controllers
 
             // Alumnos inscriptos a esta cátedra vía Inscripciones (la inscripción ya es la prueba
             // de que corresponde tomarle asistencia acá, sin depender de un nombre de rol puntual).
+
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId
+                where i.CaMaId == CaMaId && u.UsActivo
                 select new
                 {
                     u.UsId,
                     FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim(),
                 }
             ).ToListAsync();
+    
 
             // Carrera y materia reales de esta cátedra (antes se guardaba el objeto CarreraMateria
             // entero en ViewData, lo que mostraba "ISFDyT124.Models.CarreraMateria" en pantalla).
@@ -333,6 +335,35 @@ namespace ISFDyT124.Controllers
                     moduleCount = cant;
                 }
             }
+
+            if (carreraMateria == null)
+            {
+                return NotFound();
+            }
+
+            // Obtener los estudiantes activos inscriptos en esta cátedra.
+            var estudiantesValidos = await _context.Inscripciones
+                .Where(i => i.CaMaId == model.CaMaId.Value)
+                .Join(
+                    _context.Usuarios.Where(u => u.UsActivo),
+                    i => i.UsId,
+                    u => u.UsId,
+                    (i, u) => u.UsId
+                )
+                .Distinct()
+                .ToListAsync();
+
+            var idsValidos = estudiantesValidos.ToHashSet();
+
+            // Rechazar todo el envío si incluye alumnos inactivos,
+            // no inscriptos o pertenecientes a otra cátedra.
+            if (model.Rows.Any(row => !idsValidos.Contains(row.UsId)))
+            {
+                return BadRequest(
+                    "La planilla contiene estudiantes inactivos o no inscriptos en esta cátedra. Recargá la página e intentá nuevamente."
+                );
+            }
+
             foreach (var row in model.Rows)
             {
                 var checkedCount = row.Modulos != null ? row.Modulos.Count(x => x) : 0;
@@ -441,10 +472,11 @@ namespace ISFDyT124.Controllers
             }
 
             // Alumnos inscriptos en esta materia vía Inscripciones (ver Asistencia() más arriba)
+
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId
+                where i.CaMaId == CaMaId && u.UsActivo
                 select u
             )
                 .Distinct()
