@@ -79,6 +79,17 @@ namespace ISFDyT124.Controllers
             ViewBag.CarreraMateriasList = materiasLimpias;
         }
 
+        // Admin es exclusivo del desarrollo (ticket 3.34): el alta de usuario no debe
+        // poder crear otro Admin. Se filtra en una lista aparte en vez de tocar
+        // ViewBag.RolesList del método de arriba porque UsuarioEditar sigue necesitando
+        // la lista completa (si no, al editar un Admin existente se perdería la opción
+        // de su propio rol en el select).
+        private async Task CargarListasFormularioAltaUsuarioAsync()
+        {
+            await CargarListasFormularioUsuarioAsync();
+            ViewBag.RolesList = ((List<Rol>)ViewBag.RolesList).Where(r => r.RoId != RolId.Admin).ToList();
+        }
+
         public async Task<IActionResult> Index()
         {
             ViewBag.TotalAlumnos = await _context.Usuarios.Where(u => u.RoId == RolId.Estudiante).CountAsync();
@@ -210,7 +221,7 @@ namespace ISFDyT124.Controllers
         [HttpGet]
         public async Task<IActionResult> UsuarioAgregar()
         {
-            await CargarListasFormularioUsuarioAsync();
+            await CargarListasFormularioAltaUsuarioAsync();
             return View(new UsuarioCrearDto());
         }
 
@@ -220,7 +231,17 @@ namespace ISFDyT124.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
+                return View(model);
+            }
+
+            // Admin es exclusivo del desarrollo (ticket 3.34): se valida en el servidor,
+            // no solo ocultando la opción en el <select>, porque nada impide mandar
+            // selectedRoleId=1 por POST sin pasar por la vista.
+            if (selectedRoleId == RolId.Admin)
+            {
+                ModelState.AddModelError("selectedRoleId", "No se puede asignar el rol Admin desde el alta de usuario.");
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -231,7 +252,7 @@ namespace ISFDyT124.Controllers
                 if (emailExists)
                 {
                     ModelState.AddModelError("UsEmail", "El email ya se encuentra registrado.");
-                    await CargarListasFormularioUsuarioAsync();
+                    await CargarListasFormularioAltaUsuarioAsync();
                     return View(model);
                 }
             }
@@ -239,7 +260,7 @@ namespace ISFDyT124.Controllers
             if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
             {
                 ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -249,7 +270,7 @@ namespace ISFDyT124.Controllers
                     "CaCoId",
                     "El usuario debe estar asociado a una carrera/cohorte."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -259,7 +280,7 @@ namespace ISFDyT124.Controllers
                     "SelectedCaMaIds",
                     "Debe seleccionar al menos una materia para un Docente."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -322,7 +343,7 @@ namespace ISFDyT124.Controllers
                     string.Empty,
                     "No se pudo guardar el usuario. Verifique que todos los campos obligatorios estén completos e intente nuevamente."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
             catch (Exception ex)
