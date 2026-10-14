@@ -236,6 +236,14 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            // Validación de rango de DNI (previene valores negativos, cero o afuera del rango de 7-8 dígitos)
+            if (model.UsDni < 1000000 || model.UsDni > 99999999)
+            {
+                ModelState.AddModelError("UsDni", "Debe ingresar un DNI válido de 7 u 8 dígitos (entre 1.000.000 y 99.999.999).");
+                await CargarListasFormularioUsuarioAsync();
+                return View(model);
+            }
+
             if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
             {
                 ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
