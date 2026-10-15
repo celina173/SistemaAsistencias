@@ -58,7 +58,7 @@
                 <div class="form-title-divider"></div>
             </div>
 
-            <form asp-action="ModificarInscripcionMateria" method="post">
+            <form asp-action="ModificarInscripcionMateria" method="post" novalidate>
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="InId" />
                 <input type="hidden" asp-for="UsId" />

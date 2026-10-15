@@ -42,9 +42,17 @@ namespace ISFDyT124.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal? AsPorcentaje { get; set; }
 
-        // Motivo o justificación en caso de ausencia.
-        [Display(Name = "Justificación")]
+
+        // Certificación de la ausencia.
+        // Se conserva AsJustificacion para mantener compatibilidad
+        // con los registros y consultas existentes.
+        [Display(Name = "Certificación")]
         public bool AsJustificacion { get; set; } = false;
+
+        // Observación asociada a la certificación.
+        [Display(Name = "Observación")]
+        public string? AsObservacion { get; set; }
+
 
         // Clave foránea que conecta con el estudiante.
         public int? UsId { get; set; } // Por el momento no se utiliza

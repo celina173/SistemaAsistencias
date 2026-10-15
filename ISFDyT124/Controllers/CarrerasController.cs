@@ -16,10 +16,39 @@ public class CarrerasController : Controller
     }
 
     // GET: CARRERAS
+
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Carreras.ToListAsync());
+        var carreras = await _context.Carreras.ToListAsync();
+
+        var relacionesCohorte = await (
+            from cc in _context.CarreraCohortes
+            join co in _context.Cohortes
+                on cc.CoId equals co.CoId
+            select new
+            {
+                cc.CaId,
+                co.CoAnio
+            }
+        ).ToListAsync();
+
+        var cohortesPorCarrera = relacionesCohorte
+            .GroupBy(c => c.CaId)
+            .ToDictionary(
+                grupo => grupo.Key,
+                grupo => string.Join(
+                    ", ",
+                    grupo.Select(c => c.CoAnio)
+                        .Distinct()
+                        .OrderBy(anio => anio)
+                )
+            );
+
+        ViewData["CohortesPorCarrera"] = cohortesPorCarrera;
+
+        return View(carreras);
     }
+
 
     // GET: CARRERAS/Details/5
     public async Task<IActionResult> Details(int? CaId)
@@ -166,15 +195,15 @@ public class CarrerasController : Controller
     public async Task<IActionResult> Delete(int? CaId)
     {
         if (CaId == null)
-        {
             return NotFound();
-        }
 
-        var carrera = await _context.Carreras.FirstOrDefaultAsync(c => c.CaId == CaId);
+        var carrera = await _context.Carreras
+            .FirstOrDefaultAsync(c => c.CaId == CaId);
+
         if (carrera == null)
-        {
             return NotFound();
-        }
+
+        await CargarResumenBorradoCarrera(CaId.Value);
 
         return View(carrera);
     }
@@ -182,34 +211,76 @@ public class CarrerasController : Controller
     // POST: CARRERAS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int? CaId)
+    public async Task<IActionResult> DeleteConfirmed(
+    int? CaId,
+    bool ConfirmarEliminacion)
     {
-        var carrera = await _context.Carreras.FindAsync(CaId);
-        if (carrera != null)
+        if (CaId == null)
+            return NotFound();
+
+        if (!ConfirmarEliminacion)
         {
-            _context.Carreras.Remove(carrera);
+            TempData["Error"] =
+                "Debés confirmar explícitamente la eliminación de la carrera.";
+            return RedirectToAction(nameof(Delete), new { CaId });
         }
 
-        // FIX: sin try/catch, cualquier choque de FK al borrar (cascada a CarreraCohorte /
-        // CarreraMateria con datos relacionados) tiraba una DbUpdateException sin capturar
-        // y reventaba la request con un error 500 en vez de avisarle al usuario. Mismo
-        // criterio que ya usa AdminController para sus borrados.
+        var carrera = await _context.Carreras
+            .FindAsync(CaId.Value);
+        if (carrera == null)
+            return NotFound();
+
         try
         {
+            _context.Carreras.Remove(carrera);
             await _context.SaveChangesAsync();
+            TempData["Mensaje"] =
+                "Carrera eliminada correctamente.";
         }
         catch (DbUpdateException)
         {
-            TempData["Error"] = "No se pudo eliminar la carrera. Puede tener datos relacionados que lo impiden.";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] =
+                "No se pudo eliminar la carrera. Puede tener datos relacionados que lo impiden.";
         }
 
-        TempData["SuccessMessage"] = "Carrera eliminada correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
     private bool CarreraExists(int? CaId)
     {
         return _context.Carreras.Any(e => e.CaId == CaId);
+    }
+
+    private async Task CargarResumenBorradoCarrera(int caId)
+    {
+        var cohortesQuery = _context.CarreraCohortes
+            .Where(cc => cc.CaId == caId);
+
+        var caCoIdsQuery = cohortesQuery
+            .Select(cc => cc.CaCoId);
+
+        var carreraMateriasQuery = _context.CarreraMaterias
+            .Where(cm => cm.CaCoId.HasValue && caCoIdsQuery.Contains(cm.CaCoId.Value));
+
+        var caMaIdsQuery = carreraMateriasQuery
+            .Select(cm => cm.CaMaId);
+
+        ViewData["CantidadCohortes"] =
+            await cohortesQuery.CountAsync();
+
+        ViewData["CantidadAsignaciones"] =
+            await carreraMateriasQuery.CountAsync();
+
+        ViewData["CantidadAlumnos"] =
+            await _context.Inscripciones
+                .Where(i => caMaIdsQuery.Contains(i.CaMaId))
+                .Select(i => i.UsId)
+                .Distinct()
+                .CountAsync();
+
+        ViewData["CantidadAsistencias"] =
+            await _context.Asistencias
+                .Where(a => a.CaMaId.HasValue && caMaIdsQuery.Contains(a.CaMaId.Value))
+                .CountAsync();
     }
 }

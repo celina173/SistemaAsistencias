@@ -23,6 +23,9 @@
     </script>
 </head>
 <body class="@ViewData["BodyClass"]">
+    <!-- Ticket 6.8: formulario oculto de logout. Los links "Cerrar Sesion"/"Salir" lo envían por POST
+     (con token antiforgery) para que la cookie se invalide en el servidor y no se pueda disparar con un link. -->
+    <form id="formLogout" asp-controller="Account" asp-action="Salir" method="post" style="display:none"></form>
 
     <partial name="_PwaInstallBanner" />
 
@@ -101,8 +104,9 @@
                 }
             </li>
 
+            <!-- Ticket 6.8: antes iba a Login (solo mostraba la pantalla y la sesión quedaba abierta); ahora envía formLogout. -->
             <li>
-                <a asp-controller="Account" asp-action="Login"><span class="menu-arrow">➔</span>Cerrar Sesion</a>
+                <a href="#" onclick="document.getElementById('formLogout').submit(); return false;"><span class="menu-arrow">➔</span>Cerrar Sesion</a>
             </li>
         </ul>
     </nav>
@@ -141,8 +145,9 @@
                 <span>Calendario</span>
             </a>
         }
-
-        <a asp-controller="Account" asp-action="Login" class="pwa-bottom-nav-item">
+        
+        <!-- Ticket 6.8: mismo cambio que el menú lateral, para la barra inferior de la PWA. -->
+        <a href="#" onclick="document.getElementById('formLogout').submit(); return false;" class="pwa-bottom-nav-item">            
             <i class="bi bi-box-arrow-right"></i>
             <span>Salir</span>
         </a>

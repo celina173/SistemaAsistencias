@@ -30,6 +30,89 @@
         cursor: not-allowed;
         background: #f1f5f9;
     }
+
+    
+    .operation-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        width: calc(100% - 32px);
+        max-width: 1100px;
+        box-sizing: border-box;
+        margin: 20px auto;
+        padding: 16px 18px;
+        border: 1px solid;
+        border-left-width: 5px;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+    }
+
+    .operation-notice-success {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        border-left-color: #3b82f6;
+        color: #1e40af;
+    }
+
+    .operation-notice-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        border-left-color: #dc2626;
+        color: #991b1b;
+    }
+
+    .operation-notice-icon {
+        display: flex;
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.8);
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    .operation-notice-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .operation-notice-content strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.98rem;
+    }
+
+    .operation-notice-content p {
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .operation-notice-close {
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font-size: 1.6rem;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .operation-notice-close:hover {
+        opacity: 1;
+    }
+
+    @@media (max-width: 576px) {
+        .operation-notice {
+            gap: 10px;
+            padding: 14px;
+        }
+}
 </style>
 
 <div class="info-banner">
@@ -40,6 +123,49 @@
         <p class="info-bold">ADMINISTRADOR</p>
     </div>
 </div>
+
+@if (TempData["SuccessMessage"] != null || TempData["Mensaje"] != null)
+{
+    <div class="operation-notice operation-notice-success"
+         role="status"
+         id="operationSuccess">
+        <div class="operation-notice-icon" aria-hidden="true">✓</div>
+
+        <div class="operation-notice-content">
+            <strong>Operación completada</strong>
+            <p>@(TempData["SuccessMessage"] ?? TempData["Mensaje"])</p>
+        </div>
+
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="operation-notice operation-notice-error"
+         role="alert"
+         id="operationError">
+        <div class="operation-notice-icon" aria-hidden="true">!</div>
+
+        <div class="operation-notice-content">
+            <strong>No se pudo completar la operación</strong>
+            <p>@TempData["Error"]</p>
+        </div>
+
+        <button type="button"
+                class="operation-notice-close"
+                aria-label="Cerrar notificación"
+                onclick="this.parentElement.remove()">
+            &times;
+        </button>
+    </div>
+}
+
 
 <div class="page-title-container">
     <h2 class="page-main-title">Gestión Materias</h2>

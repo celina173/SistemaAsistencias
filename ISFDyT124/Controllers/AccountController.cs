@@ -167,27 +167,18 @@ namespace ISFDyT124.Controllers
         [Authorize]
         public IActionResult CambiarContrasena()
         {
-            return View();
+            return View(new CambiarContrasenaDto());
         }
 
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> CambiarContrasena(
-            string nuevaContrasena,
-            string confirmarContrasena
+            CambiarContrasenaDto model,
+            string contrasenaActual
         )
         {
-            if (string.IsNullOrWhiteSpace(nuevaContrasena) || nuevaContrasena.Length < 6)
-            {
-                ModelState.AddModelError("", "La contraseña debe tener al menos 6 caracteres.");
-                return View();
-            }
-
-            if (nuevaContrasena != confirmarContrasena)
-            {
-                ModelState.AddModelError("", "Las contraseñas no coinciden.");
-                return View();
-            }
+            if (!ModelState.IsValid)
+                return View(model);
 
             // Buscamos el usuario logueado usando el Claim del ID
             var usuario = await _context
@@ -195,11 +186,28 @@ namespace ISFDyT124.Controllers
                 .FirstOrDefaultAsync(u =>
                     u.UsId == int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
                 );
+
+
+            //Cierra la cookie y manda al login.
             if (usuario == null)
-                return RedirectToAction("Salir");
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                return RedirectToAction("Login");
+            }
+
+
+            // Antes esta acción no pedía ni verificaba la contraseña actual: cualquiera con
+            // la sesión abierta (ej. una cookie robada, un equipo compartido sin cerrar
+            // sesión) podía cambiar la contraseña del usuario sin saber la actual, quedándose
+            // con la cuenta. Mismo verificador que usa el login.
+            if (!PasswordService.VerifyPassword(contrasenaActual, usuario.UsContrasena))
+            {
+                ModelState.AddModelError("", "La contraseña actual no es correcta.");
+                return View(model);
+            }
 
             // CAMBIO: la contraseña nueva se guarda hasheada, nunca en texto plano.
-            usuario.UsContrasena = PasswordService.HashPassword(nuevaContrasena);
+            usuario.UsContrasena = PasswordService.HashPassword(model.NuevaContrasena);
             await _context.SaveChangesAsync();
 
             // Antes mandaba siempre a Home sin importar el rol (ticket 6.6) — mismo
@@ -207,17 +215,17 @@ namespace ISFDyT124.Controllers
             return RedirectPorRol(usuario.Rol?.RoDenominacion);
         }
 
+        // Cierra la sesión del servidor y redirige al login (ticket 6.8). Solo POST.
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Salir()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
 
-
-
-
         //Recuperación de contraseña
-
         [HttpGet]
         public ActionResult StartRecovery()
         {

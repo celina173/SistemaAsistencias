@@ -185,6 +185,17 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // Usuarios.UsEmail tiene un índice único desde la migración Unique_Email_Usuario --
+            // sin este chequeo, un email repetido pasaba la validación del modelo y recién
+            // reventaba al guardar con un 500 crudo (DbUpdateException sin capturar), en vez
+            // de mostrar un error claro. Mismo chequeo que ya usa AdminController.
+            if (!string.IsNullOrWhiteSpace(model.UsEmail) && await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail))
+            {
+                ModelState.AddModelError(nameof(model.UsEmail), "El email ya se encuentra registrado.");
+                await RecargarFormAsync(model, permitidos);
+                return View(model);
+            }
+
             // Usuarios.UsId no es IDENTITY -- se calcula a mano como MAX+1. Sin lock, dos
             // altas simultáneas podían leer el mismo MAX y chocar al insertar (ticket 6.13).
             // UPDLOCK+HOLDLOCK dentro de una transacción serializa el cálculo.
@@ -300,6 +311,15 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            // Mismo chequeo que en Agregar: el índice único de UsEmail hacía reventar con un
+            // 500 crudo si se editaba un alumno con un email ya usado por otro usuario.
+            if (!string.IsNullOrWhiteSpace(model.UsEmail) && await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail && u.UsId != id))
+            {
+                ModelState.AddModelError(nameof(model.UsEmail), "El email ya se encuentra registrado por otro usuario.");
+                await RecargarFormAsync(model, permitidos);
+                return View(model);
+            }
+
             // ACTUALIZACIÓN DE DATOS DEL ESTUDIANTE, INCLUYENDO EL ESTADO LÓGICO
             alumno.UsApellido = model.UsApellido;
             alumno.UsNombre = model.UsNombre;
@@ -339,7 +359,6 @@ namespace ISFDyT124.Controllers
             var permitidos = await CaCoIdsPermitidosAsync();
 
             var alumno = await AlumnosVisibles(permitidos)
-                .Include(u => u.UsuarioRoles)
                 .FirstOrDefaultAsync(u => u.UsId == id);
 
             if (alumno == null)
@@ -350,7 +369,6 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
 
             _context.Inscripciones.RemoveRange(inscripciones);
-            _context.UsuarioRoles.RemoveRange(alumno.UsuarioRoles);
             _context.Usuarios.Remove(alumno);
 
             // FIX: sin try/catch, cualquier choque de FK al borrar tiraba una
