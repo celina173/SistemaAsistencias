@@ -20,6 +20,7 @@ namespace ISFDyT124.Data
         public DbSet<CarreraCohorte> CarreraCohortes { get; set; } = null!;
         public DbSet<CarreraMateria> CarreraMaterias { get; set; } = null!;
         public DbSet<Inscripciones> Inscripciones { get; set; } = null!;
+        public DbSet<CarreraMateriaDiaCursada> CarreraMateriaDiasCursada { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -134,6 +135,17 @@ namespace ISFDyT124.Data
                     j => j.HasOne<CarreraMateria>().WithMany().HasForeignKey("CarreraMateriasCaMaId"),
                     j => j.HasOne<Usuario>().WithMany().HasForeignKey("UsuariosUsId")
                 );
+
+            modelBuilder.Entity<CarreraMateriaDiaCursada>()
+                .HasOne(d => d.CarreraMateria)
+                .WithMany(cm => cm.DiasCursada)
+                .HasForeignKey(d => d.CaMaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CarreraMateriaDiaCursada>()
+                .HasIndex(d => new { d.CaMaId, d.DiaSemana })
+                .IsUnique();
+
         }
     }
 }

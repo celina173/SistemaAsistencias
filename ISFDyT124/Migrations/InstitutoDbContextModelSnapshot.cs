@@ -101,6 +101,12 @@ namespace ISFDyT124.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaCoId"));
 
+                    b.Property<DateTime?>("CaCoFechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CaCoFechaInicio")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("CaId")
                         .HasColumnType("int");
 
@@ -140,6 +146,28 @@ namespace ISFDyT124.Migrations
                         .HasFilter("[CaCoId] IS NOT NULL");
 
                     b.ToTable("CarreraMateria", (string)null);
+                });
+
+            modelBuilder.Entity("ISFDyT124.Models.CarreraMateriaDiaCursada", b =>
+                {
+                    b.Property<int>("CaMaDiId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CaMaDiId"));
+
+                    b.Property<int>("CaMaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DiaSemana")
+                        .HasColumnType("int");
+
+                    b.HasKey("CaMaDiId");
+
+                    b.HasIndex("CaMaId", "DiaSemana")
+                        .IsUnique();
+
+                    b.ToTable("CarreraMateriaDiasCursada");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Cohorte", b =>
@@ -356,6 +384,17 @@ namespace ISFDyT124.Migrations
                     b.Navigation("Materia");
                 });
 
+            modelBuilder.Entity("ISFDyT124.Models.CarreraMateriaDiaCursada", b =>
+                {
+                    b.HasOne("ISFDyT124.Models.CarreraMateria", "CarreraMateria")
+                        .WithMany("DiasCursada")
+                        .HasForeignKey("CaMaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CarreraMateria");
+                });
+
             modelBuilder.Entity("ISFDyT124.Models.Inscripciones", b =>
                 {
                     b.HasOne("ISFDyT124.Models.CarreraMateria", "CarreraMateria")
@@ -415,6 +454,11 @@ namespace ISFDyT124.Migrations
             modelBuilder.Entity("ISFDyT124.Models.CarreraCohorte", b =>
                 {
                     b.Navigation("CarreraMaterias");
+                });
+
+            modelBuilder.Entity("ISFDyT124.Models.CarreraMateria", b =>
+                {
+                    b.Navigation("DiasCursada");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Cohorte", b =>
