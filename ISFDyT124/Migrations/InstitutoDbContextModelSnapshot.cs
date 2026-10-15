@@ -197,6 +197,11 @@ namespace ISFDyT124.Migrations
                     b.Property<int>("CaMaId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("InFechaInscripcion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("date")
+                        .HasDefaultValueSql("CONVERT(date, GETDATE())");
+
                     b.Property<int>("UsId")
                         .HasColumnType("int");
 

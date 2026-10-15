@@ -208,10 +208,21 @@
                             {
                                 foreach (var f in Model.Fechas)
                                 {
-                                    <td>@(row.AsistenciaPorFecha.ContainsKey(f) ? (row.AsistenciaPorFecha[f].ToString("0.#") + "%") : "0%")</td>
+                                    @if (row.AsistenciaPorFecha.TryGetValue(f, out var porcentaje) && porcentaje.HasValue)
+                                    {
+                                        <td>@porcentaje.Value.ToString("0.#")%</td>
+                                    }
+                                    else
+                                    {
+                                        <td>—</td>
+                                    }
                                 }
                             }
-                            <td class="total-col">@row.PorcentajeAsistencia.ToString("0.#")%</td>
+                            <td class="total-col">
+                                @(row.PorcentajeAsistencia.HasValue
+                                    ? row.PorcentajeAsistencia.Value.ToString("0.#") + "%"
+                                    : "—")
+                            </td>
                         </tr>
                     }
                 }

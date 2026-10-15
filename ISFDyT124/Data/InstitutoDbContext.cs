@@ -146,6 +146,10 @@ namespace ISFDyT124.Data
                 .HasIndex(d => new { d.CaMaId, d.DiaSemana })
                 .IsUnique();
 
+            modelBuilder.Entity<Inscripciones>()
+                .Property(i => i.InFechaInscripcion)
+                .HasColumnType("date")
+                .HasDefaultValueSql("CONVERT(date, GETDATE())");
         }
     }
 }

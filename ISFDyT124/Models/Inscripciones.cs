@@ -10,6 +10,6 @@ namespace ISFDyT124.Models
         public int CaMaId { get; set; }
         public virtual Usuario? Usuarios { get; set; }
         public virtual CarreraMateria? CarreraMateria { get; set; }
-
+        public DateTime InFechaInscripcion { get; set; }
     }
 }

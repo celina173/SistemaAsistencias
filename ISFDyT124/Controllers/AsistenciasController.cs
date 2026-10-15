@@ -508,31 +508,53 @@ namespace ISFDyT124.Controllers
             // cargado -- para registros históricos, previos a este campo, se usa AsPresente
             // (100/0) como fallback (ticket 5.13: antes, un registro con solo 1 de 3 módulos
             // marcados quedaba AsPresente=true y se mostraba como 100% de asistencia).
+            var fechasInscripcion = await _context
+                .Inscripciones.Where(i => i.CaMaId == CaMaId.Value && usIdsInscritos.Contains(i.UsId))
+                .Select(i => new { i.UsId, i.InFechaInscripcion })
+                .ToListAsync();
+
+            var fechasInscripcionDict = fechasInscripcion
+                .GroupBy(i => i.UsId)
+                .ToDictionary(
+                    grupo => grupo.Key,
+                    grupo => grupo.Min(i => i.InFechaInscripcion.Date)
+                );
+
             foreach (var alumno in estudiantes)
             {
                 var asistenciasAlumno = todasLasAsistencias
                     .Where(a => a.UsId == alumno.UsId)
                     .ToList();
 
-                var asistenciaPorFecha = new Dictionary<DateTime, decimal>();
+                var asistenciaPorFecha = new Dictionary<DateTime, decimal?>();
                 decimal sumaPorcentajes = 0m;
+                int fechasAplicables = 0;
+                var fechaInscripcion = fechasInscripcionDict[alumno.UsId];
+
                 foreach (var fecha in model.Fechas)
                 {
+                    if (fecha.Date < fechaInscripcion)
+                    {
+                        asistenciaPorFecha[fecha] = null;
+                        continue;
+                    }
+
                     var registro = asistenciasAlumno.FirstOrDefault(a =>
                         a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha
                     );
-                    decimal pct = 0m;
-                    if (registro != null)
-                    {
-                        pct = registro.AsPorcentaje ?? (registro.AsPresente ? 100m : 0m);
-                    }
+
+                    decimal pct = registro != null
+                        ? registro.AsPorcentaje ?? (registro.AsPresente ? 100m : 0m)
+                        : 0m;
+
                     asistenciaPorFecha[fecha] = pct;
                     sumaPorcentajes += pct;
+                    fechasAplicables++;
                 }
 
-                int totalFechas = model.Fechas.Count;
-                decimal promedio =
-                    totalFechas > 0 ? Math.Round(sumaPorcentajes / totalFechas, 1) : 0m;
+                decimal? promedio = fechasAplicables > 0
+                    ? Math.Round(sumaPorcentajes / fechasAplicables, 1)
+                    : null;
 
                 model.Rows.Add(
                     new AsistenciaGlobalRowViewModel
