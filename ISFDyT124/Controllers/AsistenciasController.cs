@@ -225,7 +225,7 @@ namespace ISFDyT124.Controllers
                     FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim(),
                 }
             ).ToListAsync();
-    
+
 
             // Carrera y materia reales de esta cátedra (antes se guardaba el objeto CarreraMateria
             // entero en ViewData, lo que mostraba "ISFDyT124.Models.CarreraMateria" en pantalla).
