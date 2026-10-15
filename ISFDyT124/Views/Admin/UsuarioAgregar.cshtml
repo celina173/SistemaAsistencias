@@ -20,7 +20,7 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <form asp-controller="Admin" asp-action="UsuarioAgregar" method="post" id="formAgregarUsuario" class="form-grid">
+        <form asp-controller="Admin" asp-action="UsuarioAgregar" method="post" id="formAgregarUsuario" class="form-grid" novalidate>
             <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
             <div class="input-field">
@@ -37,7 +37,7 @@
 
             <div class="input-field">
                 <label asp-for="UsDni">DNI</label>
-                <input asp-for="UsDni" autocomplete="new-password" value="" placeholder="Ej: 39123456">
+                <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="new-password" value="" placeholder="Ej: 39123456">
                 <span asp-validation-for="UsDni" class="text-danger"></span>
             </div>
 

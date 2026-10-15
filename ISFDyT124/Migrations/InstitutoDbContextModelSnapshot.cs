@@ -280,26 +280,6 @@ namespace ISFDyT124.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("ISFDyT124.Models.UsuarioRol", b =>
-                {
-                    b.Property<int>("UsRoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UsRoId");
-
-                    b.HasIndex("RoId");
-
-                    b.HasIndex("UsId");
-
-                    b.ToTable("UsuarioRoles");
-                });
-
             modelBuilder.Entity("UsuarioCarreraMateria", b =>
                 {
                     b.Property<int>("CarreraMateriasCaMaId")
@@ -412,25 +392,6 @@ namespace ISFDyT124.Migrations
                     b.Navigation("Rol");
                 });
 
-            modelBuilder.Entity("ISFDyT124.Models.UsuarioRol", b =>
-                {
-                    b.HasOne("ISFDyT124.Models.Rol", "Rol")
-                        .WithMany("UsuarioRoles")
-                        .HasForeignKey("RoId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("ISFDyT124.Models.Usuario", "Usuario")
-                        .WithMany("UsuarioRoles")
-                        .HasForeignKey("UsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Rol");
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("UsuarioCarreraMateria", b =>
                 {
                     b.HasOne("ISFDyT124.Models.CarreraMateria", null)
@@ -470,16 +431,12 @@ namespace ISFDyT124.Migrations
 
             modelBuilder.Entity("ISFDyT124.Models.Rol", b =>
                 {
-                    b.Navigation("UsuarioRoles");
-
                     b.Navigation("Usuarios");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Usuario", b =>
                 {
                     b.Navigation("Asistencias");
-
-                    b.Navigation("UsuarioRoles");
                 });
 #pragma warning restore 612, 618
         }
