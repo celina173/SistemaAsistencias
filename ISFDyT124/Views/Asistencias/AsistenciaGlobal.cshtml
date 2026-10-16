@@ -77,9 +77,9 @@
     }
 
     <!-- FILTRO DEL ADMIN -->
-    @if (User.Identity != null && (User.IsInRole("Admin") || User.IsInRole("Dirección")))
+    @if (User.Identity != null && (User.IsInRole("Admin") || User.IsInRole("Dirección") || User.IsInRole("Docente")))
     {
-        <div class="seccion-centrada" style="margin-bottom: 25px;">
+        <div class="seccion-centrada" style="margin-top: 35px; margin-bottom: 25px;">
             <div class="admin-filter-container" style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                 <form asp-action="AsistenciaGlobal" method="get" class="filtro-catedra-form" style="display: flex; gap: 15px; align-items: flex-end;">
                     <div style="flex-grow: 1;">

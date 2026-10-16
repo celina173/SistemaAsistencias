@@ -421,20 +421,30 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> AsistenciaGlobal(int? CaMaId)
         {
             // Verificamos si es Admin/Directivo
-            if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+
+            var catedrasQuery = _context.CarreraMaterias
+                .Where(cm => cm.CarreraCohorte != null);
+
+            // Admin y Dirección reciben todas las cátedras.
+            // Docente recibe únicamente las que tiene asignadas.
+            var caMaIdsPermitidos = await CaMaIdsPermitidosAsync();
+
+            if (caMaIdsPermitidos != null)
             {
-                // Traemos los datos separados para poder armar la cascada en la vista
-                ViewBag.TodasLasCatedras = await _context
-                    .CarreraMaterias.Where(cm => cm.CarreraCohorte != null)
-                    .Select(cm => new
-                    {
-                        CaMaId = cm.CaMaId,
-                        CaId = cm.CarreraCohorte!.CaId,
-                        Carrera = cm.CarreraCohorte.Carrera!.CaDenominacion,
-                        Materia = cm.Materia!.MaDenominacion
-                    })
-                    .ToListAsync();
+                catedrasQuery = catedrasQuery
+                    .Where(cm => caMaIdsPermitidos.Contains(cm.CaMaId));
             }
+
+            ViewBag.TodasLasCatedras = await catedrasQuery
+                .Select(cm => new
+                {
+                    CaMaId = cm.CaMaId,
+                    CaId = cm.CarreraCohorte!.CaId,
+                    Carrera = cm.CarreraCohorte.Carrera!.CaDenominacion,
+                    Materia = cm.Materia!.MaDenominacion
+                })
+                .ToListAsync();
+
 
             var model = new AsistenciaGlobalViewModel();
 
