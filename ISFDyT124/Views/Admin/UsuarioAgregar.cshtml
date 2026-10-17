@@ -24,31 +24,31 @@
             <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
             <div class="input-field">
-                <label asp-for="UsApellido">Apellidos</label>
+                <label asp-for="UsApellido">Apellidos *</label>
                 <input asp-for="UsApellido" autocomplete="off" placeholder="Ej: Albornoz">
                 <span asp-validation-for="UsApellido" class="text-danger"></span>
             </div>
 
             <div class="input-field">
-                <label asp-for="UsNombre">Nombres</label>
+                <label asp-for="UsNombre">Nombres *</label>
                 <input asp-for="UsNombre" autocomplete="off" placeholder="Ej: Celina">
                 <span asp-validation-for="UsNombre" class="text-danger"></span>
             </div>
 
             <div class="input-field">
-                <label asp-for="UsDni">DNI</label>
+                <label asp-for="UsDni">DNI *</label>
                 <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="new-password" value="" placeholder="Ej: 39123456">
                 <span asp-validation-for="UsDni" class="text-danger"></span>
             </div>
 
             <div class="input-field">
-                <label asp-for="UsEmail">Email</label>
+                <label asp-for="UsEmail">Email *</label>
                 <input asp-for="UsEmail" autocomplete="new-password" placeholder="Ej: correo@instituto.com">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
             </div>
 
             <div class="input-field" style="grid-column: span 2;">
-                <label for="selectedRoleId">Rol del Usuario</label>
+                <label for="selectedRoleId">Rol del Usuario *</label>
                 <select id="selectedRoleId" name="selectedRoleId" required
                         asp-items="@(new SelectList(ViewBag.RolesList, "RoId", "RoDenominacion"))">
                     <option value="" disabled selected>Seleccione un Rol</option>
@@ -56,7 +56,7 @@
             </div>
 
             <div id="carreraCohorteGroup" class="input-field" style="display:none; grid-column: span 2;">
-                <label asp-for="CaCoId">Carrera / Cohorte</label>
+                <label asp-for="CaCoId">Carrera / Cohorte *</label>
                 <select asp-for="CaCoId" data-msg-required="Debe seleccionar una Carrera / Cohorte para un Estudiante.">
                     <option value="">Seleccione Carrera / Cohorte</option>
                     @foreach (var cc in ViewBag.CarreraCohortesList)
@@ -68,7 +68,7 @@
             </div>
 
             <div id="materiasGroup" class="input-field" style="display:none; grid-column: span 2;">
-                <label>Materias Asignadas</label>
+                <label>Materias Asignadas *</label>
                 <div id="materiasList" style="height:150px; overflow:auto; border:1px solid #e6e6e6; padding:8px; border-radius: 6px;">
                     @foreach (var cm in ViewBag.CarreraMateriasList)
                     {
@@ -96,7 +96,9 @@
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         var roleSelect = document.getElementById('selectedRoleId');
         var caCoIdSelect = document.getElementById('CaCoId');
@@ -111,7 +113,7 @@
             document.getElementById('carreraCohorteGroup').style.display = esEstudiante ? 'flex' : 'none';
             document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
             caCoIdSelect.required = esEstudiante;
-            
+
             materiasCheckboxes.forEach(function (cb) { cb.required = false; });
             if (esDocente && materiasCheckboxes.length > 0) {
                 materiasCheckboxes[0].required = true;
