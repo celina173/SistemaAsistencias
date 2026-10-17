@@ -87,7 +87,7 @@ public class MateriasController : Controller
     // POST: MATERIAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create( [Bind("MaDenominacion,MaModalidad,MaCantModulos")] Materia materia, int? CaCoId, List<DayOfWeek>? DiasCursada)
+    public async Task<IActionResult> Create([Bind("MaDenominacion,MaModalidad,MaCantModulos")] Materia materia, int? CaCoId, List<DayOfWeek>? DiasCursada)
     {
         // La asignación a Carrera-Cohorte es necesaria
         // para poder guardar los días de cursada.
