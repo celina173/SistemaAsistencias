@@ -1484,32 +1484,62 @@ body {
 /* =========================================
    PANTALLA: AGREGAR ESTUDIANTE 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 /* =========================================
    PANTALLA: AGREGAR DOCENTE 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: AGREGAR MATERIA 
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* Grilla interna para ordenar los inputs en 2 columnas */
 .form-grid {
@@ -1550,12 +1580,22 @@ body {
 /* =========================================
    PANTALLA: AGREGAR CARRERA 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: AGREGAR INSCRIPCION
@@ -1662,45 +1702,85 @@ body {
    PANTALLA: MODIFICAR ESTUDIANTE
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR DOCENTE
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR MATERIA
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR CARRERA
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR INSCRIPCIONES

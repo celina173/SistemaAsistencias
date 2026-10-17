@@ -191,7 +191,9 @@
                     {
                         foreach (var f in Model.Fechas)
                         {
-                            <th>@f.ToString("dd/MM")</th>
+                            <th title="@f.ToString("dd/MM/yyyy")">
+                                @f.ToString("ddd dd/MM", new System.Globalization.CultureInfo("es-AR"))
+                            </th>                        
                         }
                     }
                     <th class="icon-cell" style="border-left: 2px solid #e2e8f0;">%</th>

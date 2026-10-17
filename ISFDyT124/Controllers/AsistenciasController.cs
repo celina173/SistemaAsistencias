@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using ISFDyT124.Data;
-using ISFDyT124.DTO;
-using ISFDyT124.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using static ISFDyT124.Models.AsistenciaGlobalViewModel;
+﻿    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Claims;
+    using System.Threading.Tasks;
+    using ISFDyT124.Data;
+    using ISFDyT124.DTO;
+    using ISFDyT124.Models;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.EntityFrameworkCore;
+    using System.Globalization;
+    using static ISFDyT124.Models.AsistenciaGlobalViewModel;
 
 namespace ISFDyT124.Controllers
 {
@@ -193,109 +194,84 @@ namespace ISFDyT124.Controllers
 
         //GET: Asistencias/Asistencia
         //Vista estática para toma de asistencia(diseño)
+
         public async Task<IActionResult> Asistencia(int? CaMaId)
         {
             var model = new AsistenciaFormViewModel();
+
             if (CaMaId == null)
-            {
                 return View(model);
-            }
 
-            // Un Docente no puede ver/tomar asistencia de una cátedra que no es suya,
-            // aunque cambie el CaMaId a mano en la URL (mismo chequeo que ya tiene
-            // ProfesorController.Asistencia).
             var permitidos = await CaMaIdsPermitidosAsync();
+
             if (permitidos != null && !permitidos.Contains(CaMaId.Value))
-            {
                 return NotFound();
-            }
 
-            model.CaMaId = CaMaId;
+            var caMa = await _context.CarreraMaterias
+                .Include(cm => cm.CarreraCohorte)
+                    .ThenInclude(cc => cc!.Carrera)
+                .Include(cm => cm.Materia)
+                .Include(cm => cm.DiasCursada)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId.Value);
 
-            // Alumnos inscriptos a esta cátedra vía Inscripciones (la inscripción ya es la prueba
-            // de que corresponde tomarle asistencia acá, sin depender de un nombre de rol puntual).
+            if (caMa == null)
+                return NotFound();
+
+            model.CaMaId = CaMaId.Value;
+
+            ViewBag.CarreraNombre =
+                caMa.CarreraCohorte?.Carrera?.CaDenominacion ?? "Carrera";
+
+            ViewBag.MateriaNombre =
+                caMa.Materia?.MaDenominacion ?? "Materia";
+
+            ViewBag.MateriaId = caMa.MaId;
+
+            var moduleCount = caMa.Materia?.MaCantModulos is int cantidad
+                && cantidad > 0
+                ? cantidad
+                : 1;
+
+            model.ModuleCount = moduleCount;
+            ViewData["MaCantModulos"] = moduleCount;
+
+            var fechasPendientes = await ObtenerFechasProgramadasAsync(
+                caMa,
+                soloPendientes: true);
+
+            if (fechasPendientes.Count > 0)
+                model.FechaAsistencia = fechasPendientes[0];
+
+            PrepararFechasPendientes(model, fechasPendientes);
 
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId && u.UsActivo
+                where i.CaMaId == CaMaId.Value && u.UsActivo
                 select new
                 {
                     u.UsId,
-                    FullName = ((u.UsApellido ?? "") + " " + (u.UsNombre ?? "")).Trim(),
+                    FullName = ((u.UsApellido ?? "") + " "
+                        + (u.UsNombre ?? "")).Trim()
                 }
             ).ToListAsync();
-    
 
-            // Carrera y materia reales de esta cátedra (antes se guardaba el objeto CarreraMateria
-            // entero en ViewData, lo que mostraba "ISFDyT124.Models.CarreraMateria" en pantalla).
-            var caMa = await _context
-                .CarreraMaterias.Include(cm => cm.CarreraCohorte)
-                .ThenInclude(cc => cc!.Carrera)
-                .Include(cm => cm.Materia)
-                .FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId);
-
-            int maCantModulos = 1; // default
-            if (caMa != null)
+            foreach (var estudiante in estudiantes)
             {
-                ViewBag.CarreraNombre = caMa.CarreraCohorte?.Carrera?.CaDenominacion ?? "Carrera";
-                ViewBag.MateriaNombre = caMa.Materia?.MaDenominacion ?? "Materia";
-                // Necesario en la vista para armar la fila de la cola offline (ticket 8.2):
-                // OfflineAsistencia.encolarAsistencia espera el MaId de la materia, igual
-                // que en la pantalla del Docente.
-                ViewBag.MateriaId = caMa.MaId;
-
-                if (caMa.Materia?.MaCantModulos is int cant && cant > 0)
+                model.Rows.Add(new AsistenciaRowViewModel
                 {
-                    maCantModulos = cant;
-                }
+                    UsId = estudiante.UsId,
+                    FullName = estudiante.FullName,
+                    Modulos = Enumerable
+                        .Range(0, moduleCount)
+                        .Select(_ => false)
+                        .ToList()
+                });
             }
-
-            // Asistencia ya cargada HOY para esta cátedra (para precargar/editar). Antes esto
-            // no se consultaba: reabrir la pantalla el mismo día reseteaba TODOS los checkboxes
-            // a "ausente", y si el Admin guardaba de nuevo sin marcar a nadie (por ejemplo solo
-            // para agregar un alumno tarde) pisaba en silencio la asistencia ya guardada de todo
-            // el curso, marcando a todos como ausentes. El modelo solo guarda el resultado
-            // agregado por alumno (AsPresente/AsJustificacion), no qué módulo puntual se tildó,
-            // así que la reconstrucción es best-effort: si ya estaba presente, se precargan
-            // todos los módulos tildados (mismo % que había, y guardar sin tocar nada da el
-            // mismo resultado); si estaba ausente, quedan destildados. Se agrupa por alumno
-            // (no ToDictionary directo) por el mismo motivo que ProfesorController.Asistencia:
-            // si quedaron dos filas del mismo alumno/fecha, se toma la más reciente.
-            var hoy = DateTime.Today;
-            var existentesPorAlumno = (
-                await _context
-                    .Asistencias.Where(a =>
-                        a.CaMaId == CaMaId && a.AsFecha != null && a.AsFecha.Value.Date == hoy
-                    )
-                    .ToListAsync()
-            )
-                .GroupBy(a => a.UsId ?? 0)
-                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.AsId).First());
-
-            foreach (var s in estudiantes)
-            {
-                var row = new AsistenciaRowViewModel { UsId = s.UsId, FullName = s.FullName };
-                if (existentesPorAlumno.TryGetValue(s.UsId, out var previa))
-                {
-                    row.Modulos = Enumerable
-                        .Range(0, maCantModulos)
-                        .Select(_ => previa.AsPresente)
-                        .ToList();
-                    row.AsJustificacion = previa.AsJustificacion;
-                }
-                else
-                {
-                    row.Modulos = Enumerable.Range(0, maCantModulos).Select(_ => false).ToList();
-                }
-                model.Rows.Add(row);
-            }
-
-            ViewData["MaCantModulos"] = maCantModulos;
-            model.ModuleCount = maCantModulos;
 
             return View(model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -303,132 +279,132 @@ namespace ISFDyT124.Controllers
         {
             if (model.CaMaId == null)
             {
-                ModelState.AddModelError(string.Empty, "Debe seleccionar una carrera/materia.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Debe seleccionar una carrera/materia.");
+
                 return View(model);
             }
 
-            // Un Docente no puede guardar asistencia de una cátedra que no es suya, ni
-            // aunque arme el POST a mano con un CaMaId ajeno.
-            var permitidosPost = await CaMaIdsPermitidosAsync();
-            if (permitidosPost != null && !permitidosPost.Contains(model.CaMaId.Value))
+            var permitidos = await CaMaIdsPermitidosAsync();
+
+            if (permitidos != null &&
+                !permitidos.Contains(model.CaMaId.Value))
             {
                 return NotFound();
             }
 
-            var carreraMateria = await _context.CarreraMaterias.FindAsync(model.CaMaId.Value);
-            var hoy = DateTime.Today;
+            var caMa = await _context.CarreraMaterias
+                .Include(cm => cm.CarreraCohorte)
+                .Include(cm => cm.Materia)
+                .Include(cm => cm.DiasCursada)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == model.CaMaId.Value);
 
-            // La cantidad real de módulos se resuelve acá, del lado servidor, en vez de
-            // confiar en model.ModuleCount -- ese campo nunca viaja en el POST (el form no
-            // tiene un <input> para él), así que siempre llegaba en 0 y el cálculo caía al
-            // fallback de "1 módulo", haciendo que tildar un solo módulo de cualquier
-            // materia diera 100% en vez del porcentaje real (ticket 5.13).
-            int moduleCount = 1;
-            if (carreraMateria != null)
-            {
-                var maCantModulosDb = await _context
-                    .Materias.Where(m => m.MaId == carreraMateria.MaId)
-                    .Select(m => (int?)m.MaCantModulos)
-                    .FirstOrDefaultAsync();
-                if (maCantModulosDb is int cant && cant > 0)
-                {
-                    moduleCount = cant;
-                }
-            }
-
-            if (carreraMateria == null)
-            {
+            if (caMa == null)
                 return NotFound();
+
+            var fechasPendientes = await ObtenerFechasProgramadasAsync(
+                caMa,
+                soloPendientes: true);
+
+            var fechaSeleccionada = model.FechaAsistencia?.Date;
+
+            if (!fechaSeleccionada.HasValue ||
+                !fechasPendientes.Contains(fechaSeleccionada.Value))
+            {
+                ModelState.AddModelError(
+                    nameof(model.FechaAsistencia),
+                    "La fecha seleccionada no es una jornada pendiente válida. " +
+                    "Actualizá la página y elegí una fecha disponible.");
+
+                PrepararFechasPendientes(model, fechasPendientes);
+
+                ViewBag.CarreraNombre =
+                    caMa.CarreraCohorte?.Carrera?.CaDenominacion ?? "Carrera";
+
+                ViewBag.MateriaNombre =
+                    caMa.Materia?.MaDenominacion ?? "Materia";
+
+                ViewBag.MateriaId = caMa.MaId;
+
+                var cantidadModulos = caMa.Materia?.MaCantModulos is int cant
+                    && cant > 0 ? cant : 1;
+
+                model.ModuleCount = cantidadModulos;
+                ViewData["MaCantModulos"] = cantidadModulos;
+
+                return View(model);
             }
 
-            // Obtener los estudiantes activos inscriptos en esta cátedra.
+            // La cantidad de módulos se obtiene de la base de datos.
+            var moduleCount = caMa.Materia?.MaCantModulos is int cantidad
+                && cantidad > 0
+                ? cantidad
+                : 1;
+
             var estudiantesValidos = await _context.Inscripciones
                 .Where(i => i.CaMaId == model.CaMaId.Value)
                 .Join(
                     _context.Usuarios.Where(u => u.UsActivo),
                     i => i.UsId,
                     u => u.UsId,
-                    (i, u) => u.UsId
-                )
+                    (i, u) => u.UsId)
                 .Distinct()
                 .ToListAsync();
 
             var idsValidos = estudiantesValidos.ToHashSet();
 
-            // Rechazar todo el envío si incluye alumnos inactivos,
-            // no inscriptos o pertenecientes a otra cátedra.
             if (model.Rows.Any(row => !idsValidos.Contains(row.UsId)))
             {
                 return BadRequest(
-                    "La planilla contiene estudiantes inactivos o no inscriptos en esta cátedra. Recargá la página e intentá nuevamente."
-                );
+                    "La planilla contiene estudiantes inactivos o no inscriptos " +
+                    "en esta cátedra. Recargá la página e intentá nuevamente.");
             }
 
             foreach (var row in model.Rows)
             {
-                var checkedCount = row.Modulos != null ? row.Modulos.Count(x => x) : 0;
+                var checkedCount = row.Modulos?.Count(x => x) ?? 0;
                 var presente = checkedCount > 0;
-                decimal porcentaje = 0;
-                if (moduleCount > 0)
-                {
-                    porcentaje = Math.Round((decimal)checkedCount / moduleCount * 100, 1);
-                }
 
-                // Upsert por CaMaId+alumno+fecha (mismo criterio que ya usa
-                // ProfesorController.Asistencia): sin esto, guardar dos veces el mismo día
-                // no actualizaba lo ya cargado, insertaba una fila nueva cada vez — la
-                // asistencia quedaba duplicada y los reportes contaban de más (ticket 5.12,
-                // relacionado con QA-06).
-                var existente = await _context.Asistencias.FirstOrDefaultAsync(a =>
-                    a.UsId == row.UsId
-                    && a.CaMaId == model.CaMaId
-                    && a.AsFecha != null
-                    && a.AsFecha.Value.Date == hoy
-                );
+                var porcentaje = moduleCount > 0
+                    ? Math.Round((decimal)checkedCount / moduleCount * 100, 1)
+                    : 0m;
 
-                if (existente != null)
+                _context.Asistencias.Add(new Asistencia
                 {
-                    existente.AsPresente = presente;
-                    existente.AsPorcentaje = porcentaje;
-                    existente.AsJustificacion = row.AsJustificacion;
-                    _context.Update(existente);
-                }
-                else
-                {
-                    _context.Asistencias.Add(
-                        new Asistencia
-                        {
-                            AsFecha = hoy,
-                            AsPresente = presente,
-                            AsPorcentaje = porcentaje,
-                            AsJustificacion = row.AsJustificacion,
-                            UsId = row.UsId,
-                            MaId = carreraMateria?.MaId,
-                            CaMaId = model.CaMaId,
-                        }
-                    );
-                }
+                    AsFecha = fechaSeleccionada.Value,
+                    AsPresente = presente,
+                    AsPorcentaje = porcentaje,
+                    AsJustificacion = row.AsJustificacion,
+                    UsId = row.UsId,
+                    MaId = caMa.MaId,
+                    CaMaId = caMa.CaMaId
+                });
             }
 
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Las asistencias han sido guardadas correctamente.";
-            // Lo redireccionamos a AsistenciasController -> AsistenciaGlobal, pasándole el ID de Cátedra
-            return RedirectToAction("AsistenciaGlobal", "Asistencias", new { caMaId = Request.Form["caMaId"] });
+
+            TempData["SuccessMessage"] =
+                "Las asistencias han sido guardadas correctamente.";
+
+            return RedirectToAction(
+                nameof(AsistenciaGlobal),
+                new { CaMaId = caMa.CaMaId });
         }
 
         // GET: Asistencias/AsistenciaGlobal
         // Muestra el histórico de asistencias por materia (filtrado por CaMaId)
+
         public async Task<IActionResult> AsistenciaGlobal(int? CaMaId)
         {
-            // Verificamos si es Admin/Directivo
-
+            // Obtener las cátedras que puede consultar el usuario actual.
             var catedrasQuery = _context.CarreraMaterias
                 .Where(cm => cm.CarreraCohorte != null);
 
-            // Admin y Dirección reciben todas las cátedras.
-            // Docente recibe únicamente las que tiene asignadas.
             var caMaIdsPermitidos = await CaMaIdsPermitidosAsync();
 
+            // Los docentes solo ven las cátedras que tienen asignadas.
+            // Admin y Dirección pueden consultar todas.
             if (caMaIdsPermitidos != null)
             {
                 catedrasQuery = catedrasQuery
@@ -445,19 +421,17 @@ namespace ISFDyT124.Controllers
                 })
                 .ToListAsync();
 
-
             var model = new AsistenciaGlobalViewModel();
 
+            // Si no se seleccionó una cátedra, mostrar la vista sin datos.
             if (CaMaId == null)
             {
-                return View(model); // Retorna la vista vacía si el Admin no eligió nada aún
+                return View(model);
             }
 
-            // Un Docente solo puede ver el reporte global de sus propias cátedras -- antes
-            // cualquier Docente autenticado podía pedir el reporte de asistencia de una
-            // cátedra ajena con solo cambiar el CaMaId en la URL (ticket 5.16). Mismo
-            // criterio de propiedad que ya usan Index y Asistencia en este controller.
+            // Verificar que el docente tenga permiso para consultar esta cátedra.
             var permitidos = await CaMaIdsPermitidosAsync();
+
             if (permitidos != null && !permitidos.Contains(CaMaId.Value))
             {
                 return NotFound();
@@ -465,71 +439,87 @@ namespace ISFDyT124.Controllers
 
             model.CaMaId = CaMaId;
 
-            // NUEVO: Buscamos los nombres reales de la Carrera y Materia
-            var infoCatedra = await _context
-                .CarreraMaterias.Where(cm => cm.CaMaId == CaMaId)
-                .Select(cm => new
-                {
-                    Carrera = cm.CarreraCohorte != null ? cm.CarreraCohorte.Carrera!.CaDenominacion : null,
-                    Materia = cm.Materia!.MaDenominacion
-                })
-                .FirstOrDefaultAsync();
+            // Obtener la cátedra con su carrera, materia, cohorte y días de cursada.
+            var infoCatedra = await _context.CarreraMaterias
+                .Include(cm => cm.CarreraCohorte)
+                    .ThenInclude(cc => cc!.Carrera)
+                .Include(cm => cm.DiasCursada)
+                .Include(cm => cm.Materia)
+                .FirstOrDefaultAsync(cm => cm.CaMaId == CaMaId.Value);
 
-            if (infoCatedra != null)
+            if (infoCatedra == null)
             {
-                ViewBag.CarreraNombre = infoCatedra.Carrera;
-                ViewBag.MateriaNombre = infoCatedra.Materia;
+                return NotFound();
             }
 
-            // Alumnos inscriptos en esta materia vía Inscripciones (ver Asistencia() más arriba)
+            ViewBag.CarreraNombre =
+                infoCatedra.CarreraCohorte?.Carrera?.CaDenominacion;
 
+            ViewBag.MateriaNombre =
+                infoCatedra.Materia?.MaDenominacion;
+
+            // Obtener los alumnos activos inscriptos en esta cátedra.
             var estudiantes = await (
                 from i in _context.Inscripciones
                 join u in _context.Usuarios on i.UsId equals u.UsId
-                where i.CaMaId == CaMaId && u.UsActivo
+                where i.CaMaId == CaMaId.Value && u.UsActivo
                 select u
             )
                 .Distinct()
                 .ToListAsync();
 
-            var usIdsInscritos = estudiantes.Select(u => u.UsId).ToList();
-
-            // Traer asistencias relacionadas a esta materia y a esos alumnos.
-            // Algunos registros históricos pueden no tener CaMaId (se guardaron antes de asignarlo).
-            // Para mostrar el histórico como primario, incluimos también registros con CaMaId NULL
-            // siempre que pertenezcan a alumnos inscriptos en esta materia.
-            var todasLasAsistencias = await _context
-                .Asistencias.Where(a =>
-                    a.UsId.HasValue
-                    && usIdsInscritos.Contains(a.UsId.Value)
-                    && (a.CaMaId == CaMaId || a.CaMaId == null)
-                )
-                .ToListAsync();
-
-            // Columnas (fechas)
-            model.Fechas = todasLasAsistencias
-                .Where(a => a.AsFecha.HasValue)
-                .Select(a => a.AsFecha.Value.Date)
-                .Distinct()
-                .OrderBy(f => f)
+            var usIdsInscritos = estudiantes
+                .Select(u => u.UsId)
                 .ToList();
 
-            // Armar filas por alumno usando el porcentaje real (AsPorcentaje) cuando está
-            // cargado -- para registros históricos, previos a este campo, se usa AsPresente
-            // (100/0) como fallback (ticket 5.13: antes, un registro con solo 1 de 3 módulos
-            // marcados quedaba AsPresente=true y se mostraba como 100% de asistencia).
-            var fechasInscripcion = await _context
-                .Inscripciones.Where(i => i.CaMaId == CaMaId.Value && usIdsInscritos.Contains(i.UsId))
-                .Select(i => new { i.UsId, i.InFechaInscripcion })
+            // Obtener las asistencias de estos alumnos para la cátedra.
+            // Se mantienen los registros históricos cuyo CaMaId sea NULL.
+            var todasLasAsistencias = await _context.Asistencias
+                .Where(a =>
+                    a.UsId.HasValue &&
+                    usIdsInscritos.Contains(a.UsId.Value) &&
+                    (a.CaMaId == CaMaId.Value || a.CaMaId == null))
+                .ToListAsync();
+
+            // Obtener las fechas válidas según:
+            // - Inicio y fin del período académico.
+            // - Días de cursada configurados para la cátedra.
+            // - Fecha actual: no se consideran jornadas futuras.
+            var fechasProgramadas = await ObtenerFechasProgramadasAsync(
+                infoCatedra,
+                soloPendientes: false);
+
+            var fechasProgramadasSet = fechasProgramadas.ToHashSet();
+
+            // Mostrar únicamente jornadas válidas que ya tengan registros
+            // de asistencia para esta cátedra y sus alumnos.
+            model.Fechas = todasLasAsistencias
+                .Where(a => a.AsFecha.HasValue)
+                .Select(a => a.AsFecha!.Value.Date)
+                .Where(fecha => fechasProgramadasSet.Contains(fecha))
+                .Distinct()
+                .OrderBy(fecha => fecha)
+                .ToList();
+
+            // Obtener la fecha de inscripción de cada alumno.
+            var fechasInscripcion = await _context.Inscripciones
+                .Where(i =>
+                    i.CaMaId == CaMaId.Value &&
+                    usIdsInscritos.Contains(i.UsId))
+                .Select(i => new
+                {
+                    i.UsId,
+                    i.InFechaInscripcion
+                })
                 .ToListAsync();
 
             var fechasInscripcionDict = fechasInscripcion
                 .GroupBy(i => i.UsId)
                 .ToDictionary(
                     grupo => grupo.Key,
-                    grupo => grupo.Min(i => i.InFechaInscripcion.Date)
-                );
+                    grupo => grupo.Min(i => i.InFechaInscripcion.Date));
 
+            // Construir una fila por alumno y calcular sus porcentajes.
             foreach (var alumno in estudiantes)
             {
                 var asistenciasAlumno = todasLasAsistencias
@@ -537,52 +527,155 @@ namespace ISFDyT124.Controllers
                     .ToList();
 
                 var asistenciaPorFecha = new Dictionary<DateTime, decimal?>();
+
                 decimal sumaPorcentajes = 0m;
                 int fechasAplicables = 0;
-                var fechaInscripcion = fechasInscripcionDict[alumno.UsId];
+
+                // Protección por si algún alumno no tiene una fecha de inscripción.
+                if (!fechasInscripcionDict.TryGetValue(
+                        alumno.UsId,
+                        out var fechaInscripcion))
+                {
+                    fechaInscripcion = DateTime.MaxValue;
+                }
 
                 foreach (var fecha in model.Fechas)
                 {
+                    // Antes de su inscripción, la asistencia no es aplicable.
                     if (fecha.Date < fechaInscripcion)
                     {
                         asistenciaPorFecha[fecha] = null;
                         continue;
                     }
 
-                    var registro = asistenciasAlumno.FirstOrDefault(a =>
-                        a.AsFecha.HasValue && a.AsFecha.Value.Date == fecha
-                    );
+                    // Si existen registros duplicados históricos para un alumno
+                    // y fecha, tomar el más reciente.
+                    var registro = asistenciasAlumno
+                        .Where(a =>
+                            a.AsFecha.HasValue &&
+                            a.AsFecha.Value.Date == fecha.Date)
+                        .OrderByDescending(a => a.AsId)
+                        .FirstOrDefault();
 
-                    decimal pct = registro != null
-                        ? registro.AsPorcentaje ?? (registro.AsPresente ? 100m : 0m)
+                    decimal porcentaje = registro != null
+                        ? registro.AsPorcentaje
+                            ?? (registro.AsPresente ? 100m : 0m)
                         : 0m;
 
-                    asistenciaPorFecha[fecha] = pct;
-                    sumaPorcentajes += pct;
+                    asistenciaPorFecha[fecha] = porcentaje;
+
+                    sumaPorcentajes += porcentaje;
                     fechasAplicables++;
                 }
 
                 decimal? promedio = fechasAplicables > 0
-                    ? Math.Round(sumaPorcentajes / fechasAplicables, 1)
+                    ? Math.Round(
+                        sumaPorcentajes / fechasAplicables,
+                        1)
                     : null;
 
-                model.Rows.Add(
-                    new AsistenciaGlobalRowViewModel
-                    {
-                        UsId = alumno.UsId,
-                        FullName = $"{alumno.UsApellido} {alumno.UsNombre}",
-                        AsistenciaPorFecha = asistenciaPorFecha,
-                        PorcentajeAsistencia = promedio,
-                    }
-                );
+                model.Rows.Add(new AsistenciaGlobalRowViewModel
+                {
+                    UsId = alumno.UsId,
+                    FullName = $"{alumno.UsApellido} {alumno.UsNombre}",
+                    AsistenciaPorFecha = asistenciaPorFecha,
+                    PorcentajeAsistencia = promedio
+                });
             }
 
             return View(model);
         }
 
+
+        private async Task<List<DateTime>> ObtenerFechasProgramadasAsync(
+            CarreraMateria carreraMateria,
+            bool soloPendientes)
+        {
+            var cohorte = carreraMateria.CarreraCohorte;
+
+            if (cohorte?.CaCoFechaInicio == null ||
+                cohorte.CaCoFechaFin == null ||
+                carreraMateria.DiasCursada == null ||
+                !carreraMateria.DiasCursada.Any())
+            {
+                return new List<DateTime>();
+            }
+
+            var inicio = cohorte.CaCoFechaInicio.Value.Date;
+            var fin = cohorte.CaCoFechaFin.Value.Date;
+            var hoy = DateTime.Today;
+
+            // No se habilitan fechas futuras.
+            if (inicio > hoy || inicio > fin)
+                return new List<DateTime>();
+
+            if (fin > hoy)
+                fin = hoy;
+
+            var diasHabilitados = carreraMateria.DiasCursada
+                .Select(d => d.DiaSemana)
+                .ToHashSet();
+
+            var fechasRegistradas = await _context.Asistencias
+                .Where(a =>
+                    a.CaMaId == carreraMateria.CaMaId &&
+                    a.AsFecha.HasValue)
+                .Select(a => a.AsFecha!.Value.Date)
+                .Distinct()
+                .ToListAsync();
+
+            var registradas = fechasRegistradas.ToHashSet();
+            var fechas = new List<DateTime>();
+
+            for (var fecha = inicio; fecha <= fin; fecha = fecha.AddDays(1))
+            {
+                if (!diasHabilitados.Contains(fecha.DayOfWeek))
+                    continue;
+
+                if (soloPendientes && registradas.Contains(fecha))
+                    continue;
+
+                fechas.Add(fecha);
+            }
+
+            return fechas;
+        }
+
+        private void PrepararFechasPendientes(
+            AsistenciaFormViewModel model,
+            List<DateTime> fechasPendientes)
+        {
+            var cultura = new CultureInfo("es-AR");
+
+            ViewBag.FechasPendientes = fechasPendientes
+                .Select(fecha =>
+                {
+                    var etiqueta = fecha.ToString(
+                        "dddd — dd/MM/yyyy",
+                        cultura);
+
+                    etiqueta = char.ToUpper(etiqueta[0], cultura)
+                        + etiqueta.Substring(1);
+
+                    return new SelectListItem
+                    {
+                        Value = fecha.ToString("yyyy-MM-dd"),
+                        Text = etiqueta,
+                        Selected = model.FechaAsistencia.HasValue
+                            && model.FechaAsistencia.Value.Date == fecha
+                    };
+                })
+                .ToList();
+
+            ViewBag.SinFechasPendientes = fechasPendientes.Count == 0;
+        }
+
+
         private bool AsistenciaExists(int id)
         {
             return _context.Asistencias.Any(e => e.AsId == id);
         }
+
     }
 }
+

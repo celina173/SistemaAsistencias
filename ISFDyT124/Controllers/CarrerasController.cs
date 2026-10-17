@@ -1,3 +1,4 @@
+
 using ISFDyT124.Data;
 using ISFDyT124.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -52,15 +53,15 @@ public class CarrerasController : Controller
     public async Task<IActionResult> Details(int? CaId)
     {
         if (CaId == null)
-        {
             return NotFound();
-        }
 
-        var carrera = await _context.Carreras.FirstOrDefaultAsync(c => c.CaId == CaId);
+        var carrera = await _context.Carreras
+            .Include(c => c.CarreraCohortes!)
+                .ThenInclude(cc => cc.Cohorte)
+            .FirstOrDefaultAsync(c => c.CaId == CaId.Value);
+
         if (carrera == null)
-        {
             return NotFound();
-        }
 
         return View(carrera);
     }
@@ -68,63 +69,140 @@ public class CarrerasController : Controller
     // GET: CARRERAS/Create
     public IActionResult Create()
     {
+        ViewData["CaCoFechaInicio"] = "";
+        ViewData["CaCoFechaFin"] = "";
+
         return View();
     }
 
     // POST: CARRERAS/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera, [FromForm] string? CoAnio)
+    public async Task<IActionResult> Create(
+        [Bind("CaDenominacion")] Carrera carrera,
+        [FromForm] string? CoAnio,
+        [FromForm] DateTime? CaCoFechaInicio,
+        [FromForm] DateTime? CaCoFechaFin)
     {
-        if (string.IsNullOrWhiteSpace(CoAnio) || !Regex.IsMatch(CoAnio, "^\\d{4}$"))
+        // Validar el año de cohorte.
+        if (string.IsNullOrWhiteSpace(CoAnio) ||
+            !Regex.IsMatch(CoAnio, @"^\d{4}$"))
         {
-            ModelState.AddModelError("CoAnio", "Debe ingresar un año de cohorte válido de 4 dígitos.");
+            ModelState.AddModelError(
+                "CoAnio",
+                "Debe ingresar un año de cohorte válido de 4 dígitos.");
         }
-        else
+        else if (!int.TryParse(CoAnio, out var anio) ||
+                 anio < 2000 || anio > 2100)
         {
-            if (!int.TryParse(CoAnio, out var anio) || anio < 2000 || anio > 2100)
-            {
-                ModelState.AddModelError("CoAnio", "Ingrese un año de cohorte entre 2000 y 2100.");
-            }
+            ModelState.AddModelError(
+                "CoAnio",
+                "Ingrese un año de cohorte entre 2000 y 2100.");
+        }
+
+        // Validar las fechas del período académico.
+        if (!CaCoFechaInicio.HasValue)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaInicio",
+                "Debe ingresar la fecha de inicio.");
+        }
+
+        if (!CaCoFechaFin.HasValue)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaFin",
+                "Debe ingresar la fecha de finalización.");
+        }
+
+        if (CaCoFechaInicio.HasValue &&
+            CaCoFechaFin.HasValue &&
+            CaCoFechaInicio.Value.Date > CaCoFechaFin.Value.Date)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaFin",
+                "La fecha de finalización no puede ser anterior a la fecha de inicio.");
         }
 
         if (ModelState.IsValid)
         {
-            _context.Add(carrera);
-            await _context.SaveChangesAsync();
+            await using var transaccion =
+                await _context.Database.BeginTransactionAsync();
 
-            var anioInt = int.Parse(CoAnio!);
-            using var transaccionCohorte = await _context.Database.BeginTransactionAsync();
-
-            var cohorte = await _context
-                .Cohortes.FromSqlInterpolated(
-                    $"SELECT * FROM Cohortes WITH (UPDLOCK, HOLDLOCK) WHERE CoAnio = {anioInt}"
-                )
-                .FirstOrDefaultAsync();
-
-            if (cohorte == null)
+            try
             {
-                var maxId = await _context
-                    .Database.SqlQuery<int>(
-                        $"SELECT ISNULL(MAX(CoId), 0) AS Value FROM Cohortes WITH (UPDLOCK, HOLDLOCK)"
-                    )
-                    .FirstAsync();
-                cohorte = new Cohorte { CoId = maxId + 1, CoAnio = anioInt, CoEstado = true };
-                _context.Cohortes.Add(cohorte);
+                // 1. Crear la carrera.
+                _context.Carreras.Add(carrera);
                 await _context.SaveChangesAsync();
+
+                var anioInt = int.Parse(CoAnio!);
+
+                // 2. Buscar la cohorte del año seleccionado.
+                var cohorte = await _context.Cohortes
+                    .FromSqlInterpolated(
+                        $"SELECT * FROM Cohortes WITH (UPDLOCK, HOLDLOCK) WHERE CoAnio = {anioInt}")
+                    .FirstOrDefaultAsync();
+
+                // 3. Crear la cohorte si todavía no existe.
+                if (cohorte == null)
+                {
+                    var maxId = await _context.Database.SqlQuery<int>(
+                        $"SELECT ISNULL(MAX(CoId), 0) AS Value FROM Cohortes WITH (UPDLOCK, HOLDLOCK)")
+                        .FirstAsync();
+
+                    cohorte = new Cohorte
+                    {
+                        CoId = maxId + 1,
+                        CoAnio = anioInt,
+                        CoEstado = true
+                    };
+
+                    _context.Cohortes.Add(cohorte);
+                    await _context.SaveChangesAsync();
+                }
+
+                // 4. Asociar la carrera con su cohorte y período académico.
+                var carreraCohorte = new CarreraCohorte
+                {
+                    CaId = carrera.CaId,
+                    CoId = cohorte.CoId,
+                    CaCoFechaInicio = CaCoFechaInicio!.Value.Date,
+                    CaCoFechaFin = CaCoFechaFin!.Value.Date
+                };
+
+                _context.CarreraCohortes.Add(carreraCohorte);
+                await _context.SaveChangesAsync();
+
+                // 5. Confirmar todos los cambios juntos.
+                await transaccion.CommitAsync();
+
+                TempData["SuccessMessage"] =
+                    "Carrera agregada correctamente.";
+
+                return RedirectToAction(nameof(Index));
             }
+            catch (DbUpdateException)
+            {
+                await transaccion.RollbackAsync();
 
-            var caCo = new CarreraCohorte { CaId = carrera.CaId, CoId = cohorte.CoId };
-            _context.CarreraCohortes.Add(caCo);
-            await _context.SaveChangesAsync();
-
-            await transaccionCohorte.CommitAsync();
-
-            TempData["SuccessMessage"] = "Carrera agregada correctamente.";
-            return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(
+                    string.Empty,
+                    "No se pudo guardar la carrera y su período académico. " +
+                    "Verificá los datos e intentá nuevamente.");
+            }
         }
 
+        // Conservar los valores introducidos si hay errores.
         ViewData["CoAnio"] = CoAnio;
+
+        ViewData["CaCoFechaInicio"] =
+            CaCoFechaInicio?.ToString("yyyy-MM-dd")
+            ?? Request.Form["CaCoFechaInicio"].ToString();
+
+        ViewData["CaCoFechaFin"] =
+            CaCoFechaFin?.ToString("yyyy-MM-dd")
+            ?? Request.Form["CaCoFechaFin"].ToString();
+
         return View(carrera);
     }
 
@@ -132,15 +210,30 @@ public class CarrerasController : Controller
     public async Task<IActionResult> Edit(int? CaId)
     {
         if (CaId == null)
-        {
             return NotFound();
-        }
 
-        var carrera = await _context.Carreras.FindAsync(CaId);
+        var carrera = await _context.Carreras
+            .Include(c => c.CarreraCohortes!)
+                .ThenInclude(cc => cc.Cohorte)
+            .FirstOrDefaultAsync(c => c.CaId == CaId.Value);
+
         if (carrera == null)
-        {
             return NotFound();
-        }
+
+        // Obtener la cohorte y el período académico de la carrera.
+        var relacion = carrera.CarreraCohortes?
+            .OrderBy(cc => cc.CaCoId)
+            .FirstOrDefault();
+
+        ViewData["CoAnio"] =
+            relacion?.Cohorte?.CoAnio.ToString() ?? "";
+
+        ViewData["CaCoFechaInicio"] =
+            relacion?.CaCoFechaInicio?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewData["CaCoFechaFin"] =
+            relacion?.CaCoFechaFin?.ToString("yyyy-MM-dd") ?? "";
+
         return View(carrera);
     }
 
@@ -149,39 +242,156 @@ public class CarrerasController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         int? CaId,
-        [Bind("CaId,CaDenominacion")] Carrera carrera
-    )
+        [Bind("CaId,CaDenominacion")] Carrera carrera,
+        [FromForm] string? CoAnio,
+        [FromForm] DateTime? CaCoFechaInicio,
+        [FromForm] DateTime? CaCoFechaFin)
     {
-        if (CaId != carrera.CaId)
-        {
+        if (CaId == null || CaId.Value != carrera.CaId)
             return NotFound();
+
+        // Validar el año de cohorte.
+        if (string.IsNullOrWhiteSpace(CoAnio) ||
+            !Regex.IsMatch(CoAnio, @"^\d{4}$"))
+        {
+            ModelState.AddModelError(
+                "CoAnio",
+                "Debe ingresar un año de cohorte válido de 4 dígitos.");
+        }
+        else if (!int.TryParse(CoAnio, out var anio) ||
+                 anio < 2000 || anio > 2100)
+        {
+            ModelState.AddModelError(
+                "CoAnio",
+                "Ingrese un año de cohorte entre 2000 y 2100.");
         }
 
-        ModelState.Remove("CarrerasCohortes");
+        // Validar las fechas del período académico.
+        if (!CaCoFechaInicio.HasValue)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaInicio",
+                "Debe ingresar la fecha de inicio.");
+        }
+
+        if (!CaCoFechaFin.HasValue)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaFin",
+                "Debe ingresar la fecha de finalización.");
+        }
+
+        if (CaCoFechaInicio.HasValue &&
+            CaCoFechaFin.HasValue &&
+            CaCoFechaInicio.Value.Date > CaCoFechaFin.Value.Date)
+        {
+            ModelState.AddModelError(
+                "CaCoFechaFin",
+                "La fecha de finalización no puede ser anterior a la fecha de inicio.");
+        }
+
+        ModelState.Remove("CarreraCohortes");
         ModelState.Remove("CarrerasMaterias");
 
         if (ModelState.IsValid)
         {
+            var carreraExistente = await _context.Carreras
+                .Include(c => c.CarreraCohortes!)
+                    .ThenInclude(cc => cc.Cohorte)
+                .FirstOrDefaultAsync(c => c.CaId == carrera.CaId);
+
+            if (carreraExistente == null)
+                return NotFound();
+
+            await using var transaccion =
+                await _context.Database.BeginTransactionAsync();
+
             try
             {
-                _context.Update(carrera);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CarreraExists(carrera.CaId))
+                // Actualizar la denominación de la carrera.
+                carreraExistente.CaDenominacion =
+                    carrera.CaDenominacion;
+
+                var anioInt = int.Parse(CoAnio!);
+
+                // Buscar la cohorte del año indicado.
+                var cohorte = await _context.Cohortes
+                    .FromSqlInterpolated(
+                        $"SELECT * FROM Cohortes WITH (UPDLOCK, HOLDLOCK) WHERE CoAnio = {anioInt}")
+                    .FirstOrDefaultAsync();
+
+                // Crear la cohorte si todavía no existe.
+                if (cohorte == null)
                 {
-                    return NotFound();
+                    var maxId = await _context.Database.SqlQuery<int>(
+                        $"SELECT ISNULL(MAX(CoId), 0) AS Value FROM Cohortes WITH (UPDLOCK, HOLDLOCK)")
+                        .FirstAsync();
+
+                    cohorte = new Cohorte
+                    {
+                        CoId = maxId + 1,
+                        CoAnio = anioInt,
+                        CoEstado = true
+                    };
+
+                    _context.Cohortes.Add(cohorte);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Actualizar la relación entre carrera y cohorte.
+                var relacion = carreraExistente.CarreraCohortes?
+                    .OrderBy(cc => cc.CaCoId)
+                    .FirstOrDefault();
+
+                if (relacion == null)
+                {
+                    relacion = new CarreraCohorte
+                    {
+                        CaId = carreraExistente.CaId,
+                        CoId = cohorte.CoId,
+                        CaCoFechaInicio = CaCoFechaInicio!.Value.Date,
+                        CaCoFechaFin = CaCoFechaFin!.Value.Date
+                    };
+
+                    _context.CarreraCohortes.Add(relacion);
                 }
                 else
                 {
-                    throw;
+                    relacion.CoId = cohorte.CoId;
+                    relacion.CaCoFechaInicio =
+                        CaCoFechaInicio!.Value.Date;
+                    relacion.CaCoFechaFin =
+                        CaCoFechaFin!.Value.Date;
                 }
-            }
 
-            TempData["SuccessMessage"] = "Carrera actualizada correctamente.";
-            return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
+                await transaccion.CommitAsync();
+
+                TempData["SuccessMessage"] =
+                    "Carrera modificada correctamente.";
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                await transaccion.RollbackAsync();
+
+                ModelState.AddModelError(
+                    string.Empty,
+                    "No se pudo modificar la carrera y su período académico. " +
+                    "Verificá los datos e intentá nuevamente.");
+            }
         }
+
+        // Mantener los datos ingresados cuando existen errores.
+        ViewData["CoAnio"] = CoAnio ?? "";
+
+        ViewData["CaCoFechaInicio"] =
+            CaCoFechaInicio?.ToString("yyyy-MM-dd") ?? "";
+
+        ViewData["CaCoFechaFin"] =
+            CaCoFechaFin?.ToString("yyyy-MM-dd") ?? "";
+
         return View(carrera);
     }
 
@@ -206,8 +416,8 @@ public class CarrerasController : Controller
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(
-    int? CaId,
-    bool ConfirmarEliminacion)
+        int? CaId,
+        bool ConfirmarEliminacion)
     {
         if (CaId == null)
             return NotFound();
@@ -216,11 +426,13 @@ public class CarrerasController : Controller
         {
             TempData["Error"] =
                 "Debés confirmar explícitamente la eliminación de la carrera.";
+
             return RedirectToAction(nameof(Delete), new { CaId });
         }
 
         var carrera = await _context.Carreras
             .FindAsync(CaId.Value);
+
         if (carrera == null)
             return NotFound();
 
@@ -228,6 +440,7 @@ public class CarrerasController : Controller
         {
             _context.Carreras.Remove(carrera);
             await _context.SaveChangesAsync();
+
             TempData["Mensaje"] =
                 "Carrera eliminada correctamente.";
         }
@@ -254,7 +467,9 @@ public class CarrerasController : Controller
             .Select(cc => cc.CaCoId);
 
         var carreraMateriasQuery = _context.CarreraMaterias
-            .Where(cm => cm.CaCoId.HasValue && caCoIdsQuery.Contains(cm.CaCoId.Value));
+            .Where(cm =>
+                cm.CaCoId.HasValue &&
+                caCoIdsQuery.Contains(cm.CaCoId.Value));
 
         var caMaIdsQuery = carreraMateriasQuery
             .Select(cm => cm.CaMaId);
@@ -274,7 +489,9 @@ public class CarrerasController : Controller
 
         ViewData["CantidadAsistencias"] =
             await _context.Asistencias
-                .Where(a => a.CaMaId.HasValue && caMaIdsQuery.Contains(a.CaMaId.Value))
+                .Where(a =>
+                    a.CaMaId.HasValue &&
+                    caMaIdsQuery.Contains(a.CaMaId.Value))
                 .CountAsync();
     }
 }

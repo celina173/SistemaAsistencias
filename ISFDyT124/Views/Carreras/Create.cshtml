@@ -1,3 +1,4 @@
+
 @model ISFDyT124.Models.Carrera
 
 @{
@@ -5,7 +6,6 @@
     ViewData["BodyClass"] = "agregar-page";
 }
 
-<!-- BANNER OFICIAL -->
 <div class="info-banner">
     <div class="info-col-left">
         <p class="info-bold">PANEL DE CONTROL</p>
@@ -23,30 +23,83 @@
     <div class="form-card">
         <form asp-action="Create" method="post" class="form-grid">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
-            <!-- El campo ocupa todo el ancho de la tarjeta -->
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger"
+                 style="grid-column: span 2;">
+            </div>
+
             <div class="input-field" style="grid-column: span 2;">
-                <input asp-for="CaDenominacion" 
-                 placeholder="Ej: Tec. Sup. en Desarrollo de Software" 
-                 autocomplete="off"
-                 oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
+                <label asp-for="CaDenominacion"></label>
+                <input asp-for="CaDenominacion"
+                       placeholder="Ej: Tec. Sup. en Desarrollo de Software"
+                       autocomplete="off"
+                       oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')" />
+                <span asp-validation-for="CaDenominacion"
+                      class="text-danger"></span>
             </div>
 
             <div class="input-field">
                 <label for="CoAnio">Año de Cohorte</label>
-                <input id="CoAnio" name="CoAnio" type="number" placeholder="Ej: 2026" min="2000" max="2100" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="off" required value="@(ViewData["CoAnio"] ?? "")" />
-                <span id="CoAnioError" data-valmsg-for="CoAnio" data-valmsg-replace="true" class="text-danger">@ViewData.ModelState?["CoAnio"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+                <input id="CoAnio"
+                       name="CoAnio"
+                       type="number"
+                       placeholder="Ej: 2026"
+                       min="2000"
+                       max="2100"
+                       inputmode="numeric"
+                       required
+                       value="@(ViewData["CoAnio"] ?? "")" />
+
+                <span class="text-danger">
+                    @ViewData.ModelState["CoAnio"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
             </div>
 
-            <div class="form-buttons" style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
-                <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
-                <button type="submit" class="btn-save">Guardar Carrera</button>
+            <div class="input-field">
+                <label for="CaCoFechaInicio">Fecha inicio del año</label>
+                <input id="CaCoFechaInicio"
+                       name="CaCoFechaInicio"
+                       type="date"
+                       class="input-select"
+                       required
+                       value="@(ViewData["CaCoFechaInicio"] ?? "")" />
+
+                <span class="text-danger">
+                    @ViewData.ModelState["CaCoFechaInicio"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            </div>
+
+            <div class="input-field">
+                <label for="CaCoFechaFin">Fecha finalización del año</label>
+                <input id="CaCoFechaFin"
+                       name="CaCoFechaFin"
+                       type="date"
+                       class="input-select"
+                       required
+                       value="@(ViewData["CaCoFechaFin"] ?? "")" />
+
+                <span class="text-danger">
+                    @ViewData.ModelState["CaCoFechaFin"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            </div>
+
+            <div class="form-buttons"
+                 style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
+                <a asp-action="Index"
+                   class="btn-cancel"
+                   style="text-decoration: none; text-align: center;">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn-save">
+                    Guardar Carrera
+                </button>
             </div>
         </form>
     </div>
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

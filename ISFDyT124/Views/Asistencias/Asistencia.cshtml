@@ -23,6 +23,35 @@
     <form asp-action="Asistencia" method="post" id="formAsistencia">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="CaMaId" />
+        
+        <div class="form-group" style="margin: 20px 0;">
+            <label asp-for="FechaAsistencia"
+                   style="display: block; font-weight: 600; margin-bottom: 8px;">
+                Fecha de cursada
+            </label>
+
+            <select asp-for="FechaAsistencia"
+                    asp-items="ViewBag.FechasPendientes"
+                    id="FechaAsistencia"
+                    class="form-control"
+                    style="width: 100%; max-width: 420px; padding: 10px;"
+                    required>
+                <option value="">-- Seleccioná una jornada pendiente --</option>
+            </select>
+
+            <span asp-validation-for="FechaAsistencia"
+                  class="text-danger"></span>
+
+            @if (ViewBag.SinFechasPendientes == true)
+            {
+                <p class="text-muted" style="margin-top: 10px;">
+                    No hay jornadas pendientes para esta cátedra dentro del
+                    período académico configurado. Verificá las fechas de inicio
+                    y fin y los días de cursada.
+                </p>
+            }
+        </div>
+
 
         @* Se reutiliza .table-container/.attendance-table (mismas clases que
            Profesor/Asistencia.cshtml) en vez de .global-table-container/.global-table:
@@ -88,8 +117,10 @@
         </div>
 
         <div class="admin-asistencia-buttons">
-            <button type="submit" class="btn-guardar">Guardar</button>
-            <a asp-action="Index" asp-controller="Profesor" class="btn-cancel">Cancelar</a>
+        <button type="submit" class="btn-guardar" disabled="@(ViewBag.SinFechasPendientes == true)">
+            Guardar
+        </button>            
+        <a asp-action="Index" asp-controller="Profesor" class="btn-cancel">Cancelar</a>
         </div>
     </form>
 </main>
@@ -142,13 +173,19 @@
         // El formulario del Admin no tiene selector de fecha propio: el POST siempre usa
         // DateTime.Today del servidor. Para que el resultado offline sea idéntico, se manda
         // "hoy" calculado en el mismo formato que ya usa la cola del Docente (yyyy-MM-dd).
-        var fecha = '@DateTime.Today.ToString("yyyy-MM-dd")';
 
         if (form && caMaId) {
             form.addEventListener('submit', function (e) {
                 if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, sin cambios
 
                 e.preventDefault();
+                var selectorFecha = document.getElementById('FechaAsistencia');
+                var fecha = selectorFecha ? selectorFecha.value : '';
+
+                if (!fecha) {
+                    alert('Seleccioná una jornada de cursada antes de guardar.');
+                    return;
+                }
 
                 var filas = [];
                 form.querySelectorAll('tbody tr').forEach(function (tr) {

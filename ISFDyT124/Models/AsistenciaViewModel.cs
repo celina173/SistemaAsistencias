@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 namespace ISFDyT124.Models
@@ -6,8 +7,11 @@ namespace ISFDyT124.Models
     public class AsistenciaRowViewModel
     {
         public int UsId { get; set; }
+
         public string FullName { get; set; } = string.Empty;
+
         public bool AsPresente { get; set; }
+
         public bool AsJustificacion { get; set; }
 
         public string? AsObservacion { get; set; }
@@ -19,6 +23,9 @@ namespace ISFDyT124.Models
     public class AsistenciaFormViewModel
     {
         public int? CaMaId { get; set; }
+
+        // Fecha de la jornada de asistencia seleccionada.
+        public DateTime? FechaAsistencia { get; set; }
 
         // Número de módulos que tiene la materia.
         public int ModuleCount { get; set; } = 1;
