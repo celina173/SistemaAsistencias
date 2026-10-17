@@ -8,7 +8,6 @@
 }
 
 <style>
-    /* Estilos exclusivos para los botones de paginación */
     .btn-page {
         padding: 6px 12px;
         border: 1px solid #cbd5e1;
@@ -35,8 +34,6 @@
             background: #f1f5f9;
         }
 
-
-        
     .operation-notice {
         display: flex;
         align-items: flex-start;
@@ -84,18 +81,18 @@
         min-width: 0;
     }
 
-    .operation-notice-content strong {
-        display: block;
-        margin-bottom: 4px;
-        font-size: 0.98rem;
-    }
+        .operation-notice-content strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.98rem;
+        }
 
-    .operation-notice-content p {
-        margin: 0;
-        font-size: 0.92rem;
-        line-height: 1.5;
-        overflow-wrap: anywhere;
-    }
+        .operation-notice-content p {
+            margin: 0;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
 
     .operation-notice-close {
         padding: 0 4px;
@@ -108,16 +105,19 @@
         opacity: 0.7;
     }
 
-    .operation-notice-close:hover {
-        opacity: 1;
-    }
+        .operation-notice-close:hover {
+            opacity: 1;
+        }
 
     @@media (max-width: 576px) {
-        .operation-notice {
-            gap: 10px;
-            padding: 14px;
-        }
-}
+        .operation-notice
+
+    {
+        gap: 10px;
+        padding: 14px;
+    }
+
+    }
 </style>
 
 <div class="info-banner">
@@ -135,7 +135,6 @@
 
 <main class="main-container-global">
 
-    <!-- BOTÓN VOLVER ATRÁS -->
     <div class="contenedor-volver">
         <a asp-controller="Admin" asp-action="Index" class="btn-volver-atras" title="Volver al Panel de Control">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -146,19 +145,14 @@
         </a>
     </div>
 
-    
-    @if (TempData["Mensaje"] != null)
+    @if (TempData["SuccessMessage"] != null || TempData["Mensaje"] != null)
     {
-        <div class="operation-notice operation-notice-success"
-             role="status"
-             id="operationSuccess">
+        <div class="operation-notice operation-notice-success" role="status" id="operationSuccess">
             <div class="operation-notice-icon" aria-hidden="true">✓</div>
-
             <div class="operation-notice-content">
                 <strong>Operación completada</strong>
-                <p>@TempData["Mensaje"]</p>
+                <p>@(TempData["SuccessMessage"] ?? TempData["Mensaje"])</p>
             </div>
-
             <button type="button"
                     class="operation-notice-close"
                     aria-label="Cerrar notificación"
@@ -170,16 +164,12 @@
 
     @if (TempData["Error"] != null)
     {
-        <div class="operation-notice operation-notice-error"
-             role="alert"
-             id="operationError">
+        <div class="operation-notice operation-notice-error" role="alert" id="operationError">
             <div class="operation-notice-icon" aria-hidden="true">!</div>
-
             <div class="operation-notice-content">
                 <strong>No se pudo completar la operación</strong>
                 <p>@TempData["Error"]</p>
             </div>
-
             <button type="button"
                     class="operation-notice-close"
                     aria-label="Cerrar notificación"
@@ -189,8 +179,6 @@
         </div>
     }
 
-
-    <!-- BARRA DE HERRAMIENTAS: Buscador y Botón Agregar -->
     <div class="toolbar-container">
         <div class="search-box">
             <input type="text" id="inputBusqueda" placeholder="Buscar por nombre de carrera..." autocomplete="off" data-lpignore="true">
@@ -204,7 +192,6 @@
         </div>
     </div>
 
-    <!-- TABLA GLOBAL -->
     <div class="global-table-container">
         <table class="global-table crud-carreras table-responsive-stack">
             <thead>
@@ -231,21 +218,19 @@
                         <tr>
                             <td class="align-left" data-label="@Html.DisplayNameFor(m => m.CaDenominacion)">@Html.DisplayFor(modelItem => item.CaDenominacion)</td>
                             <td data-label="Cohorte" style="text-align: center;">
-                                @(cohortesPorCarrera.TryGetValue(item.CaId, out var aniosCohorte)
-                                                        ? aniosCohorte
-                                                        : "Sin cohorte")
-                    </td>
-                    <td class="action-cell" data-label="Acciones">
-                        <div class="action-buttons">
-                            <a asp-action="Edit" asp-route-CaId="@item.CaId" class="icon-btn btn-edit" title="Editar">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
-                            </a>
-                            <a asp-action="Details" asp-route-CaId="@item.CaId" class="icon-btn" title="Detalles">📋</a>
-                            <a asp-action="Delete" asp-route-CaId="@item.CaId" class="icon-btn" title="Eliminar">🗑️</a>
-                        </div>
-                    </td>
-                </tr>
-                                }
+                                @(cohortesPorCarrera.TryGetValue(item.CaId, out var aniosCohorte) ? aniosCohorte : "Sin cohorte")
+                            </td>
+                            <td class="action-cell" data-label="Acciones">
+                                <div class="action-buttons">
+                                    <a asp-action="Edit" asp-route-CaId="@item.CaId" class="icon-btn btn-edit" title="Editar">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+                                    </a>
+                                    <a asp-action="Details" asp-route-CaId="@item.CaId" class="icon-btn" title="Detalles">📋</a>
+                                    <a asp-action="Delete" asp-route-CaId="@item.CaId" class="icon-btn" title="Eliminar">🗑️</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 }
                 else
                 {
@@ -256,7 +241,6 @@
             </tbody>
         </table>
 
-        <!-- PAGINACIÓN -->
         <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px 0; border-top: 1px solid #e2e8f0;">
             <div class="pagination-info" style="font-size: 0.9rem; color: #64748b; font-weight: 500;">
                 Mostrando <span id="pageStart">0</span> a <span id="pageEnd">0</span> de <span id="totalItems">0</span> carreras
@@ -296,12 +280,12 @@
             const totalItems = document.getElementById('totalItems');
             const pageIndicator = document.getElementById('pageIndicator');
 
-            let activeCol = 0; // Ordenar por Denominación por defecto (columna 0)
+            let activeCol = 0;
             let isAsc = true;
             let activeTh = headers[0];
 
             let currentPage = 1;
-            const itemsPerPage = 20; // 20 registros por página
+            const itemsPerPage = 20;
             let filteredRows = [...allRows];
 
             function updateTable() {
@@ -328,7 +312,7 @@
                 if (total === 0) {
                     const tr = document.createElement('tr');
                     const td = document.createElement('td');
-                    td.colSpan = 3; // Ajustado a 3 columnas tras eliminar el ID
+                    td.colSpan = 3;
                     td.style.textAlign = 'center';
                     td.style.padding = '20px';
                     td.textContent = 'No se encontraron carreras con esa búsqueda.';
@@ -367,7 +351,6 @@
                     filteredRows = [...allRows];
                 } else {
                     filteredRows = allRows.filter(row => {
-                        // Filtramos buscando en la Columna 0 (Denominación de la carrera)
                         const nombreCarrera = row.children[0]?.textContent.toLowerCase() ?? '';
                         return nombreCarrera.includes(query);
                     });
@@ -415,7 +398,6 @@
                 sortRows();
             });
 
-            // Inicializar ordenando por la primera columna visible (Denominación)
             sortRows();
         });
     </script>

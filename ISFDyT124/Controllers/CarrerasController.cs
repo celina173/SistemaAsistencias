@@ -16,7 +16,6 @@ public class CarrerasController : Controller
     }
 
     // GET: CARRERAS
-
     public async Task<IActionResult> Index()
     {
         var carreras = await _context.Carreras.ToListAsync();
@@ -49,7 +48,6 @@ public class CarrerasController : Controller
         return View(carreras);
     }
 
-
     // GET: CARRERAS/Details/5
     public async Task<IActionResult> Details(int? CaId)
     {
@@ -78,7 +76,6 @@ public class CarrerasController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("CaDenominacion")] Carrera carrera, [FromForm] string? CoAnio)
     {
-        // Validación del año de cohorte: obligatorio, numérico y exactamente 4 dígitos
         if (string.IsNullOrWhiteSpace(CoAnio) || !Regex.IsMatch(CoAnio, "^\\d{4}$"))
         {
             ModelState.AddModelError("CoAnio", "Debe ingresar un año de cohorte válido de 4 dígitos.");
@@ -93,15 +90,9 @@ public class CarrerasController : Controller
 
         if (ModelState.IsValid)
         {
-            // Guardar la carrera
             _context.Add(carrera);
             await _context.SaveChangesAsync();
 
-            // Buscar o crear la cohorte. CoId no es IDENTITY (ValueGeneratedNever en el
-            // DbContext) -- se calcula a mano como MAX+1. Todo este bloque va con lock
-            // (UPDLOCK, HOLDLOCK) para que dos altas de carrera simultáneas con el mismo año
-            // nuevo no calculen el mismo CoId ni creen dos cohortes distintas para el mismo
-            // año (ticket 6.13).
             var anioInt = int.Parse(CoAnio!);
             using var transaccionCohorte = await _context.Database.BeginTransactionAsync();
 
@@ -123,7 +114,6 @@ public class CarrerasController : Controller
                 await _context.SaveChangesAsync();
             }
 
-            // Crear la relación CarreraCohorte
             var caCo = new CarreraCohorte { CaId = carrera.CaId, CoId = cohorte.CoId };
             _context.CarreraCohortes.Add(caCo);
             await _context.SaveChangesAsync();
@@ -134,7 +124,6 @@ public class CarrerasController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        // Repoblar CoAnio para la vista en caso de error
         ViewData["CoAnio"] = CoAnio;
         return View(carrera);
     }
@@ -160,13 +149,16 @@ public class CarrerasController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         int? CaId,
-        [Bind("CaId,CaDenominacion,CarrerasCohortes,CarrerasMaterias")] Carrera carrera
+        [Bind("CaId,CaDenominacion")] Carrera carrera
     )
     {
         if (CaId != carrera.CaId)
         {
             return NotFound();
         }
+
+        ModelState.Remove("CarrerasCohortes");
+        ModelState.Remove("CarrerasMaterias");
 
         if (ModelState.IsValid)
         {
@@ -186,6 +178,8 @@ public class CarrerasController : Controller
                     throw;
                 }
             }
+
+            TempData["SuccessMessage"] = "Carrera actualizada correctamente.";
             return RedirectToAction(nameof(Index));
         }
         return View(carrera);
