@@ -20,36 +20,55 @@
         </div>
     </div>
 
-    <form asp-action="Asistencia" method="post" id="formAsistencia">
+    @if (TempData["OperationErrorMessage"] is string errorMessage)
+    {
+        <div class="operation-notice operation-notice-error"
+             role="alert"
+             id="operationError">
+            <div class="operation-notice-icon" aria-hidden="true">!</div>
+
+            <div class="operation-notice-content">
+                <strong>No se pudo completar la operación</strong>
+                <p>@errorMessage</p>
+            </div>
+
+            <button type="button"
+                    class="operation-notice-close"
+                    aria-label="Cerrar notificación"
+                    onclick="this.parentElement.remove()">
+                ×
+            </button>
+        </div>
+    }
+
+
+    <form asp-controller="Asistencias" asp-action="Asistencia" asp-route-CaMaId="@Model.CaMaId" method="post" id="formAsistencia">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="CaMaId" />
-        
-        <div class="form-group" style="margin: 20px 0;">
-            <label asp-for="FechaAsistencia"
-                   style="display: block; font-weight: 600; margin-bottom: 8px;">
-                Fecha de cursada
-            </label>
+        <div class="seccion-centrada" style="max-width: 650px; margin: 35px auto 25px; padding: 0 1.5rem; box-sizing: border-box;">            
+            <div class="admin-filter-container" style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <div class="form-group" style="margin: 0;">
+                    <label asp-for="FechaAsistencia" style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
+                        Fecha de cursada
+                    </label>
+                    <select asp-for="FechaAsistencia"
+                            asp-items="ViewBag.FechasPendientes"
+                            id="FechaAsistencia"
+                            class="form-control"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                        @if (ViewBag.SinFechasPendientes == true)
+                        {
+                            <option value="">Sin fechas disponibles</option>
+                        }
+                        else
+                        {
+                            <option value="">-- Seleccioná una jornada pendiente --</option>
+                        }
+                    </select>
 
-            <select asp-for="FechaAsistencia"
-                    asp-items="ViewBag.FechasPendientes"
-                    id="FechaAsistencia"
-                    class="form-control"
-                    style="width: 100%; max-width: 420px; padding: 10px;"
-                    required>
-                <option value="">-- Seleccioná una jornada pendiente --</option>
-            </select>
-
-            <span asp-validation-for="FechaAsistencia"
-                  class="text-danger"></span>
-
-            @if (ViewBag.SinFechasPendientes == true)
-            {
-                <p class="text-muted" style="margin-top: 10px;">
-                    No hay jornadas pendientes para esta cátedra dentro del
-                    período académico configurado. Verificá las fechas de inicio
-                    y fin y los días de cursada.
-                </p>
-            }
+                    <span asp-validation-for="FechaAsistencia" class="text-danger"></span>
+                </div>
+            </div>
         </div>
 
 
@@ -117,10 +136,10 @@
         </div>
 
         <div class="admin-asistencia-buttons">
-        <button type="submit" class="btn-guardar" disabled="@(ViewBag.SinFechasPendientes == true)">
-            Guardar
-        </button>            
-        <a asp-action="Index" asp-controller="Profesor" class="btn-cancel">Cancelar</a>
+            <button type="submit" class="btn-guardar">
+                Guardar
+            </button>            
+            <a asp-action="Index" asp-controller="Profesor" class="btn-cancel">Cancelar</a>
         </div>
     </form>
 </main>

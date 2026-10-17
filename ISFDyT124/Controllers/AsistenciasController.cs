@@ -194,7 +194,6 @@ namespace ISFDyT124.Controllers
 
         //GET: Asistencias/Asistencia
         //Vista estática para toma de asistencia(diseño)
-
         public async Task<IActionResult> Asistencia(int? CaMaId)
         {
             var model = new AsistenciaFormViewModel();
@@ -296,6 +295,7 @@ namespace ISFDyT124.Controllers
 
             var caMa = await _context.CarreraMaterias
                 .Include(cm => cm.CarreraCohorte)
+                    .ThenInclude(cc => cc!.Carrera)
                 .Include(cm => cm.Materia)
                 .Include(cm => cm.DiasCursada)
                 .FirstOrDefaultAsync(cm => cm.CaMaId == model.CaMaId.Value);
@@ -312,10 +312,16 @@ namespace ISFDyT124.Controllers
             if (!fechaSeleccionada.HasValue ||
                 !fechasPendientes.Contains(fechaSeleccionada.Value))
             {
-                ModelState.AddModelError(
-                    nameof(model.FechaAsistencia),
-                    "La fecha seleccionada no es una jornada pendiente válida. " +
-                    "Actualizá la página y elegí una fecha disponible.");
+                if (fechasPendientes.Count == 0)
+                {
+                    TempData["OperationErrorMessage"] =
+                        "No se pudo registrar la asistencia porque no hay días disponibles.";
+                }
+                else
+                {
+                    TempData["OperationErrorMessage"] =
+                        "No se pudo registrar la asistencia. Seleccioná una fecha disponible e intentá nuevamente.";
+                }
 
                 PrepararFechasPendientes(model, fechasPendientes);
 
@@ -328,10 +334,38 @@ namespace ISFDyT124.Controllers
                 ViewBag.MateriaId = caMa.MaId;
 
                 var cantidadModulos = caMa.Materia?.MaCantModulos is int cant
-                    && cant > 0 ? cant : 1;
+                    && cant > 0
+                        ? cant
+                        : 1;
 
                 model.ModuleCount = cantidadModulos;
                 ViewData["MaCantModulos"] = cantidadModulos;
+
+                // Reconstruir las filas para recuperar los nombres
+                // de los estudiantes al devolver la vista con el error.
+                var estudiantes = await (
+                    from i in _context.Inscripciones
+                    join u in _context.Usuarios on i.UsId equals u.UsId
+                    where i.CaMaId == model.CaMaId.Value && u.UsActivo
+                    select new
+                    {
+                        u.UsId,
+                        FullName = ((u.UsApellido ?? "") + " " +
+                                    (u.UsNombre ?? "")).Trim()
+                    }
+                ).Distinct().ToListAsync();
+
+                model.Rows = estudiantes
+                    .Select(estudiante => new AsistenciaRowViewModel
+                    {
+                        UsId = estudiante.UsId,
+                        FullName = estudiante.FullName,
+                        Modulos = Enumerable
+                            .Range(0, cantidadModulos)
+                            .Select(_ => false)
+                            .ToList()
+                    })
+                    .ToList();
 
                 return View(model);
             }

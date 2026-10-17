@@ -187,16 +187,29 @@
 
     </div>
 
+    
     <!-- CARTEL DE ÉXITO AL GUARDAR ASISTENCIA -->
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["SuccessMessage"] is string successMessage)
     {
-        <div class="seccion-centrada" style="margin-bottom: 20px;">
-            <div class="alerta-exito" style="margin: 0;">
-                <i class="bi bi-check-circle-fill icono-alerta"></i>
-                <div class="alerta-texto" style="font-weight: 600;">@TempData["SuccessMessage"]</div>
+        <div class="operation-notice operation-notice-success"
+             role="status"
+             id="operationSuccess">
+            <div class="operation-notice-icon" aria-hidden="true">✓</div>
+
+            <div class="operation-notice-content">
+                <strong>Asistencia guardada correctamente</strong>
+                <p>@successMessage</p>
             </div>
+
+            <button type="button"
+                    class="operation-notice-close"
+                    aria-label="Cerrar notificación"
+                    onclick="this.parentElement.remove()">
+                ×
+            </button>
         </div>
     }
+
 
     <!-- TABLA GLOBAL -->
     <div class="global-table-container" style="margin-top: 0;">
