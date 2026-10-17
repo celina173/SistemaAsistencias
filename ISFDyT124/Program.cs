@@ -111,7 +111,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error"); // Manejo global de excepciones, lleva a la página de error
-app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+    app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
     app.UseHsts(); // Usa HTTP Strict Transport Security para proteger la app en producción
 }

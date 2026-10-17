@@ -1,17 +1,17 @@
-﻿    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Claims;
-    using System.Threading.Tasks;
-    using ISFDyT124.Data;
-    using ISFDyT124.DTO;
-    using ISFDyT124.Models;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.EntityFrameworkCore;
-    using System.Globalization;
-    using static ISFDyT124.Models.AsistenciaGlobalViewModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using ISFDyT124.Data;
+using ISFDyT124.DTO;
+using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using static ISFDyT124.Models.AsistenciaGlobalViewModel;
 
 namespace ISFDyT124.Controllers
 {

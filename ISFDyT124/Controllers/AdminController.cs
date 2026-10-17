@@ -72,7 +72,7 @@ namespace ISFDyT124.Controllers
 
             if (excluidos.Any())
             {
-                _logger.LogWarning("CarreraMaterias inválidas excluidas al poblar formulario. CaMaId/MaId: {Items}", 
+                _logger.LogWarning("CarreraMaterias inválidas excluidas al poblar formulario. CaMaId/MaId: {Items}",
                     string.Join(",", excluidos.Select(e => $"{e.CaMaId}/{e.MaId}")));
             }
 
