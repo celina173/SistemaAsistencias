@@ -17,6 +17,7 @@ namespace ISFDyT124.Data
         public DbSet<Carrera> Carreras { get; set; } = null!;
         public DbSet<Cohorte> Cohortes { get; set; } = null!;
         public DbSet<Asistencia> Asistencias { get; set; } = null!;
+        public DbSet<AsistenciaModulo> AsistenciaModulos { get; set; } = null!;
         public DbSet<CarreraCohorte> CarreraCohortes { get; set; } = null!;
         public DbSet<CarreraMateria> CarreraMaterias { get; set; } = null!;
         public DbSet<Inscripciones> Inscripciones { get; set; } = null!;
@@ -150,6 +151,19 @@ namespace ISFDyT124.Data
                 .Property(i => i.InFechaInscripcion)
                 .HasColumnType("date")
                 .HasDefaultValueSql("CONVERT(date, GETDATE())");
+
+            modelBuilder.Entity<AsistenciaModulo>(entity =>
+            {
+                entity.HasKey(am => am.AsMoId);
+
+                entity.HasOne(am => am.Asistencia)
+                    .WithMany(a => a.Modulos)
+                    .HasForeignKey(am => am.AsId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(am => new { am.AsId, am.NumeroModulo })
+                    .IsUnique();
+            });
         }
     }
 }

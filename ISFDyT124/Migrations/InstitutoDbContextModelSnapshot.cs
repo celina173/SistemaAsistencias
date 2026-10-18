@@ -75,6 +75,31 @@ namespace ISFDyT124.Migrations
                     b.ToTable("Asistencias");
                 });
 
+            modelBuilder.Entity("ISFDyT124.Models.AsistenciaModulo", b =>
+                {
+                    b.Property<int>("AsMoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AsMoId"));
+
+                    b.Property<int>("AsId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("AsMoPresente")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("NumeroModulo")
+                        .HasColumnType("int");
+
+                    b.HasKey("AsMoId");
+
+                    b.HasIndex("AsId", "NumeroModulo")
+                        .IsUnique();
+
+                    b.ToTable("AsistenciaModulos");
+                });
+
             modelBuilder.Entity("ISFDyT124.Models.Carrera", b =>
                 {
                     b.Property<int>("CaId")
@@ -352,6 +377,17 @@ namespace ISFDyT124.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("ISFDyT124.Models.AsistenciaModulo", b =>
+                {
+                    b.HasOne("ISFDyT124.Models.Asistencia", "Asistencia")
+                        .WithMany("Modulos")
+                        .HasForeignKey("AsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asistencia");
+                });
+
             modelBuilder.Entity("ISFDyT124.Models.CarreraCohorte", b =>
                 {
                     b.HasOne("ISFDyT124.Models.Carrera", "Carrera")
@@ -449,6 +485,11 @@ namespace ISFDyT124.Migrations
                         .HasForeignKey("UsuariosUsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ISFDyT124.Models.Asistencia", b =>
+                {
+                    b.Navigation("Modulos");
                 });
 
             modelBuilder.Entity("ISFDyT124.Models.Carrera", b =>
