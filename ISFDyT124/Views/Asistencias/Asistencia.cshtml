@@ -79,26 +79,38 @@
            de fecha) y en el celular obligaban a hacer scroll horizontal para tomar
            asistencia del día a día. Esta pantalla tiene solo 3 columnas fijas, entra
            perfecto en una sola columna sin scroll horizontal. *@
-        <div class="table-container">
+        <div class="table-container attendance-table-card">          
             <table class="attendance-table admin-modulos-table">
                 <thead>
                     <tr>
-                        <th style="width: 40%;">Apellido y Nombre</th>
-                        <th style="width: 40%; text-align: center;">Módulos</th>
-                        <th style="width: 20%; text-align: center;">Justificación</th>
+                        <th>Apellido y Nombre</th>
+                        <th class="text-center">Módulos</th>
+                        <th class="text-center">
+                            <span class="porcentaje-desktop">Porcentaje</span>
+                            <span class="porcentaje-responsive">%</span>
+                        </th>
+                        <th class="text-center">Observación</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for (int i = 0; i < Model.Rows.Count; i++)
                     {
                         <tr>
-                            <td>@Model.Rows[i].FullName
-                                <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
+                            <td>
+                                @Model.Rows[i].FullName
+
+                                <input type="hidden"
+                                       name="Rows[@i].UsId"
+                                       value="@Model.Rows[i].UsId" />
                             </td>
+
                             <td class="modules-cell" style="text-align: center;">
                                 @{
-                                    var moduleCount = ViewData["MaCantModulos"] as int? ?? Model.ModuleCount;
+                                    var moduleCount =
+                                        ViewData["MaCantModulos"] as int?
+                                        ?? Model.ModuleCount;
                                 }
+
                                 <div class="modules-group">
                                     @for (int m = 0; m < moduleCount; m++)
                                     {
@@ -117,22 +129,40 @@
                                                name="Rows[@i].Modulos[@m]"
                                                value="false" />
                                     }
-                                    @{
-                                        var mc = moduleCount > 0 ? moduleCount : 1;
-                                        var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
-                                        var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
-                                    }
-                                    <span class="row-pct" data-row="@i">@pct%</span>
                                 </div>
                             </td>
-                            <td class="justification-cell" style="text-align: center;">
-                                <input type="checkbox" class="custom-checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
-                                <input type="hidden" name="Rows[@i].AsPresente" value="@(Model.Rows[i].AsPresente ? "true" : "false")" />
+
+                            <td class="percentage-cell" style="text-align: center;">
+                                @{
+                                    var mc = moduleCount > 0 ? moduleCount : 1;
+
+                                    var checkedCount =
+                                        Model.Rows[i].Modulos != null
+                                            ? Model.Rows[i].Modulos.Count(x => x)
+                                            : 0;
+
+                                    var pct = Math.Round(
+                                        (decimal)checkedCount / mc * 100, 1);
+                                }
+
+                                <span class="row-pct" data-row="@i">@pct%</span>
+                            </td>
+                            <td class="observation-cell">
+                                <div class="input-field observation-field">
+                                    <input type="text"
+                                           id="observacion-@i"
+                                           class="observation-input"
+                                           name="Rows[@i].AsObservacion"
+                                           value="@Model.Rows[i].AsObservacion"
+                                           placeholder="Escribí una observación..."
+                                           aria-label="Observación para @Model.Rows[i].FullName" />
+                                </div>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
+
         </div>
 
         <div class="admin-asistencia-buttons">

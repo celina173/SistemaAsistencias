@@ -271,7 +271,6 @@ namespace ISFDyT124.Controllers
             return View(model);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Asistencia(AsistenciaFormViewModel model)
@@ -395,6 +394,7 @@ namespace ISFDyT124.Controllers
                     "en esta cátedra. Recargá la página e intentá nuevamente.");
             }
 
+
             foreach (var row in model.Rows)
             {
                 var checkedCount = row.Modulos?.Count(x => x) ?? 0;
@@ -410,6 +410,7 @@ namespace ISFDyT124.Controllers
                     AsPresente = presente,
                     AsPorcentaje = porcentaje,
                     AsJustificacion = row.AsJustificacion,
+                    AsObservacion = row.AsObservacion,
                     UsId = row.UsId,
                     MaId = caMa.MaId,
                     CaMaId = caMa.CaMaId
@@ -424,6 +425,7 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(
                 nameof(AsistenciaGlobal),
                 new { CaMaId = caMa.CaMaId });
+
         }
 
         // GET: Asistencias/AsistenciaGlobal
