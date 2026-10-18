@@ -48,6 +48,12 @@
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
             </div>
 
+            <div class="input-field">
+                <label asp-for="InFechaInscripcion">Fecha de inscripción</label>
+                <input asp-for="InFechaInscripcion" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="InFechaInscripcion" class="text-danger"></span>
+            </div>
+
             <div class="input-field" style="grid-column: span 2;">
                 <label asp-for="UsActivo">Estado del Estudiante</label>
                 <select asp-for="UsActivo" required>
@@ -83,7 +89,9 @@
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         (function () {
             var select = document.getElementById('selectCaCoId');
