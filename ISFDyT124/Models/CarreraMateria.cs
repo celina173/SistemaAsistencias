@@ -19,6 +19,9 @@ namespace ISFDyT124.Models
         [ForeignKey("Materia")]
         public int MaId { get; set; }
 
+        [Display(Name = "Año de cursada")]
+        public int? CaMaAnio { get; set; }
+
         // Navegación
         public virtual CarreraCohorte? CarreraCohorte { get; set; }
         public virtual Materia? Materia { get; set; }

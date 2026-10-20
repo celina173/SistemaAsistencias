@@ -60,8 +60,9 @@
             </div>
         </div>
 
-        <form asp-controller="Admin" asp-action="CargaMasivaProcesar" method="post" id="formMapeoColumnas">
+        <form method="post" action="@Url.Action("CargaMasivaGuardarMapeo", "Admin", new { importId = Model.ImportId })" id="formMapeoColumnas">
             @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ImportId" />
             <input type="hidden" asp-for="TempFileToken" />
             <input type="hidden" asp-for="CaCoId" />
             @foreach (var id in Model.SelectedCaMaIds)

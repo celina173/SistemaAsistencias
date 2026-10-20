@@ -16,8 +16,28 @@ namespace ISFDyT124.DTO
         public IFormFile? ArchivoExcel { get; set; }
     }
 
+    public class ImportacionMasivaEstado
+    {
+        public Guid ImportId { get; set; }
+        public string UsuarioId { get; set; } = string.Empty;
+        public DateTime CreadoUtc { get; set; }
+        public DateTime UltimoAccesoUtc { get; set; }
+        public int CaCoId { get; set; }
+        public List<int> SelectedCaMaIds { get; set; } = new();
+        public string CarreraCohorteDenominacion { get; set; } = string.Empty;
+        public List<string> MateriasSeleccionadasNombres { get; set; } = new();
+        public List<string> ColumnasExcel { get; set; } = new();
+        public List<Dictionary<string, string>> PreviewRows { get; set; } = new();
+        public string ColumnaDni { get; set; } = string.Empty;
+        public string ColumnaApellido { get; set; } = string.Empty;
+        public string ColumnaNombre { get; set; } = string.Empty;
+        public string ColumnaEmail { get; set; } = string.Empty;
+    }
+
     public class CargaMasivaMapeoDto
     {
+        public Guid ImportId { get; set; }
+
         [Required]
         public string TempFileToken { get; set; } = string.Empty;
 
@@ -53,6 +73,8 @@ namespace ISFDyT124.DTO
 
     public class CargaMasivaResultadoDto
     {
+        public Guid? ImportId { get; set; }
+        public bool EsConfirmacion { get; set; }
         public bool EsExitoso { get; set; }
         public string Mensaje { get; set; } = string.Empty;
         public string CarreraCohorteDenominacion { get; set; } = string.Empty;

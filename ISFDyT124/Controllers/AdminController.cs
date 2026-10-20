@@ -546,7 +546,20 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
         }
 
+        private string UsuarioImportacionId()
+            => User.FindFirstValue(ClaimTypes.NameIdentifier)
+               ?? User.FindFirstValue(ClaimTypes.Email)
+               ?? User.Identity?.Name
+               ?? string.Empty;
+
+        private IActionResult ImportacionExpirada()
+        {
+            TempData["Error"] = "La importación no existe, expiró o no pertenece al usuario actual. Inicie nuevamente el paso 1.";
+            return RedirectToAction(nameof(CargaMasivaAlumnos));
+        }
+
         [HttpGet]
+        [Route("Importacion/Paso1")]
         public async Task<IActionResult> CargaMasivaAlumnos()
         {
             await CargarListasCargaMasivaAsync();
@@ -568,7 +581,8 @@ namespace ISFDyT124.Controllers
                     denominacion = (cm.CarreraCohorte != null && cm.CarreraCohorte.Carrera != null ? cm.CarreraCohorte.Carrera.CaDenominacion + " / " : string.Empty)
                                   + cm.Materia!.MaDenominacion,
                     modalidad = cm.Materia!.MaModalidad,
-                    modulos = cm.Materia.MaCantModulos
+                    modulos = cm.Materia.MaCantModulos,
+                    anio = cm.CaMaAnio
                 })
                 .ToListAsync();
 
@@ -577,6 +591,7 @@ namespace ISFDyT124.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Importacion/Paso2")]
         public async Task<IActionResult> CargaMasivaMapear(CargaMasivaPaso1Dto model)
         {
             if (model.CaCoId == null)
@@ -599,6 +614,10 @@ namespace ISFDyT124.Controllers
                 if (extension != ".xlsx")
                 {
                     ModelState.AddModelError("ArchivoExcel", "El archivo debe tener formato .xlsx (Excel).");
+                }
+                else if (model.ArchivoExcel.Length > ExcelImportService.TamanoMaximoArchivo)
+                {
+                    ModelState.AddModelError("ArchivoExcel", "El archivo no puede superar los 10 MB.");
                 }
             }
 
@@ -663,31 +682,119 @@ namespace ISFDyT124.Controllers
                 .Select(cm => cm.Materia.MaDenominacion)
                 .ToListAsync();
 
-            // Inferir mapeo inicial
-            var (dniSugerido, apellidoSugerido, nombreSugerido, emailSugerido) = ExcelImportService.InferirMapeo(columnas);
-
-            var mapeoDto = new CargaMasivaMapeoDto
+            var importId = Guid.Parse(tempToken);
+            var estado = new ImportacionMasivaEstado
             {
-                TempFileToken = tempToken,
+                ImportId = importId,
+                UsuarioId = UsuarioImportacionId(),
+                CreadoUtc = DateTime.UtcNow,
+                UltimoAccesoUtc = DateTime.UtcNow,
                 CaCoId = model.CaCoId.Value,
+                SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList(),
                 CarreraCohorteDenominacion = ccDenom,
-                SelectedCaMaIds = model.SelectedCaMaIds,
                 MateriasSeleccionadasNombres = nombresMaterias,
                 ColumnasExcel = columnas,
-                ColumnaDni = dniSugerido,
-                ColumnaApellido = apellidoSugerido,
-                ColumnaNombre = nombreSugerido,
-                ColumnaEmail = emailSugerido,
                 PreviewRows = previewRows
             };
 
-            return View("CargaMasivaMapear", mapeoDto);
+            // Inferir mapeo inicial y persistir todo el estado antes de redirigir.
+            var (dniSugerido, apellidoSugerido, nombreSugerido, emailSugerido) = ExcelImportService.InferirMapeo(columnas);
+            estado.ColumnaDni = dniSugerido;
+            estado.ColumnaApellido = apellidoSugerido;
+            estado.ColumnaNombre = nombreSugerido;
+            estado.ColumnaEmail = emailSugerido;
+            ExcelImportService.GuardarEstado(estado);
+            return RedirectToAction(nameof(CargaMasivaPaso2), new { importId });
+        }
+
+        [HttpGet("Importacion/Paso2/{importId:guid}")]
+        public IActionResult CargaMasivaPaso2(Guid importId)
+        {
+            var estado = ExcelImportService.ObtenerEstado(importId, UsuarioImportacionId());
+            if (estado == null) return ImportacionExpirada();
+            return View("CargaMasivaMapear", CrearMapeoDto(estado));
+        }
+
+        [HttpPost("Importacion/Paso2/{importId:guid}")]
+        [ValidateAntiForgeryToken]
+        public IActionResult CargaMasivaGuardarMapeo(Guid importId, CargaMasivaMapeoDto model)
+        {
+            var estado = ExcelImportService.ObtenerEstado(importId, UsuarioImportacionId());
+            if (estado == null) return ImportacionExpirada();
+            if (string.IsNullOrWhiteSpace(model.ColumnaDni) || string.IsNullOrWhiteSpace(model.ColumnaApellido) ||
+                string.IsNullOrWhiteSpace(model.ColumnaNombre) || string.IsNullOrWhiteSpace(model.ColumnaEmail))
+            {
+                ModelState.AddModelError(string.Empty, "Debe mapear las 4 columnas obligatorias (DNI, Apellido, Nombre y Email).");
+                model = CrearMapeoDto(estado);
+                model.ColumnaDni = Request.Form[nameof(model.ColumnaDni)].ToString();
+                model.ColumnaApellido = Request.Form[nameof(model.ColumnaApellido)].ToString();
+                model.ColumnaNombre = Request.Form[nameof(model.ColumnaNombre)].ToString();
+                model.ColumnaEmail = Request.Form[nameof(model.ColumnaEmail)].ToString();
+                return View("CargaMasivaMapear", model);
+            }
+            estado.ColumnaDni = model.ColumnaDni;
+            estado.ColumnaApellido = model.ColumnaApellido;
+            estado.ColumnaNombre = model.ColumnaNombre;
+            estado.ColumnaEmail = model.ColumnaEmail;
+            ExcelImportService.GuardarEstado(estado);
+            return RedirectToAction(nameof(CargaMasivaPaso3), new { importId });
+        }
+
+        private static CargaMasivaMapeoDto CrearMapeoDto(ImportacionMasivaEstado estado)
+            => new()
+            {
+                ImportId = estado.ImportId,
+                TempFileToken = estado.ImportId.ToString("N"),
+                CaCoId = estado.CaCoId,
+                CarreraCohorteDenominacion = estado.CarreraCohorteDenominacion,
+                SelectedCaMaIds = estado.SelectedCaMaIds,
+                MateriasSeleccionadasNombres = estado.MateriasSeleccionadasNombres,
+                ColumnasExcel = estado.ColumnasExcel,
+                ColumnaDni = estado.ColumnaDni,
+                ColumnaApellido = estado.ColumnaApellido,
+                ColumnaNombre = estado.ColumnaNombre,
+                ColumnaEmail = estado.ColumnaEmail,
+                PreviewRows = estado.PreviewRows
+            };
+
+        [HttpGet("Importacion/Paso3/{importId:guid}")]
+        public IActionResult CargaMasivaPaso3(Guid importId)
+        {
+            var estado = ExcelImportService.ObtenerEstado(importId, UsuarioImportacionId());
+            if (estado == null) return ImportacionExpirada();
+            var filas = ExcelImportService.ValidarYLeerFilas(
+                ExcelImportService.ObtenerRutaArchivoTemporal(importId.ToString("N")),
+                estado.ColumnaDni, estado.ColumnaApellido, estado.ColumnaNombre, estado.ColumnaEmail);
+            return View("CargaMasivaResultado", new CargaMasivaResultadoDto
+            {
+                EsConfirmacion = true,
+                ImportId = importId,
+                CarreraCohorteDenominacion = estado.CarreraCohorteDenominacion,
+                TotalFilas = filas.TotalFilas,
+                MateriasInscriptas = estado.MateriasSeleccionadasNombres
+            });
+        }
+
+        [HttpPost("Importacion/Paso3/{importId:guid}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarCargaMasiva(Guid importId)
+        {
+            var estado = ExcelImportService.ObtenerEstado(importId, UsuarioImportacionId());
+            if (estado == null) return ImportacionExpirada();
+            var model = CrearMapeoDto(estado);
+            return await CargaMasivaProcesar(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CargaMasivaProcesar(CargaMasivaMapeoDto model)
         {
+            if (!Guid.TryParse(model.TempFileToken, out var importId))
+                return ImportacionExpirada();
+            var estado = ExcelImportService.ObtenerEstado(importId, UsuarioImportacionId());
+            if (estado == null) return ImportacionExpirada();
+
+            model = CrearMapeoDto(estado);
             var tempPath = ExcelImportService.ObtenerRutaArchivoTemporal(model.TempFileToken);
             if (!System.IO.File.Exists(tempPath))
             {
@@ -760,7 +867,7 @@ namespace ISFDyT124.Controllers
             // ESTRATEGIA TODO O NADA: Si hay al menos un error, abortar sin guardar nada
             if (parseResult.Errores.Any())
             {
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
+                ExcelImportService.EliminarImportacion(importId);
 
                 // Ordenar errores por número de fila
                 parseResult.Errores = parseResult.Errores.OrderBy(e => e.Fila).ToList();
@@ -781,7 +888,7 @@ namespace ISFDyT124.Controllers
             // Si no hay filas de datos
             if (!parseResult.FilasValidas.Any())
             {
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
+                ExcelImportService.EliminarImportacion(importId);
                 var resultadoVacio = new CargaMasivaResultadoDto
                 {
                     EsExitoso = false,
@@ -821,13 +928,13 @@ namespace ISFDyT124.Controllers
                 foreach (var fila in parseResult.FilasValidas)
                 {
                     int currentUsId;
-                    string estado;
+                    string estadoAlumno;
                     int inscripcionesFila = 0;
 
                     if (dictUsuarios.TryGetValue(fila.Dni, out var existingUser))
                     {
                         currentUsId = existingUser.UsId;
-                        estado = "Alumno existente";
+                        estadoAlumno = "Alumno existente";
                         alumnosReutilizados++;
 
                         // Si no tenía carrera asignada, asignarle la carrera elegida
@@ -840,7 +947,7 @@ namespace ISFDyT124.Controllers
                     {
                         maxUsId++;
                         currentUsId = maxUsId;
-                        estado = "Nuevo alumno";
+                        estadoAlumno = "Nuevo alumno";
                         alumnosNuevos++;
 
                         var nuevoUsuario = new Usuario
@@ -879,14 +986,14 @@ namespace ISFDyT124.Controllers
                         Dni = fila.Dni,
                         NombreCompleto = $"{fila.Apellido}, {fila.Nombre}",
                         Email = fila.Email,
-                        Estado = estado,
+                        Estado = estadoAlumno,
                         MateriasInscriptas = inscripcionesFila
                     });
                 }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
+                ExcelImportService.EliminarImportacion(importId);
 
                 var resultadoExitoso = new CargaMasivaResultadoDto
                 {
@@ -906,7 +1013,7 @@ namespace ISFDyT124.Controllers
             catch (Exception)
             {
                 await transaction.RollbackAsync();
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
+                ExcelImportService.EliminarImportacion(importId);
 
                 var resultadoFallo = new CargaMasivaResultadoDto
                 {

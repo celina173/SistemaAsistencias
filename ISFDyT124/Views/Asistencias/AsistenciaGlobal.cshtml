@@ -84,13 +84,13 @@
                 <form asp-action="AsistenciaGlobal" method="get" class="filtro-catedra-form" style="display: flex; gap: 15px; align-items: flex-end;">
                     <div style="flex-grow: 1;">
                         <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">1. Seleccione la Carrera:</label>
-                        <select id="selectCarrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                        <select id="selectCarrera" aria-label="Filtrar calendario por carrera" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
                             <option value="">-- Elija una Carrera --</option>
                         </select>
                     </div>
                     <div style="flex-grow: 1;">
                         <label style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;"><i class="bi bi-search"></i> 2. Seleccione la Materia:</label>
-                        <select id="selectMateria" name="CaMaId" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;" disabled required>
+                        <select id="selectMateria" name="CaMaId" aria-label="Filtrar calendario por materia" class="form-control" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;" disabled required>
                             <option value="">-- Primero elija una Carrera --</option>
                         </select>
                     </div>

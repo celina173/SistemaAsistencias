@@ -67,13 +67,17 @@
                         <label style="font-weight: 600; display: block; margin-bottom: 2px;">Materias para Inscripción Automática *</label>
                         <small style="color: #6b7280;">Marque las materias correspondientes (por ejemplo, las de 1° año):</small>
                     </div>
-                    <button type="button" id="btnToggleAllMaterias" class="btn btn-sm btn-outline-secondary" style="font-size: 12px; padding: 4px 10px; border-radius: 4px; border: 1px solid #9ca3af; background: white; cursor: pointer;">
-                        Deseleccionar todas
-                    </button>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                        <button type="button" id="btnPrimerAno" class="btn btn-sm btn-outline-primary" style="font-size: 12px; padding: 4px 10px; border-radius: 4px; cursor: pointer;">Marcar solo 1er año</button>
+                        <button type="button" id="btnToggleAllMaterias" class="btn btn-sm btn-outline-secondary" style="font-size: 12px; padding: 4px 10px; border-radius: 4px; border: 1px solid #9ca3af; background: white; cursor: pointer;">Marcar todas</button>
+                    </div>
                 </div>
 
                 <div id="materiasListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; max-height: 220px; overflow-y: auto; padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 6px;">
                     <!-- Se puebla dinámicamente vía JavaScript -->
+                </div>
+                <div id="materiasPrimerAnoAviso" role="status" aria-live="polite" style="display: none; color: #92400e; background: #fffbeb; border: 1px solid #fcd34d; padding: 8px 10px; border-radius: 6px; margin-top: 8px; font-size: 13px;">
+                    Esta carrera no tiene materias de 1er año cargadas.
                 </div>
                 <span asp-validation-for="SelectedCaMaIds" class="text-danger" style="font-size: 13px; display: block; margin-top: 6px;"></span>
             </div>
@@ -116,9 +120,12 @@
             var materiasSection = document.getElementById('materiasSection');
             var materiasListContainer = document.getElementById('materiasListContainer');
             var btnToggleAll = document.getElementById('btnToggleAllMaterias');
+            var btnPrimerAno = document.getElementById('btnPrimerAno');
+            var materiasPrimerAnoAviso = document.getElementById('materiasPrimerAnoAviso');
             var inputArchivo = document.getElementById('inputArchivoExcel');
             var txtNombreArchivo = document.getElementById('nombreArchivoSeleccionado');
-            var allSelected = true;
+            var allSelected = false;
+            var selectedCaMaIdsIniciales = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SelectedCaMaIds ?? new List<int>()));
 
             // Manejo de nombre del archivo seleccionado
             if (inputArchivo) {
@@ -132,10 +139,11 @@
             }
 
             // Cargar materias según la Carrera/Cohorte elegida
-            async function cargarMaterias(caCoId) {
+            async function cargarMaterias(caCoId, conservarSeleccion) {
                 if (!caCoId) {
                     materiasSection.style.display = 'none';
                     materiasListContainer.innerHTML = '';
+                    materiasPrimerAnoAviso.style.display = 'none';
                     return;
                 }
 
@@ -162,7 +170,8 @@
                             chk.name = 'SelectedCaMaIds';
                             chk.value = m.caMaId;
                             chk.id = 'chk_materia_' + m.caMaId;
-                            chk.checked = true; // Seleccionadas por defecto
+                             chk.dataset.anio = m.anio == null ? '' : String(m.anio);
+                             chk.checked = conservarSeleccion && selectedCaMaIdsIniciales.indexOf(Number(m.caMaId)) >= 0;
 
                             var lbl = document.createElement('label');
                             lbl.htmlFor = 'chk_materia_' + m.caMaId;
@@ -177,8 +186,8 @@
                         });
                     }
                     materiasSection.style.display = 'block';
-                    allSelected = true;
-                    btnToggleAll.textContent = 'Deseleccionar todas';
+                    allSelected = false;
+                    btnToggleAll.textContent = 'Marcar todas';
                 } catch (err) {
                     console.error('Error al cargar materias:', err);
                 }
@@ -186,12 +195,12 @@
 
             if (selectCaCoId) {
                 selectCaCoId.addEventListener('change', function () {
-                    cargarMaterias(this.value);
+                    cargarMaterias(this.value, false);
                 });
 
                 // Si ya había un valor seleccionado (por ejemplo, postback con error)
                 if (selectCaCoId.value) {
-                    cargarMaterias(selectCaCoId.value);
+                    cargarMaterias(selectCaCoId.value, true);
                 }
             }
 
@@ -203,7 +212,23 @@
                     checkboxes.forEach(function (chk) {
                         chk.checked = allSelected;
                     });
-                    btnToggleAll.textContent = allSelected ? 'Deseleccionar todas' : 'Seleccionar todas';
+                    btnToggleAll.textContent = allSelected ? 'Desmarcar todas' : 'Marcar todas';
+                });
+            }
+
+            if (btnPrimerAno) {
+                btnPrimerAno.addEventListener('click', function () {
+                    var checkboxes = materiasListContainer.querySelectorAll('input[type="checkbox"]');
+                    var tienePrimerAno = false;
+                    checkboxes.forEach(function (chk) {
+                        var anio = Number(chk.dataset.anio);
+                        var esPrimerAno = Number.isFinite(anio) && anio === 1;
+                        chk.checked = esPrimerAno;
+                        tienePrimerAno = tienePrimerAno || esPrimerAno;
+                    });
+                    allSelected = false;
+                    btnToggleAll.textContent = 'Marcar todas';
+                    materiasPrimerAnoAviso.style.display = tienePrimerAno ? 'none' : 'block';
                 });
             }
         });

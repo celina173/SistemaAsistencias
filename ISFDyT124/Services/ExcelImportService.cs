@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using ISFDyT124.DTO;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace ISFDyT124.Services
@@ -24,41 +25,102 @@ namespace ISFDyT124.Services
 
     public class ExcelImportService
     {
+        public const long TamanoMaximoArchivo = 10 * 1024 * 1024;
+        private static readonly TimeSpan ImportacionMaxima = TimeSpan.FromHours(24);
         private static readonly Regex SoloLetrasRegex = new Regex(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]+$", RegexOptions.Compiled);
         private static readonly EmailAddressAttribute EmailValidator = new EmailAddressAttribute();
 
         public static string GuardarArchivoTemporal(IFormFile archivo)
         {
-            var token = Guid.NewGuid().ToString("N");
-            var tempPath = ObtenerRutaArchivoTemporal(token);
-            using (var stream = new FileStream(tempPath, FileMode.Create))
+            var importId = Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(ObtenerDirectorioImportaciones());
+            var tempPath = ObtenerRutaArchivoTemporal(importId);
+            using (var stream = new FileStream(tempPath, FileMode.CreateNew))
             {
                 archivo.CopyTo(stream);
             }
-            return token;
+            return importId;
         }
+
+        public static string ObtenerDirectorioImportaciones()
+            => Path.Combine(Path.GetTempPath(), "imports");
 
         public static string ObtenerRutaArchivoTemporal(string token)
         {
-            // Sanitizar token para evitar path traversal
-            var safeToken = Regex.Replace(token, @"[^a-zA-Z0-9]", "");
-            return Path.Combine(Path.GetTempPath(), $"alumnos_import_{safeToken}.xlsx");
+            var safeToken = Regex.Replace(token, @"[^a-fA-F0-9]", "");
+            return Path.Combine(ObtenerDirectorioImportaciones(), $"{safeToken}.xlsx");
+        }
+
+        private static string ObtenerRutaEstado(string importId)
+            => Path.Combine(ObtenerDirectorioImportaciones(), $"{Regex.Replace(importId, @"[^a-fA-F0-9]", "")}.json");
+
+        public static void GuardarEstado(ImportacionMasivaEstado estado)
+        {
+            Directory.CreateDirectory(ObtenerDirectorioImportaciones());
+            estado.UltimoAccesoUtc = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(estado, new JsonSerializerOptions { WriteIndented = false });
+            File.WriteAllText(ObtenerRutaEstado(estado.ImportId.ToString("N")), json);
+        }
+
+        public static ImportacionMasivaEstado? ObtenerEstado(Guid importId, string usuarioId)
+        {
+            LimpiarImportacionesViejas();
+            var id = importId.ToString("N");
+            var estadoPath = ObtenerRutaEstado(id);
+            var archivoPath = ObtenerRutaArchivoTemporal(id);
+            if (!File.Exists(estadoPath) || !File.Exists(archivoPath)) return null;
+
+            try
+            {
+                var estado = JsonSerializer.Deserialize<ImportacionMasivaEstado>(File.ReadAllText(estadoPath));
+                if (estado == null || estado.ImportId != importId || estado.UsuarioId != usuarioId ||
+                    DateTime.UtcNow - estado.UltimoAccesoUtc > ImportacionMaxima)
+                {
+                    return null;
+                }
+                estado.UltimoAccesoUtc = DateTime.UtcNow;
+                GuardarEstado(estado);
+                return estado;
+            }
+            catch (JsonException)
+            {
+                EliminarImportacion(importId);
+                return null;
+            }
+        }
+
+        public static void LimpiarImportacionesViejas()
+        {
+            var directory = ObtenerDirectorioImportaciones();
+            if (!Directory.Exists(directory)) return;
+            foreach (var file in Directory.EnumerateFiles(directory))
+            {
+                try
+                {
+                    if (DateTime.UtcNow - File.GetLastWriteTimeUtc(file) > ImportacionMaxima)
+                        File.Delete(file);
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+        }
+
+        public static void EliminarImportacion(Guid importId)
+        {
+            EliminarArchivo(ObtenerRutaArchivoTemporal(importId.ToString("N")));
+            EliminarArchivo(ObtenerRutaEstado(importId.ToString("N")));
+        }
+
+        private static void EliminarArchivo(string ruta)
+        {
+            try { if (File.Exists(ruta)) File.Delete(ruta); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
         }
 
         public static void EliminarArchivoTemporal(string token)
         {
-            try
-            {
-                var ruta = ObtenerRutaArchivoTemporal(token);
-                if (File.Exists(ruta))
-                {
-                    File.Delete(ruta);
-                }
-            }
-            catch
-            {
-                // Ignorar error al limpiar archivo temporal
-            }
+            EliminarArchivo(ObtenerRutaArchivoTemporal(token));
         }
 
         public static (List<string> Columnas, List<Dictionary<string, string>> PreviewRows) LeerCabecerasYPreview(string rutaArchivo, int previewMaxRows = 5)
