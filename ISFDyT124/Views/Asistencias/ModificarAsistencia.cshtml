@@ -1,0 +1,254 @@
+﻿ @model ISFDyT124.Models.AsistenciaFormViewModel
+
+@{
+    ViewData["Title"] = "Modificar asistencia";
+    ViewData["BodyClass"] = "asistencia-page";
+
+    int moduleCount = Model.ModuleCount > 0 ? Model.ModuleCount : 1;
+    string fechaTexto = Model.FechaAsistencia?.ToString("dd/MM/yyyy") ?? "Sin fecha";
+}
+
+<div class="main-container-asistencia">
+    <div class="info-banner">
+        <h2>Modificar asistencia</h2>
+
+        <p>
+            <strong>Carrera:</strong>
+            @(ViewBag.CarreraNombre ?? "Carrera")
+        </p>
+
+        <p>
+            <strong>Materia:</strong>
+            @(ViewBag.MateriaNombre ?? "Materia")
+        </p>
+
+        <p>
+            <strong>Fecha de asistencia:</strong>
+            <span class="fecha-edicion">@fechaTexto</span>
+        </p>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="mensaje-error" role="alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="mensaje-exito" role="status">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (Model.Rows.Any(r => !r.TieneDetalleModulos))
+    {
+        <div class="aviso-modulos-faltantes" role="alert">
+            <strong>Atención:</strong>
+            algunos registros antiguos no conservan el detalle de módulos.
+            En esos casos, los módulos aparecen sin marcar porque no es posible
+            reconstruir con certeza cuáles se habían registrado originalmente.
+            Revisá esos registros antes de guardar.
+        </div>
+    }
+
+    @if (Model.Rows.Any(r => r.BloqueadaPorInscripcion))
+    {
+        <div class="aviso-modulos-faltantes" role="note">
+            Los registros de estudiantes que todavía no estaban inscriptos
+            en la fecha seleccionada están bloqueados y no se modificarán.
+        </div>
+    }
+
+    <form asp-controller="Asistencias"
+          asp-action="ModificarAsistencia"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="CaMaId"
+               value="@Model.CaMaId" />
+
+        <input type="hidden"
+               name="FechaAsistencia"
+               value="@Model.FechaAsistencia?.ToString("yyyy-MM-dd")" />
+
+        <input type="hidden"
+               name="ModuleCount"
+               value="@moduleCount" />
+
+        <div class="table-container attendance-table-card">
+            <table class="attendance-table admin-modulos-table">
+                <thead>
+                    <tr>
+                        <th>Apellido y nombre</th>
+                        <th>Módulos</th>
+                        <th>Porcentaje</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Rows.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                No hay registros de asistencia para esta fecha.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < Model.Rows.Count; i++)
+                        {
+                            var row = Model.Rows[i];
+
+                            int presentes = row.Modulos?
+                                .Take(moduleCount)
+                                .Count(p => p) ?? 0;
+
+                            decimal porcentaje = Math.Round(
+                                (decimal)presentes / moduleCount * 100m,
+                                1);
+
+                            <tr class="@(row.BloqueadaPorInscripcion ? "fila-bloqueada" : "")">
+                                <td>
+                                    @row.FullName
+
+                                    <input type="hidden"
+                                           name="Rows[@i].UsId"
+                                           value="@row.UsId" />
+
+                                    @* Conserva la justificación sin mostrarla en la tabla. *@
+                                    <input type="hidden"
+                                           name="Rows[@i].AsJustificacion"
+                                           value="@(row.AsJustificacion ? "true" : "false")" />
+
+                                    @if (row.BloqueadaPorInscripcion)
+                                    {
+                                        <span class="aviso-fila-bloqueada">
+                                            No estaba inscripto en esta fecha.
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!row.TieneDetalleModulos)
+                                    {
+                                        <div class="aviso-modulos-faltantes">
+                                            Este registro no conserva el detalle de módulos.
+                                            Marcá los que correspondan antes de guardar.
+                                        </div>
+                                    }
+
+                                    <div class="modules-group">
+                                        @for (int m = 0; m < moduleCount; m++)
+                                        {
+                                            bool moduloPresente =
+                                                row.Modulos != null &&
+                                                row.Modulos.Count > m &&
+                                                row.Modulos[m];
+
+                                            <div class="modulo-item">
+                                                <input type="checkbox"
+                                                       class="custom-checkbox modulo-checkbox"
+                                                       id="modulo_@(i)_@(m)"
+                                                       name="Rows[@i].Modulos[@m]"
+                                                       value="true"
+                                                       checked="@moduloPresente"
+                                                       disabled="@row.BloqueadaPorInscripcion" />
+
+                                                <input type="hidden"
+                                                       name="Rows[@i].Modulos[@m]"
+                                                       value="false" />
+
+                                                <label for="modulo_@(i)_@(m)">
+                                                    M@(m + 1)
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+
+                                <td class="percentage-cell">
+                                    <span class="row-pct">@porcentaje.ToString("0.#")%</span>
+                                </td>
+
+                                <td class="observation-cell">
+                                    <textarea class="observacion-input"
+                                              name="Rows[@i].AsObservacion"
+                                              rows="2"
+                                              maxlength="1000"
+                                              placeholder="Agregar observación..."
+                                              disabled="@row.BloqueadaPorInscripcion">@row.AsObservacion</textarea>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="acciones-edicion admin-asistencia-buttons">
+            <a asp-controller="Asistencias"
+               asp-action="AsistenciaGlobal"
+               asp-route-CaMaId="@Model.CaMaId"
+               class="btn-cancel">
+                Cancelar
+            </a>
+
+            <button type="submit"
+                    class="btn-guardar"
+                    disabled="@(Model.Rows.Count == 0)">
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filas = document.querySelectorAll(
+            ".attendance-table tbody tr"
+        );
+
+        filas.forEach(function (fila) {
+            const checkboxes = fila.querySelectorAll(".modulo-checkbox");
+            const porcentajeElement = fila.querySelector(".row-pct");
+
+            if (!porcentajeElement || checkboxes.length === 0) {
+                return;
+            }
+
+            function actualizarPorcentaje() {
+                const total = checkboxes.length;
+
+                const presentes = Array.from(checkboxes)
+                    .filter(function (checkbox) {
+                        return checkbox.checked;
+                    }).length;
+
+                const porcentaje = total > 0
+                    ? (presentes / total) * 100
+                    : 0;
+
+                porcentajeElement.textContent =
+                    porcentaje.toLocaleString("es-AR", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 1
+                    }) + "%";
+            }
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener(
+                    "change",
+                    actualizarPorcentaje
+                );
+            });
+
+            actualizarPorcentaje();
+        });
+    });
+</script>

@@ -45,6 +45,12 @@
     padding: 0;
 }
 
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
@@ -498,193 +504,549 @@ body {
 /* =========================================
    PANTALLA: ASISTENCIA
    ========================================= */
-
 .asistencia-page {
     background-color: #ffffff;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .main-container-asistencia {
     width: 100%;
+    max-width: 100%;
     margin: 0;
-    padding: 0; 
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* Contenedor adaptativo para evitar desbordes en móviles */
-.table-container {
-    width: 100%;
-    max-width: 1000px; 
-    padding: 0 1.5rem;
-    margin-top: 20px;
-    margin-bottom: 40px;
-    overflow-x: auto;
     box-sizing: border-box;
 }
 
-/* Tabla Minimalista Estilo Clean Canvas */
-.attendance-table {
+/* =========================================
+   TARJETA DE ASISTENCIA
+   ========================================= */
+
+.asistencia-page .attendance-table-card {
+    width: calc(100% - 4rem);
+    max-width: 1140px;
+    min-width: 0;
+    padding: 0;
+    margin: 24px auto 40px;
+    overflow-x: auto;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgb(15 23 42 / 5%), 0 12px 28px -8px rgb(15 23 42 / 9%);
+}
+
+/* =========================================
+   TABLA
+   ========================================= */
+
+.asistencia-page .attendance-table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 0;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
     font-family: 'Inter', sans-serif;
 }
 
-.attendance-table th {
-    text-align: left;
-    padding: 18px 16px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #64748b; /* Gris sofisticado para encabezados */
-    border-bottom: 2px solid #e2e8f0;
-    background-color: transparent;
+    .asistencia-page .attendance-table th,
+    .asistencia-page .attendance-table td {
+        box-sizing: border-box;
+        min-width: 0;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .asistencia-page .attendance-table th {
+        padding: 15px 7px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .asistencia-page .attendance-table td {
+        padding: 12px 7px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--primary-color, #002e8c);
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .asistencia-page .attendance-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .asistencia-page .attendance-table thead th:first-child {
+        border-top-left-radius: 15px;
+    }
+
+    .asistencia-page .attendance-table thead th:last-child {
+        border-top-right-radius: 15px;
+    }
+
+    .asistencia-page .attendance-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+/* =========================================
+   ENCABEZADO DE PORCENTAJE
+   Escritorio: "Porcentaje"
+   Responsive: "%"
+   ========================================= */
+
+.porcentaje-responsive {
+    display: none;
 }
 
-.attendance-table td {
-    padding: 16px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: var(--primary-color, #002e8c);
-    border-bottom: 1px solid #f1f5f9; 
-    vertical-align: middle;
+.porcentaje-desktop {
+    display: inline;
 }
 
-/* Feedback visual de precisión al pasar el cursor */
-.attendance-table tbody tr:hover {
-    background-color: #f8fafc;
+/* =========================================
+   COLUMNA APELLIDO Y NOMBRE
+   ========================================= */
+
+.asistencia-page .attendance-table th:nth-child(1),
+.asistencia-page .attendance-table td:nth-child(1) {
+    width: 23%;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
-/* Checkbox de Alta Precisión Visual */
+/* =========================================
+   COLUMNA MÓDULOS
+   ========================================= */
+
+.asistencia-page .attendance-table th:nth-child(2),
+.asistencia-page .attendance-table td:nth-child(2) {
+    width: 29%;
+    text-align: center;
+}
+
+.asistencia-page .attendance-table .modules-cell {
+    text-align: center;
+}
+
+.asistencia-page .attendance-table .modules-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+    .asistencia-page .attendance-table .modules-group .custom-checkbox {
+        flex: 0 0 22px;
+    }
+
+/* =========================================
+   CHECKBOXES INSTITUCIONALES
+   ========================================= */
+
+.asistencia-page .custom-checkbox,
 .custom-checkbox {
     width: 22px;
     height: 22px;
+    flex: 0 0 22px;
+    box-sizing: border-box;
     appearance: none;
     -webkit-appearance: none;
     border: 2px solid #cbd5e1;
     border-radius: 6px;
     background-color: #ffffff;
     cursor: pointer;
-    margin: 0 4px;
+    margin: 0;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     vertical-align: middle;
 }
 
-.custom-checkbox:hover {
-    border-color: var(--primary-color, #002e8c);
-}
-
-.custom-checkbox:checked {
-    background-color: var(--primary-color, #001a8c); 
-    border-color: var(--primary-color, #001a8c);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-    background-size: 65%;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-/* Botón de Guardado Institucional Unificado */
-.btn-guardar {
-    background-color: var(--primary-color, #001a8c);
-    color: white;
-    border: none;
-    border-radius: 12px; /* Sincronizado al 100% con la botonera global */
-    padding: 14px 60px;
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-bottom: 50px;
-}
-
-.btn-guardar:hover {
-    background-color: #001266;
-    transform: translateY(-2px);
-}
-
-.btn-guardar:active {
-    transform: scale(0.99);
-}
-
-/* Ajustes finos para pantallas móviles */
-@media (max-width: 768px) {
-    .table-container {
-        padding: 0 1rem;
+    .asistencia-page .custom-checkbox:hover,
+    .custom-checkbox:hover {
+        border-color: var(--primary-color, #002e8c);
     }
 
-    .attendance-table th,
-    .attendance-table td {
-        padding: 12px 10px; /* Reducción de padding para optimizar espacio */
-        font-size: 0.9rem;
+    .asistencia-page .custom-checkbox:checked,
+    .custom-checkbox:checked {
+        background-color: var(--primary-color, #001a8c);
+        border-color: var(--primary-color, #001a8c);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+        background-size: 65%;
+        background-position: center;
+        background-repeat: no-repeat;
     }
 
-    .btn-guardar {
-        width: calc(100% - 2rem); /* Botón completo adaptativo en celulares */
-        padding: 14px 0;
+    .asistencia-page .custom-checkbox:focus-visible,
+    .custom-checkbox:focus-visible {
+        outline: 2px solid var(--primary-color, #002e8c);
+        outline-offset: 3px;
     }
+
+/* =========================================
+   COLUMNA DE PORCENTAJE
+   ========================================= */
+
+.asistencia-page .attendance-table th:nth-child(3),
+.asistencia-page .attendance-table td:nth-child(3) {
+    width: 10%;
+    text-align: center;
+    white-space: nowrap;
 }
 
-/* Toma de asistencia de Admin/Dirección (Asistencias/Asistencia.cshtml, ticket 8.2):
-   varios checkboxes de módulo por fila en vez de un único "Presente". Se agrupan en una
-   fila flexible que envuelve (wrap) en vez de forzar el ancho de la tabla, así la pantalla
-   entra en una sola columna sin scroll horizontal como pasaba con .global-table
-   (min-width: 900px, pensada para el histórico con muchas columnas de fecha). */
-.modules-group {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    row-gap: 6px;
+.asistencia-page .attendance-table .percentage-cell {
+    text-align: center;
+    white-space: nowrap;
 }
 
-.modules-group .row-pct {
-    margin-left: 4px;
+.asistencia-page .attendance-table .row-pct {
+    display: inline-block;
+    min-width: 44px;
+    text-align: center;
     font-weight: 700;
     color: var(--primary-color, #002e8c);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
 }
 
+/* =========================================
+   COLUMNA Y CAMPO DE OBSERVACIÓN
+   ========================================= */
+
+.asistencia-page .attendance-table th:nth-child(4),
+.asistencia-page .attendance-table td:nth-child(4) {
+    width: 38%;
+    min-width: 0;
+    text-align: center;
+}
+
+.asistencia-page .attendance-table th:nth-child(4) {
+    text-align: center;
+}
+
+.asistencia-page .attendance-table .observation-cell {
+    min-width: 0;
+}
+
+.asistencia-page .attendance-table .observation-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 85%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0 auto;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+    .asistencia-page .attendance-table .observation-field label {
+        display: block;
+        margin: 0;
+        color: #64748b;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+.asistencia-page .attendance-table .observation-input {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: var(--primary-color, #002e8c);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 400;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .asistencia-page .attendance-table .observation-input::placeholder {
+        color: #94a3b8;
+        opacity: 1;
+    }
+
+    .asistencia-page .attendance-table .observation-input:hover {
+        border-color: #94a3b8;
+    }
+
+    .asistencia-page .attendance-table .observation-input:focus {
+        border-color: var(--primary-color, #002e8c);
+        box-shadow: 0 0 0 3px rgb(0 46 140 / 10%);
+    }
+
+    .asistencia-page .attendance-table .observation-input:focus-visible {
+        outline: none;
+    }
+
+/* =========================================
+   BOTONES DE ASISTENCIA
+   ========================================= */
 
 .admin-asistencia-buttons {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 12px;
-}
-
-.admin-asistencia-buttons .btn-guardar,
-.admin-asistencia-buttons .btn-cancel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%;
+    margin: 0 auto 40px;
+    padding: 0 16px;
     box-sizing: border-box;
-    min-height: 42px;
-    margin: 0;
-    line-height: 1.2;
-    vertical-align: middle;
 }
 
-
-@media (max-width: 520px) {
-    .admin-asistencia-buttons {
-        flex-direction: column-reverse;
-        align-items: stretch;
+    .admin-asistencia-buttons .btn-guardar,
+    .admin-asistencia-buttons .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+        min-height: 44px;
+        margin: 0;
+        padding: 12px 28px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        line-height: 1.2;
+        text-align: center;
+        text-decoration: none !important;
+        vertical-align: middle;
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
 
-        .admin-asistencia-buttons .btn-guardar {
-            width: 100%;
+    /* Guardar */
+
+    .admin-asistencia-buttons .btn-guardar {
+        width: auto;
+        color: #ffffff !important;
+        background-color: var(--primary-color, #001a8c) !important;
+        border: 1px solid var(--primary-color, #001a8c) !important;
+    }
+
+        .admin-asistencia-buttons .btn-guardar:hover {
+            color: #ffffff !important;
+            background-color: #001266 !important;
+            border-color: #001266 !important;
+            transform: translateY(-1px);
         }
 
-        .admin-asistencia-buttons .btn-cancel {
-            text-align: center;
+        .admin-asistencia-buttons .btn-guardar:active {
+            transform: scale(0.99);
         }
+
+    /* Cancelar: rojo tanto en reposo como en responsive */
+
+    .admin-asistencia-buttons a.btn-cancel,
+    .admin-asistencia-buttons a.btn-cancel:link,
+    .admin-asistencia-buttons a.btn-cancel:visited {
+        color: #ffffff !important;
+        background-color: #dc2626 !important;
+        border: 1px solid #dc2626 !important;
+        text-decoration: none !important;
+    }
+
+        .admin-asistencia-buttons a.btn-cancel:hover,
+        .admin-asistencia-buttons a.btn-cancel:focus,
+        .admin-asistencia-buttons a.btn-cancel:focus-visible {
+            color: #ffffff !important;
+            background-color: #b91c1c !important;
+            border-color: #b91c1c !important;
+            text-decoration: none !important;
+            transform: translateY(-1px);
+        }
+
+        .admin-asistencia-buttons a.btn-cancel:active {
+            color: #ffffff !important;
+            background-color: #991b1b !important;
+            border-color: #991b1b !important;
+            transform: scale(0.99);
+        }
+
+/* =========================================
+   RESPONSIVE: TABLETS
+   ========================================= */
+
+@media (max-width: 768px) {
+    .porcentaje-desktop {
+        display: none;
+    }
+
+    .porcentaje-responsive {
+        display: inline;
+    }
+
+    .asistencia-page .attendance-table-card {
+        width: calc(100% - 1rem);
+        max-width: 100%;
+        margin-top: 18px;
+        margin-bottom: 30px;
+        border-radius: 12px;
+    }
+
+    .asistencia-page .attendance-table th,
+    .asistencia-page .attendance-table td {
+        padding: 12px 6px;
+        font-size: 0.82rem;
+    }
+
+        .asistencia-page .attendance-table th:nth-child(1),
+        .asistencia-page .attendance-table td:nth-child(1) {
+            width: 27%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(2),
+        .asistencia-page .attendance-table td:nth-child(2) {
+            width: 32%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(3),
+        .asistencia-page .attendance-table td:nth-child(3) {
+            width: 12%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(4),
+        .asistencia-page .attendance-table td:nth-child(4) {
+            width: 29%;
+        }
+
+    .asistencia-page .attendance-table .modules-group {
+        gap: 5px;
+    }
+
+        .asistencia-page .attendance-table .modules-group .custom-checkbox {
+            flex-basis: 20px;
+            width: 20px;
+            height: 20px;
+        }
+
+    .asistencia-page .attendance-table .observation-input {
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
 }
+
+/* =========================================
+   RESPONSIVE: CELULARES
+   ========================================= */
+
+@media (max-width: 520px) {
+    .asistencia-page .attendance-table-card {
+        width: calc(100% - 0.5rem);
+    }
+
+    .asistencia-page .attendance-table th,
+    .asistencia-page .attendance-table td {
+        padding: 9px 4px;
+        font-size: 0.75rem;
+    }
+
+    .asistencia-page .attendance-table th {
+        font-size: 0.68rem;
+        letter-spacing: 0.2px;
+    }
+
+        .asistencia-page .attendance-table th:nth-child(1),
+        .asistencia-page .attendance-table td:nth-child(1) {
+            width: 27%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(2),
+        .asistencia-page .attendance-table td:nth-child(2) {
+            width: 32%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(3),
+        .asistencia-page .attendance-table td:nth-child(3) {
+            width: 12%;
+        }
+
+        .asistencia-page .attendance-table th:nth-child(4),
+        .asistencia-page .attendance-table td:nth-child(4) {
+            width: 29%;
+        }
+
+    .asistencia-page .attendance-table .modules-group {
+        gap: 4px;
+    }
+
+        .asistencia-page .attendance-table .modules-group .custom-checkbox {
+            flex-basis: 18px;
+            width: 18px;
+            height: 18px;
+        }
+
+    .asistencia-page .attendance-table .observation-input {
+        padding: 7px 4px;
+        font-size: 0.72rem;
+    }
+
+    /* Botones centrados y apilados */
+
+    .admin-asistencia-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin: 0 auto 30px;
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+
+        .admin-asistencia-buttons .btn-guardar,
+        .admin-asistencia-buttons a.btn-cancel {
+            display: flex;
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 320px;
+            min-width: 0;
+            min-height: 44px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+            .admin-asistencia-buttons a.btn-cancel,
+            .admin-asistencia-buttons a.btn-cancel:link,
+            .admin-asistencia-buttons a.btn-cancel:visited {
+                color: #ffffff !important;
+                background-color: #dc2626 !important;
+                border-color: #dc2626 !important;
+            }
+
+                .admin-asistencia-buttons a.btn-cancel:hover,
+                .admin-asistencia-buttons a.btn-cancel:focus,
+                .admin-asistencia-buttons a.btn-cancel:focus-visible {
+                    color: #ffffff !important;
+                    background-color: #b91c1c !important;
+                    border-color: #b91c1c !important;
+                }
+}
+
 /* =========================================
    PANTALLA: ASISTENCIA GLOBAL
    ========================================= */
@@ -835,11 +1197,389 @@ body {
     border-left: 2px solid #e2e8f0;
 }
 
+
+/* =========================================
+   ASISTENCIA GLOBAL: FILTRO CARRERA / MATERIA
+   ========================================= */
+
+.main-container-global .filtro-global-seccion {
+    display: block;
+    width: 100%;
+    max-width: 1150px !important;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
+}
+
+    .main-container-global .filtro-global-seccion .admin-filter-container {
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+    }
+
+    .main-container-global .filtro-global-seccion .filtro-catedra-form {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 15px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        .main-container-global .filtro-global-seccion .filtro-catedra-form > div {
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .main-container-global .filtro-global-seccion .filtro-catedra-form select {
+            display: block;
+            width: 100% !important;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .main-container-global .filtro-global-seccion .filtro-catedra-form button {
+            white-space: nowrap;
+        }
+
+/* =========================================
+   ASISTENCIA GLOBAL: LÁPIZ DE LAS FECHAS
+   ========================================= */
+
+.global-table .fecha-header .fecha-editar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.global-table .fecha-header .fecha-lapiz {
+    display: inline-block;
+    width: 13px !important;
+    height: 13px !important;
+    min-width: 13px;
+    max-width: 13px;
+    opacity: 0;
+    visibility: hidden;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.global-table .fecha-header:hover .fecha-lapiz,
+.global-table .fecha-header .fecha-editar:focus-visible .fecha-lapiz {
+    opacity: 1;
+    visibility: visible;
+}
+
+.global-table .fecha-header .fecha-editar:focus-visible {
+    outline: 2px solid #6478d3;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+@media (hover: none) {
+    .global-table .fecha-header .fecha-lapiz {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* =========================================
+   MODIFICAR ASISTENCIA: TABLA Y CONTROLES
+   ========================================= */
+
+.fila-bloqueada {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+    .fila-bloqueada .custom-checkbox,
+    .fila-bloqueada .observacion-input {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+.aviso-fila-bloqueada {
+    display: block;
+    margin-top: 6px;
+    color: #92400e;
+    font-size: 0.8rem;
+}
+
+.aviso-modulos-faltantes {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid #f0c36d;
+    border-radius: 6px;
+    background: #fff8e6;
+    color: #7a4b00;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.observacion-input {
+    width: 100%;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+    .observacion-input:focus {
+        outline: none;
+        border-color: #6478d3;
+        box-shadow: 0 0 0 3px rgba(100, 120, 211, 0.15);
+    }
+
+.percentage-cell {
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 600;
+}
+
+.modules-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.modulo-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+    .modulo-item label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+.fila-bloqueada .modulo-item label {
+    cursor: not-allowed;
+}
+
+.fecha-edicion {
+    font-weight: 600;
+}
+
+.mensaje-error {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.mensaje-exito {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #a3cfbb;
+    border-radius: 6px;
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.acciones-edicion {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+    .acciones-edicion .btn-cancel {
+        text-decoration: none;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 700px) {
+    .main-container-global .filtro-global-seccion .filtro-catedra-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+        .main-container-global .filtro-global-seccion .filtro-catedra-form button {
+            width: 100%;
+        }
+}
+
+@media (max-width: 768px) {
+    .table-container.attendance-table-card {
+        overflow-x: auto;
+    }
+
+    .attendance-table.admin-modulos-table {
+        min-width: 750px;
+    }
+
+    .acciones-edicion {
+        justify-content: stretch;
+    }
+
+        .acciones-edicion button,
+        .acciones-edicion a {
+            flex: 1;
+        }
+}
+
+/* =========================================
+   PANTALLA: ASISTENCIA MODIFICAR
+   ========================================= */
+.fila-bloqueada {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+.fila-bloqueada .custom-checkbox,
+.fila-bloqueada .observacion-input {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.aviso-fila-bloqueada {
+    display: block;
+    margin-top: 6px;
+    color: #92400e;
+    font-size: 0.8rem;
+}
+
+.aviso-modulos-faltantes {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid #f0c36d;
+    border-radius: 6px;
+    background: #fff8e6;
+    color: #7a4b00;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.observacion-input {
+    width: 100%;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font: inherit;
+    resize: vertical;
+}
+
+    .observacion-input:focus {
+        outline: none;
+        border-color: #6478d3;
+        box-shadow: 0 0 0 3px rgba(100, 120, 211, 0.15);
+    }
+
+.percentage-cell {
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 600;
+}
+
+.modules-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.modulo-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+    .modulo-item label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+.fila-bloqueada .modulo-item label {
+    cursor: not-allowed;
+}
+
+.fecha-edicion {
+    font-weight: 600;
+}
+
+.mensaje-error {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.mensaje-exito {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #a3cfbb;
+    border-radius: 6px;
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.acciones-edicion {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.btn-cancel {
+    text-decoration: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .attendance-table {
+        min-width: 750px;
+    }
+
+    .acciones-edicion {
+        justify-content: stretch;
+    }
+
+        .acciones-edicion button,
+        .acciones-edicion a {
+            flex: 1;
+        }
+}
+
 /* =========================================
    PANTALLA: PANEL ADMIN
    ========================================= */
 .admin-page {
-    background-color: #ffffff; 
+    background-color: #ffffff;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -1511,32 +2251,62 @@ body {
 /* =========================================
    PANTALLA: AGREGAR ESTUDIANTE 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 /* =========================================
    PANTALLA: AGREGAR DOCENTE 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: AGREGAR MATERIA 
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* Grilla interna para ordenar los inputs en 2 columnas */
 .form-grid {
@@ -1577,12 +2347,22 @@ body {
 /* =========================================
    PANTALLA: AGREGAR CARRERA 
    ========================================= */
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: AGREGAR INSCRIPCION
@@ -1689,45 +2469,85 @@ body {
    PANTALLA: MODIFICAR ESTUDIANTE
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR DOCENTE
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR MATERIA
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR CARRERA
    ========================================= */
 
-.agregar-page {
-    background-color: #ffffff; 
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+
+/* Sombreado celeste para las tarjetas de Create */
+.agregar-page .form-card {
+    background: #ffffff;
+    border: 1px solid rgba(59, 130, 246, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.14), 0 2px 6px rgba(56, 189, 248, 0.10);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
+
+    /* Un poco más de presencia al pasar el cursor */
+    .agregar-page .form-card:hover {
+        border-color: rgba(56, 189, 248, 0.48);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.20), 0 4px 10px rgba(56, 189, 248, 0.14);
+    }
+
 
 /* =========================================
    PANTALLA: MODIFICAR INSCRIPCIONES
@@ -2083,6 +2903,14 @@ body {
         margin: 0;
         padding: 0;
     }
+
+/* Mensajes de validación por campo (asp-validation-for) */
+.text-danger {
+    display: block;
+    color: #991b1b;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
 
     .alerta-texto li {
         margin: 0;
@@ -2641,3 +3469,87 @@ label.required-asterisk > .required-asterisk-span {
   font-size: 0.95em;
 }
 
+/* =========================================
+   NOTIFICACIONES Y ALERTAS (OPERATION NOTICE)
+   ========================================= */
+.operation-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: calc(100% - 32px);
+    max-width: 1100px;
+    box-sizing: border-box;
+    margin: 20px auto;
+    padding: 16px 18px;
+    border: 1px solid;
+    border-left-width: 5px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.05);
+}
+
+.operation-notice-success {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    border-left-color: #3b82f6;
+    color: #1e40af;
+}
+
+.operation-notice-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    border-left-color: #dc2626;
+    color: #991b1b;
+}
+
+.operation-notice-icon {
+    display: flex;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.operation-notice-content {
+    flex: 1;
+    min-width: 0;
+}
+
+    .operation-notice-content strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.98rem;
+    }
+
+    .operation-notice-content p {
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+.operation-notice-close {
+    padding: 0 4px;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+    .operation-notice-close:hover {
+        opacity: 1;
+    }
+
+@media (max-width: 576px) {
+    .operation-notice {
+        gap: 10px;
+        padding: 14px;
+    }
+}

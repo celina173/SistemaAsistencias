@@ -1,3 +1,6 @@
+
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,6 +21,14 @@ namespace ISFDyT124.Models
         [Display(Name = "Cohorte")]
         [ForeignKey("Cohorte")]
         public int CoId { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Fecha de inicio")]
+        public DateTime? CaCoFechaInicio { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Fecha de finalización")]
+        public DateTime? CaCoFechaFin { get; set; }
 
         // Navegación
         public virtual Carrera? Carrera { get; set; }

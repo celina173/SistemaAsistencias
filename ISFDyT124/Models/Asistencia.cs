@@ -71,5 +71,6 @@ namespace ISFDyT124.Models
 
         // Relación opcional hacia Carreras_Materias cuando la asistencia se vincula a una carrera/materia
         public virtual CarreraMateria? CarreraMateria { get; set; }
+        public virtual ICollection<AsistenciaModulo> Modulos { get; set; } = new List<AsistenciaModulo>();
     }
 }

@@ -38,7 +38,7 @@
 
             <div class="input-field">
                 <label asp-for="UsDni">DNI</label>
-                <input asp-for="UsDni" autocomplete="off" maxlength="8">
+                <input asp-for="UsDni" type="text" inputmode="numeric" autocomplete="off" maxlength="8">
                 <span asp-validation-for="UsDni" class="text-danger"></span>
             </div>
 
@@ -46,6 +46,12 @@
                 <label asp-for="UsEmail">Email</label>
                 <input asp-for="UsEmail" autocomplete="off">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
+                <label asp-for="InFechaInscripcion">Fecha de inscripción</label>
+                <input asp-for="InFechaInscripcion" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <span asp-validation-for="InFechaInscripcion" class="text-danger"></span>
             </div>
 
             <div class="input-field" style="grid-column: span 2;">
@@ -83,7 +89,9 @@
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         (function () {
             var select = document.getElementById('selectCaCoId');
