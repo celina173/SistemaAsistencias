@@ -159,6 +159,9 @@ namespace ISFDyT124.Migrations
                     b.Property<int?>("CaCoId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CaMaAnio")
+                        .HasColumnType("int");
+
                     b.Property<int>("MaId")
                         .HasColumnType("int");
 
