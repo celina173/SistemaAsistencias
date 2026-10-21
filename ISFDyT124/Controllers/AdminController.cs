@@ -610,6 +610,11 @@ namespace ISFDyT124.Controllers
                 ModelState.AddModelError("SelectedCaMaIds", "Debe seleccionar al menos una materia para inscribir a los estudiantes.");
             }
 
+            if (model.FechaInscripcion.HasValue && model.FechaInscripcion.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("FechaInscripcion", "La fecha de inscripción no puede ser posterior al día de hoy.");
+            }
+
             if (model.ArchivoExcel == null || model.ArchivoExcel.Length == 0)
             {
                 ModelState.AddModelError("ArchivoExcel", "Debe seleccionar un archivo Excel (.xlsx).");
@@ -707,6 +712,7 @@ namespace ISFDyT124.Controllers
             {
                 TempFileToken = tempToken,
                 CaCoId = caCoIdSeleccionado,
+                FechaInscripcion = model.FechaInscripcion?.Date,
                 CarreraCohorteDenominacion = ccDenom,
                 SelectedCaMaIds = materiasSeleccionadas,
                 MateriasSeleccionadasNombres = nombresMaterias,
@@ -817,7 +823,10 @@ namespace ISFDyT124.Controllers
             {
                 TempFileToken = model.TempFileToken,
                 HojasSeleccionadas = model.HojasSeleccionadas,
-                Errores = parseResult.Errores
+                // Copia de la lista: si fuera la misma, el error de conflicto entre pestañas que se agrega
+                // más abajo volvería a leerse como si fuera una fila del archivo con errores y aparecería
+                // como una fila editable vacía en la previsualización.
+                Errores = parseResult.Errores.ToList()
             };
 
             foreach (var grupo in parseResult.FilasValidas.GroupBy(f => f.Dni))
@@ -838,7 +847,8 @@ namespace ISFDyT124.Controllers
                         {
                             Hoja = filaConflicto.Hoja, Fila = filaConflicto.Fila, Dni = filaConflicto.Dni.ToString(),
                             Apellido = filaConflicto.Apellido, Nombre = filaConflicto.Nombre, Email = filaConflicto.Email,
-                            CaCoId = model.CaCoId, SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
+                            CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                            SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                         });
                     }
                     continue;
@@ -848,7 +858,7 @@ namespace ISFDyT124.Controllers
                 {
                     Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
                     Dni = primera.Dni.ToString(), Apellido = primera.Apellido, Nombre = primera.Nombre,
-                    Email = primera.Email, CaCoId = model.CaCoId,
+                    Email = primera.Email, CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
                     SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                 });
             }
@@ -866,6 +876,7 @@ namespace ISFDyT124.Controllers
                     Nombre = error.Nombre ?? string.Empty,
                     Email = error.Email ?? string.Empty,
                     CaCoId = model.CaCoId,
+                    FechaInscripcion = model.FechaInscripcion?.Date,
                     SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                 });
             }
@@ -926,6 +937,10 @@ namespace ISFDyT124.Controllers
                     errores.Add("Correo electrónico inválido");
                 else if (!emailsVistos.Add(fila.Email)) errores.Add("Correo electrónico duplicado en la previsualización");
                 if (!carrerasValidas.Contains(fila.CaCoId)) errores.Add("Carrera/cohorte inexistente");
+                if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date > DateTime.Today)
+                    errores.Add("La fecha de inscripción no puede ser posterior a hoy");
+                else if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date < new DateTime(2000, 1, 1))
+                    errores.Add("Fecha de inscripción inválida");
                 fila.SelectedCaMaIds = fila.SelectedCaMaIds.Distinct().ToList();
                 if (fila.SelectedCaMaIds.Count == 0) errores.Add("Debe seleccionar al menos una materia");
                 if (fila.SelectedCaMaIds.Any(id => !materias.TryGetValue(id, out var materia) || materia.CaCoId != fila.CaCoId))
@@ -1004,7 +1019,12 @@ namespace ISFDyT124.Controllers
                     {
                         if (existentesSet.Add((usuario.UsId, materiaId)))
                         {
-                            _context.Inscripciones.Add(new Inscripciones { UsId = usuario.UsId, CaMaId = materiaId });
+                            _context.Inscripciones.Add(new Inscripciones
+                            {
+                                UsId = usuario.UsId,
+                                CaMaId = materiaId,
+                                InFechaInscripcion = fila.FechaInscripcion?.Date ?? DateTime.Today
+                            });
                             creadas++; inscripcionesFila++;
                         }
                     }
