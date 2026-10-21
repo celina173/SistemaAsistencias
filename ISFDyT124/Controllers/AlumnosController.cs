@@ -100,8 +100,6 @@ namespace ISFDyT124.Controllers
             return Json(materias);
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-
         public async Task<IActionResult> Index()
         {
             var permitidos = await CaCoIdsPermitidosAsync();
@@ -122,7 +120,7 @@ namespace ISFDyT124.Controllers
                     UsDni = u.UsDni,
                     RoId = u.RoId,
                     CaCoId = u.CaCoId,
-                    UsActivo = u.UsActivo, // MAPEO AGREGADO PARA EL ESTADO LÓGICO
+                    UsActivo = u.UsActivo,
                     CarreraCohorteDenominacion =
                         u.CaCoId != null && u.CarreraCohorte != null
                             ? u.CarreraCohorte.Carrera!.CaDenominacion
@@ -140,7 +138,8 @@ namespace ISFDyT124.Controllers
         {
             var model = new AlumnoFormDto
             {
-                UsActivo = true // Por defecto, al abrir el form de agregar, nace activo
+                UsActivo = true,
+                InFechaInscripcion = DateTime.Today
             };
             await RecargarFormAsync(model, await CaCoIdsPermitidosAsync());
             return View(model);
@@ -151,6 +150,11 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> Agregar(AlumnoFormDto model)
         {
             var permitidos = await CaCoIdsPermitidosAsync();
+
+            if (model.InFechaInscripcion.HasValue && model.InFechaInscripcion.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(model.InFechaInscripcion), "La fecha de inscripción no puede ser posterior al día de hoy.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -185,10 +189,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Usuarios.UsEmail tiene un índice único desde la migración Unique_Email_Usuario --
-            // sin este chequeo, un email repetido pasaba la validación del modelo y recién
-            // reventaba al guardar con un 500 crudo (DbUpdateException sin capturar), en vez
-            // de mostrar un error claro. Mismo chequeo que ya usa AdminController.
             if (!string.IsNullOrWhiteSpace(model.UsEmail) && await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail))
             {
                 ModelState.AddModelError(nameof(model.UsEmail), "El email ya se encuentra registrado.");
@@ -196,9 +196,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Usuarios.UsId no es IDENTITY -- se calcula a mano como MAX+1. Sin lock, dos
-            // altas simultáneas podían leer el mismo MAX y chocar al insertar (ticket 6.13).
-            // UPDLOCK+HOLDLOCK dentro de una transacción serializa el cálculo.
             using var transaccionId = await _context.Database.BeginTransactionAsync();
 
             int nuevoUsId = await _context
@@ -217,15 +214,17 @@ namespace ISFDyT124.Controllers
                 UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
                 RoId = RolId.Estudiante,
                 CaCoId = model.CaCoId,
-                UsActivo = model.UsActivo // ASIGNA EL ESTADO DESDE EL FORMULARIO (Si lo habilitaste en la vista Agregar)
+                UsActivo = model.UsActivo
             };
 
             _context.Usuarios.Add(alumno);
             await _context.SaveChangesAsync();
 
+            DateTime fechaInscripcion = model.InFechaInscripcion ?? DateTime.Today;
+
             var caMaValidos = await CaMaIdsValidosAsync(model.CaCoId.Value, model.SelectedCaMaIds);
             foreach (var caMaId in caMaValidos)
-                _context.Inscripciones.Add(new Inscripciones { UsId = alumno.UsId, CaMaId = caMaId });
+                _context.Inscripciones.Add(new Inscripciones { UsId = alumno.UsId, CaMaId = caMaId, InFechaInscripcion = fechaInscripcion });
             if (caMaValidos.Count > 0)
                 await _context.SaveChangesAsync();
 
@@ -245,6 +244,11 @@ namespace ISFDyT124.Controllers
             if (alumno == null)
                 return NotFound();
 
+            var fechaExistente = await _context.Inscripciones
+                .Where(i => i.UsId == alumno.UsId)
+                .Select(i => (DateTime?)i.InFechaInscripcion)
+                .FirstOrDefaultAsync();
+
             var dto = new AlumnoFormDto
             {
                 UsId = alumno.UsId,
@@ -253,7 +257,8 @@ namespace ISFDyT124.Controllers
                 UsEmail = alumno.UsEmail,
                 UsDni = alumno.UsDni,
                 CaCoId = alumno.CaCoId,
-                UsActivo = alumno.UsActivo, // MAPEO DEL ESTADO PARA PRECARGAR EL FORMULARIO DE EDICIÓN
+                UsActivo = alumno.UsActivo,
+                InFechaInscripcion = fechaExistente ?? DateTime.Today,
                 SelectedCaMaIds = await _context
                     .Inscripciones.Where(i => i.UsId == alumno.UsId)
                     .Select(i => i.CaMaId)
@@ -277,6 +282,11 @@ namespace ISFDyT124.Controllers
 
             if (alumno == null)
                 return NotFound();
+
+            if (model.InFechaInscripcion.HasValue && model.InFechaInscripcion.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(model.InFechaInscripcion), "La fecha de inscripción no puede ser posterior al día de hoy.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -311,8 +321,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Mismo chequeo que en Agregar: el índice único de UsEmail hacía reventar con un
-            // 500 crudo si se editaba un alumno con un email ya usado por otro usuario.
             if (!string.IsNullOrWhiteSpace(model.UsEmail) && await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail && u.UsId != id))
             {
                 ModelState.AddModelError(nameof(model.UsEmail), "El email ya se encuentra registrado por otro usuario.");
@@ -320,13 +328,14 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // ACTUALIZACIÓN DE DATOS DEL ESTUDIANTE, INCLUYENDO EL ESTADO LÓGICO
             alumno.UsApellido = model.UsApellido;
             alumno.UsNombre = model.UsNombre;
             alumno.UsDni = model.UsDni;
             alumno.UsEmail = model.UsEmail;
             alumno.CaCoId = model.CaCoId;
-            alumno.UsActivo = model.UsActivo; // ACTUALIZA EL ESTADO DESDE EL FORMULARIO DE EDICIÓN
+            alumno.UsActivo = model.UsActivo;
+
+            DateTime fechaInscripcion = model.InFechaInscripcion ?? DateTime.Today;
 
             var caMaValidos = await CaMaIdsValidosAsync(model.CaCoId.Value, model.SelectedCaMaIds);
             var deseadas = caMaValidos.ToHashSet();
@@ -338,9 +347,14 @@ namespace ISFDyT124.Controllers
                 inscActuales.Where(i => !deseadas.Contains(i.CaMaId))
             );
 
+            foreach (var insc in inscActuales.Where(i => deseadas.Contains(i.CaMaId)))
+            {
+                insc.InFechaInscripcion = fechaInscripcion;
+            }
+
             var existentes = inscActuales.Select(i => i.CaMaId).ToHashSet();
             foreach (var caMaId in caMaValidos.Where(x => !existentes.Contains(x)))
-                _context.Inscripciones.Add(new Inscripciones { UsId = id, CaMaId = caMaId });
+                _context.Inscripciones.Add(new Inscripciones { UsId = id, CaMaId = caMaId, InFechaInscripcion = fechaInscripcion });
 
             await _context.SaveChangesAsync();
 
@@ -348,10 +362,6 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        // (OPCIONAL) EL MÉTODO ELIMINAR SIGUE EXISTIENDO SI QUERÉS HACER UN BORRADO DEFINITIVO
-        // DESDE OTRO LUGAR, PERO EN LA VISTA YA NO HAY BOTÓN PARA LLAMARLO.
-        // ─────────────────────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Eliminar(int id)
@@ -371,9 +381,6 @@ namespace ISFDyT124.Controllers
             _context.Inscripciones.RemoveRange(inscripciones);
             _context.Usuarios.Remove(alumno);
 
-            // FIX: sin try/catch, cualquier choque de FK al borrar tiraba una
-            // DbUpdateException sin capturar y reventaba la request con un error 500 en vez
-            // de avisarle al usuario. Mismo criterio que ya usa AdminController.UsuarioEliminarConfirmado.
             try
             {
                 await _context.SaveChangesAsync();
@@ -388,26 +395,16 @@ namespace ISFDyT124.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // ─────────────────────────────────────────────────────────────────────
-        // CAMBIO DE ESTADO LÓGICO SIN RECARGAR LA PÁGINA (AJAX)
-        // ─────────────────────────────────────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarEstado(int id)
         {
-            // Le faltaba el token antifalsificación (cualquier sitio externo podía disparar
-            // este POST desde el navegador de un Admin/Docente logueado) y el chequeo de
-            // alcance -- un Docente podía cambiar el estado de un alumno de una carrera que
-            // no es la suya. Se agregan los dos, mismo criterio que el resto del controller.
             var permitidos = await CaCoIdsPermitidosAsync();
             var alumno = await AlumnosVisibles(permitidos).FirstOrDefaultAsync(u => u.UsId == id);
             if (alumno != null)
             {
-                // Alterna el estado activo/inactivo (Toogle)
                 alumno.UsActivo = !alumno.UsActivo;
                 await _context.SaveChangesAsync();
-
-                // En lugar de recargar la página, devolvemos un JSON de éxito con el nuevo estado
                 return Json(new { success = true, estado = alumno.UsActivo });
             }
             return Json(new { success = false });

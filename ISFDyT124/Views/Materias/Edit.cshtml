@@ -1,8 +1,13 @@
+
 @model ISFDyT124.Models.Materia
 
 @{
-    ViewData["Title"] = "Modificar Materia";
+    ViewData["Title"] = "Editar Materia";
     ViewData["BodyClass"] = "agregar-page";
+
+    var diasSeleccionados =
+        ViewData["DiasCursadaSeleccionados"] as List<int>
+        ?? new List<int>();
 }
 
 <div class="info-banner">
@@ -15,19 +20,34 @@
 </div>
 
 <div class="page-title-container">
-    <h2 class="page-main-title">Modificar Materia</h2>
+    <h2 class="page-main-title">Editar Materia</h2>
 </div>
 
 <main class="main-container-form">
     <div class="form-card">
-        <form asp-action="Edit" class="form-grid">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <form asp-action="Edit"
+              asp-route-MaId="@Model.MaId"
+              method="post"
+              class="form-grid">
+
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger"
+                 style="grid-column: span 2;">
+            </div>
+
             <input type="hidden" asp-for="MaId" />
 
             <div class="input-field">
                 <label asp-for="MaDenominacion"></label>
-                <input asp-for="MaDenominacion" autocomplete="off" oninput="this.value = this.value.replace(/[0-9]/g,'');" pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s.,()-]+">
-                <span asp-validation-for="MaDenominacion" class="text-danger"></span>
+                <input asp-for="MaDenominacion"
+                       placeholder="Ej: Programación III"
+                       autocomplete="off"
+                       oninput="this.value = this.value.replace(/[0-9]/g,'');"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÜüÑñ\s.,()-]+" />
+                <span asp-validation-for="MaDenominacion"
+                      class="text-danger"></span>
             </div>
 
             <div class="input-field">
@@ -38,23 +58,96 @@
                     <option value="Virtual">Virtual</option>
                     <option value="Libre">Libre</option>
                 </select>
-                <span asp-validation-for="MaModalidad" class="text-danger"></span>
+                <span asp-validation-for="MaModalidad"
+                      class="text-danger"></span>
             </div>
 
             <div class="input-field" style="grid-column: span 2;">
                 <label asp-for="MaCantModulos"></label>
-                <input asp-for="MaCantModulos" type="text" inputmode="numeric">
-                <span asp-validation-for="MaCantModulos" class="text-danger"></span>
+                <input asp-for="MaCantModulos"
+                       type="text"
+                       inputmode="numeric"
+                       placeholder="Ej: 2" />
+                <span asp-validation-for="MaCantModulos"
+                      class="text-danger"></span>
             </div>
 
-            <div class="form-buttons" style="grid-column: span 2;">
-                <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Cancelar</a>
-                <button type="submit" class="btn-save">Actualizar Materia</button>
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="CaCoId">Asignar a Carrera - Cohorte</label>
+
+                @Html.DropDownList(
+                    "CaCoId",
+                    (SelectList)ViewData["CaCoId"]!,
+                    "-- Seleccione carrera y cohorte --",
+                    new { @class = "input-select", required = "required" })
+
+                <span class="text-danger">
+                    @ViewData.ModelState["CaCoId"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            </div>
+
+            <div class="input-field" style="grid-column: span 2;">
+                <label>Días de cursada</label>
+
+                <p style="margin: 4px 0 12px; color: #64748b;">
+                    Seleccione todos los días en los que se dicta esta materia.
+                </p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 12px 20px;">
+                    <label style="display: flex; align-items: center; gap: 7px;">
+                        <input type="checkbox" name="DiasCursada" value="1"
+                               checked="@(diasSeleccionados.Contains(1))" />
+                        Lunes
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 7px;">
+                        <input type="checkbox" name="DiasCursada" value="2"
+                               checked="@(diasSeleccionados.Contains(2))" />
+                        Martes
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 7px;">
+                        <input type="checkbox" name="DiasCursada" value="3"
+                               checked="@(diasSeleccionados.Contains(3))" />
+                        Miércoles
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 7px;">
+                        <input type="checkbox" name="DiasCursada" value="4"
+                               checked="@(diasSeleccionados.Contains(4))" />
+                        Jueves
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 7px;">
+                        <input type="checkbox" name="DiasCursada" value="5"
+                               checked="@(diasSeleccionados.Contains(5))" />
+                        Viernes
+                    </label>
+                </div>
+
+                @Html.ValidationMessage(
+                    "DiasCursada",
+                    "",
+                    new { @class = "text-danger" })
+            </div>
+
+            <div class="form-buttons"
+                 style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 20px; margin-top: 20px;">
+
+                <a asp-action="Index"
+                   class="btn-cancel"
+                   style="text-decoration: none; text-align: center;">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn-save">
+                    Guardar Cambios
+                </button>
             </div>
         </form>
     </div>
 </main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
