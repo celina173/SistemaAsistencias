@@ -438,7 +438,7 @@
           <div class="edt-item"><span class="code">3.1</span><span class="name">Revisar la vista de alta de usuario</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">3.2</span><span class="name">Corregir roles sembrados: Admin / Dirección / Docente / Alumno</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">3.3</span><span class="name">Tarjeta "Alumnos" (ex-Docentes): alumnos por carrera</span><span class="tag mvp">MVP</span></div>
-          <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos vía Excel</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos desde Excel con previsualización editable</span><span class="tag normal">Implementado · Gustavo Olivera</span></div>
           <div class="edt-item"><span class="code">3.5</span><span class="name">DNI inicia en 0 en vez de vacío al agregar usuario</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">3.6</span><span class="name">Confirmación de eliminar usuario usa alert nativo del navegador</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">3.7</span><span class="name">Autocompletado de contraseñas del navegador interfiere en el campo</span><span class="tag normal">Post-MVP</span></div>
@@ -579,7 +579,7 @@
           </div>
         </div>
         <div class="gantt-row">
-          <div class="label"><span class="code">3.4</span>Carga masiva por Excel</div>
+          <div class="label"><span class="code">3.4</span>Carga masiva por Excel · implementada por Gustavo Olivera</div>
           <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
             <div class="bar destacado" style="left:52%; width:23%;"></div>
           </div>
@@ -819,9 +819,9 @@
           </tr>
           <tr>
             <td class="code-cell">3.4</td>
-            <td><div class="wp-name">Carga masiva de alumnos (Excel)</div></td>
-            <td>Nueva pantalla: subir un Excel, mapear columnas, asignar todos los alumnos del archivo a una carrera específica. Incluye validación de filas inválidas y reporte de qué se cargó y qué no.</td>
-            <td><span class="badge normal">Post-MVP</span></td>
+            <td><div class="wp-name">Carga masiva de alumnos (Excel)</div><div class="deliverable">Actualización implementada por Gustavo Olivera</div></td>
+            <td>Importación masiva desde archivos Excel con detección y selección de múltiples pestañas. El proceso permite mapear las columnas y ofrece una previsualización editable antes de confirmar la carga. En esa instancia se puede incluir o excluir cada alumno y corregir sus datos, carrera, cohorte, materias y fecha de inscripción. Los alumnos matriculados pueden asociarse masivamente a todas las materias que correspondan. La fecha de inscripción se indica una vez para toda la carga (hoy por defecto) y se puede ajustar alumno por alumno; se aplica solo a las inscripciones nuevas y no modifica las que ya existen. De ella depende qué clases anteriores ve cada alumno en el reporte global. El sistema consolida registros repetidos por DNI entre pestañas cuando sus datos coinciden y, si difieren, lo informa como error para corregirlo; valida filas, identidad, roles, estado del usuario y compatibilidad entre carrera, cohorte y materias, e informa los errores para corregirlos. La confirmación se procesa de manera integral: si ocurre un error, no se guarda una carga parcial. El archivo debe ser .xlsx, de hasta 5 MB y 1000 filas; el acceso queda reservado a Admin y Dirección.</td>
+            <td><span class="badge normal">Implementado</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.5</td>
