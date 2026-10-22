@@ -63,6 +63,9 @@ public class CarrerasController : Controller
         if (carrera == null)
             return NotFound();
 
+        // Cargar los contadores de relaciones de forma informativa
+        await CargarResumenBorradoCarrera(CaId.Value);
+
         return View(carrera);
     }
 

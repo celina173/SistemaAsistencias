@@ -1,4 +1,3 @@
-
 @model ISFDyT124.Models.Carrera
 
 @{
@@ -32,9 +31,14 @@
             <div class="input-field" style="grid-column: span 2;">
                 <label asp-for="CaDenominacion"></label>
                 <input asp-for="CaDenominacion"
-                       placeholder="Ej: Tec. Sup. en Desarrollo de Software"
-                       autocomplete="off"
-                       oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')" />
+                       placeholder="Ej: Profesorado de Educación Inicial"
+                       autocomplete="off" />
+
+                <!-- Guía de carga en lugar de validación restrictiva por código -->
+                <small style="color: #64748b; font-size: 0.85rem; display: block; margin-top: 4px;">
+                    Asegúrate de respetar los espacios entre palabras y las mayúsculas correspondientes.
+                </small>
+
                 <span asp-validation-for="CaDenominacion"
                       class="text-danger"></span>
             </div>
@@ -101,5 +105,7 @@
 </main>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
