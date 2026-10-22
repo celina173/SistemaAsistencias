@@ -468,26 +468,94 @@ body {
     flex-direction: column;
 }
 
+
+/* =========================================
+   ESTILOS ESPECÍFICOS: ASISTENCIA
+   Antes estaban dentro de Asistencia.cshtml
+   ========================================= */
+
+.fila-bloqueada {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+    .fila-bloqueada input:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .fila-bloqueada td {
+        vertical-align: middle;
+    }
+
+.porcentaje-historico-input {
+    width: 90px;
+    max-width: 100%;
+    min-width: 0;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.justificacion-historica {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.observacion-historica-input {
+    display: block;
+    width: 100%;
+    min-width: 120px;
+    max-width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.aviso-fila-bloqueada {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
 /* =========================================
    PANTALLA: ASISTENCIA
    ========================================= */
+
 .asistencia-page {
     background-color: #ffffff;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
 }
 
 .main-container-asistencia {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    box-sizing: border-box;
+}
+
+/* Evitar que el formulario imponga un ancho excesivo */
+
+.asistencia-page #formAsistencia {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
 }
 
@@ -515,6 +583,7 @@ body {
 
 .asistencia-page .attendance-table {
     width: 100%;
+    max-width: 100%;
     min-width: 0;
     table-layout: fixed;
     border-collapse: separate;
@@ -613,6 +682,7 @@ body {
     gap: 5px;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -805,7 +875,7 @@ body {
         transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
 
-    /* Guardar */
+    /* Botón Guardar */
 
     .admin-asistencia-buttons .btn-guardar {
         width: auto;
@@ -825,7 +895,7 @@ body {
             transform: scale(0.99);
         }
 
-    /* Cancelar: rojo tanto en reposo como en responsive */
+    /* Botón Cancelar */
 
     .admin-asistencia-buttons a.btn-cancel,
     .admin-asistencia-buttons a.btn-cancel:link,
@@ -921,57 +991,205 @@ body {
    ========================================= */
 
 @media (max-width: 520px) {
-    .asistencia-page .attendance-table-card {
-        width: calc(100% - 0.5rem);
+
+    /* Limitar el ancho de la página sin ocultar
+       contenido dentro de la tabla */
+
+    .asistencia-page {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: clip;
     }
 
-    .asistencia-page .attendance-table th,
-    .asistencia-page .attendance-table td {
-        padding: 9px 4px;
-        font-size: 0.75rem;
-    }
-
-    .asistencia-page .attendance-table th {
-        font-size: 0.68rem;
-        letter-spacing: 0.2px;
-    }
-
-        .asistencia-page .attendance-table th:nth-child(1),
-        .asistencia-page .attendance-table td:nth-child(1) {
-            width: 27%;
+        .asistencia-page .main-container-asistencia {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding-left: 8px;
+            padding-right: 8px;
+            margin-left: 0;
+            margin-right: 0;
         }
 
-        .asistencia-page .attendance-table th:nth-child(2),
-        .asistencia-page .attendance-table td:nth-child(2) {
-            width: 32%;
+        .asistencia-page #formAsistencia {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
         }
 
-        .asistencia-page .attendance-table th:nth-child(3),
-        .asistencia-page .attendance-table td:nth-child(3) {
-            width: 12%;
+            /* Filtro de fecha */
+
+            .asistencia-page #formAsistencia > .seccion-centrada {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0;
+                margin: 20px 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box;
+            }
+
+        .asistencia-page .admin-filter-container {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 12px !important;
+            box-sizing: border-box;
         }
 
-        .asistencia-page .attendance-table th:nth-child(4),
-        .asistencia-page .attendance-table td:nth-child(4) {
-            width: 29%;
+        .asistencia-page #FechaAsistencia {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
         }
 
-    .asistencia-page .attendance-table .modules-group {
-        gap: 4px;
-    }
+        /* Tarjeta de asistencia */
 
-        .asistencia-page .attendance-table .modules-group .custom-checkbox {
-            flex-basis: 18px;
+        .asistencia-page .attendance-table-card {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            margin: 18px 0 30px;
+            padding: 0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Tabla */
+
+        .asistencia-page .attendance-table {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            table-layout: fixed;
+            box-sizing: border-box;
+        }
+
+            .asistencia-page .attendance-table th,
+            .asistencia-page .attendance-table td {
+                min-width: 0;
+                padding: 9px 4px;
+                font-size: 0.75rem;
+                box-sizing: border-box;
+                overflow-wrap: anywhere;
+                word-break: normal;
+            }
+
+            .asistencia-page .attendance-table th {
+                font-size: 0.68rem;
+                letter-spacing: 0.2px;
+            }
+
+                /* Anchos de las cuatro columnas */
+
+                .asistencia-page .attendance-table th:nth-child(1),
+                .asistencia-page .attendance-table td:nth-child(1) {
+                    width: 27%;
+                    overflow-wrap: anywhere;
+                }
+
+                .asistencia-page .attendance-table th:nth-child(2),
+                .asistencia-page .attendance-table td:nth-child(2) {
+                    width: 32%;
+                }
+
+                .asistencia-page .attendance-table th:nth-child(3),
+                .asistencia-page .attendance-table td:nth-child(3) {
+                    width: 12%;
+                    white-space: normal;
+                }
+
+                .asistencia-page .attendance-table th:nth-child(4),
+                .asistencia-page .attendance-table td:nth-child(4) {
+                    width: 29%;
+                    min-width: 0;
+                }
+
+            /* Porcentaje */
+
+            .asistencia-page .attendance-table .percentage-cell {
+                white-space: normal;
+            }
+
+            .asistencia-page .attendance-table .row-pct {
+                min-width: 0;
+                font-size: 0.72rem;
+                overflow-wrap: normal;
+            }
+
+            /* Módulos y checkboxes */
+
+            .asistencia-page .attendance-table .modules-group {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px;
+            }
+
+                .asistencia-page .attendance-table .modules-group .custom-checkbox {
+                    flex: 0 1 18px;
+                    width: 18px;
+                    height: 18px;
+                    margin: 0 2px;
+                }
+
+            /* Observaciones normales */
+
+            .asistencia-page .attendance-table .observation-field {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .asistencia-page .attendance-table .observation-input {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                padding: 7px 4px;
+                font-size: 0.72rem;
+                box-sizing: border-box;
+            }
+
+            /* Campos de la edición histórica */
+
+            .asistencia-page .attendance-table .observacion-historica-input {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                padding: 6px 3px;
+                font-size: 0.7rem;
+                box-sizing: border-box;
+            }
+
+        .asistencia-page .porcentaje-historico-input {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 5px 1px;
+            font-size: 0.7rem;
+        }
+
+        /* Justificación histórica */
+
+        .asistencia-page .justificacion-historica {
             width: 18px;
             height: 18px;
+            max-width: 100%;
         }
 
-    .asistencia-page .attendance-table .observation-input {
-        padding: 7px 4px;
-        font-size: 0.72rem;
-    }
+        .asistencia-page .attendance-table .observation-cell label {
+            overflow-wrap: anywhere;
+        }
 
-    /* Botones centrados y apilados */
+    /* =========================================
+       BOTONES: CENTRADOS Y APILADOS
+       ========================================= */
 
     .admin-asistencia-buttons {
         display: flex;
@@ -980,6 +1198,7 @@ body {
         justify-content: center;
         gap: 10px;
         width: 100%;
+        max-width: 100%;
         margin: 0 auto 30px;
         padding: 0 16px;
         box-sizing: border-box;
@@ -1016,394 +1235,518 @@ body {
 
 /* =========================================
    PANTALLA: ASISTENCIA GLOBAL
+   Reutiliza el diseño de Asistencia
    ========================================= */
 .global-page {
     background-color: #ffffff;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .main-container-global {
-    width: 100%;
-    margin: 0;
-    padding: 0; 
     display: flex;
     flex-direction: column;
     align-items: center;
-}
-
-/* Contenedor adaptativo premium con control de desborde */
-.global-table-container {
     width: 100%;
-    max-width: 1150px; 
-    margin: 30px auto; 
-    padding: 0 1.5rem 15px; 
-    overflow-x: auto; 
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
-/* Scrollbar Minimalista Personalizado */
-.global-table-container::-webkit-scrollbar {
-    height: 6px;
-}
-.global-table-container::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-}
-.global-table-container::-webkit-scrollbar-thumb {
-    background: var(--primary-color, #001a8c); 
-    border-radius: 10px;
+/* =========================================
+   TARJETA DE ASISTENCIA GLOBAL
+   Mismo estilo que .attendance-table-card
+   ========================================= */
+
+.global-page .global-table-container {
+    width: calc(100% - 4rem);
+    max-width: 1140px;
+    min-width: 0;
+    margin: 24px auto 40px;
+    padding: 0;
+    overflow-x: auto;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgb(15 23 42 / 5%), 0 12px 28px -8px rgb(15 23 42 / 9%);
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Estructura limpia de la Matriz de Datos */
-.global-table {
+    /* Scrollbar de la tabla global */
+
+    .global-page .global-table-container::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .global-page .global-table-container::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+
+    .global-page .global-table-container::-webkit-scrollbar-thumb {
+        background: var(--primary-color, #001a8c);
+        border-radius: 10px;
+    }
+
+/* =========================================
+   TABLA GLOBAL
+   Reutiliza tipografía, colores y bordes
+   de .attendance-table
+   ========================================= */
+
+.global-page .global-table {
     width: 100%;
-    border-collapse: collapse;
-    min-width: 900px; 
+    max-width: 100%;
+    min-width: max-content;
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
     font-family: 'Inter', sans-serif;
 }
 
-.global-table th, 
-.global-table td {
-    padding: 14px 10px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--primary-color, #002e8c);
-    border-bottom: 1px solid #e2e8f0;
-}
+    /* Celdas */
 
-.global-table th {
-    font-weight: 700;
-    background-color: #f8fafc;
-}
-
-.global-table th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.global-table th.sortable:hover {
-    background-color: #f1f5f9;
-    color: var(--primary-hover, #001f5c);
-}
-
-.global-table th .sort-header {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: inherit;
-    color: inherit;
-    justify-content: center;
-    width: 100%;
-}
-
-.global-table th.align-left .sort-header {
-    justify-content: flex-start;
-}
-
-.global-table th .sort-indicator {
-    font-size: 0.75rem;
-    opacity: 0.4;
-    transition: opacity 0.15s ease;
-}
-
-.global-table th.sortable:hover .sort-indicator,
-.global-table th.sorted-asc .sort-indicator,
-.global-table th.sorted-desc .sort-indicator {
-    opacity: 1;
-}
-
-/* Fila de título superior */
-.global-table .title-cell {
-    font-size: 1.1rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: var(--primary-color, #002e8c);
-    text-align: left;
-    padding: 16px 0 12px 4px;
-    background-color: transparent;
-    border-bottom: 2px solid var(--primary-color, #002e8c);
-}
-
-.global-table .icon-cell {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--primary-color, #002e8c);
-    background-color: transparent;
-    border-bottom: 2px solid var(--primary-color, #002e8c);
-    text-align: center;
-}
-
-/* Fila de fechas */
-.global-table thead tr:nth-child(2) th {
-    font-size: 0.78rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 14px 8px;
-}
-
-.global-table .align-left {
-    text-align: left;
-    padding-left: 12px;
-    font-weight: 600;
-}
-
-/* Feedback al pasar el mouse */
-.global-table tbody tr:hover {
-    background-color: #f8fafc;
-}
-
-/* Columna de Totales de Alto Impacto */
-.global-table .total-col {
-    background-color: rgba(0, 46, 140, 0.04) !important;
-    color: var(--primary-color, #001a8c) !important;
-    font-weight: 700;
-    border-left: 2px solid #e2e8f0;
-}
-
-
-/* =========================================
-   ASISTENCIA GLOBAL: FILTRO CARRERA / MATERIA
-   ========================================= */
-
-.main-container-global .filtro-global-seccion {
-    display: block;
-    width: 100%;
-    max-width: 1150px !important;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 0 1.5rem;
-    box-sizing: border-box;
-}
-
-    .main-container-global .filtro-global-seccion .admin-filter-container {
-        width: 100%;
-        max-width: none;
+    .global-page .global-table th,
+    .global-page .global-table td {
         box-sizing: border-box;
+        min-width: 0;
+        padding: 12px 8px;
+        text-align: center;
+        vertical-align: middle;
+        color: var(--primary-color, #002e8c);
+        border-bottom: 1px solid #f1f5f9;
     }
 
-    .main-container-global .filtro-global-seccion .filtro-catedra-form {
-        display: grid !important;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-        align-items: end;
-        gap: 15px;
-        width: 100%;
-        box-sizing: border-box;
+    /* Encabezados */
+
+    .global-page .global-table th {
+        padding: 15px 7px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
     }
 
-        .main-container-global .filtro-global-seccion .filtro-catedra-form > div {
-            min-width: 0;
-            width: 100%;
-            box-sizing: border-box;
-        }
+    /* Título de la cuadrícula */
 
-        .main-container-global .filtro-global-seccion .filtro-catedra-form select {
-            display: block;
-            width: 100% !important;
-            min-width: 0;
-            box-sizing: border-box;
-        }
+    .global-page .global-table .title-cell {
+        padding: 15px;
+        color: var(--primary-color, #002e8c);
+        background-color: #f8fafc;
+        text-align: center;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        border-bottom: 2px solid #e2e8f0;
+    }
 
-        .main-container-global .filtro-global-seccion .filtro-catedra-form button {
-            white-space: nowrap;
-        }
+    /* Encabezado de fechas */
 
-/* =========================================
-   ASISTENCIA GLOBAL: LÁPIZ DE LAS FECHAS
+    .global-page .global-table thead tr:nth-child(2) th {
+        padding: 12px 8px;
+        font-size: 0.78rem;
+        color: #64748b;
+        text-align: center;
+    }
+
+    /* Columna de alumnos */
+
+    .global-page .global-table .align-left {
+        text-align: left;
+        padding-left: 14px;
+        font-weight: 600;
+    }
+
+    .global-page .global-table .alumno-global-header,
+    .global-page .global-table .alumno-global-cell {
+        min-width: 190px;
+        max-width: 280px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    /* Columnas de fechas */
+
+    .global-page .global-table .fecha-header {
+        min-width: 66px;
+        padding-left: 7px;
+        padding-right: 7px;
+        text-align: center;
+    }
+
+    /* Porcentajes por fecha */
+
+    .global-page .global-table .global-porcentaje-cell {
+        min-width: 66px;
+        text-align: center;
+        white-space: nowrap;
+        font-size: 0.85rem;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Columna de porcentaje total */
+
+    .global-page .global-table .icon-cell,
+    .global-page .global-table .total-col {
+        min-width: 75px;
+        text-align: center;
+        font-weight: 700;
+        white-space: nowrap;
+        border-left: 2px solid #e2e8f0;
+        background-color: #f8fafc;
+    }
+
+    .global-page .global-table .icon-cell {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    /* Interacción y última fila */
+
+    .global-page .global-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .global-page .global-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Mensaje sin registros */
+
+    .global-page .global-table .global-sin-registros {
+        padding: 22px 14px;
+        text-align: center;
+        color: #64748b;
+        white-space: normal;
+    }
+
+
+    /* =========================================
+   FECHAS EDITABLES - ASISTENCIA GLOBAL
    ========================================= */
 
-.global-table .fecha-header .fecha-editar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    color: inherit;
-    text-decoration: none;
-    white-space: nowrap;
+    /* Enlace que ocupa toda la celda de la fecha */
+    .global-page .global-table .fecha-editar {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 32px;
+        box-sizing: border-box;
+        padding: 5px;
+        color: inherit;
+        text-decoration: none;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    /* La fecha se muestra normalmente */
+    .global-page .global-table .fecha-texto {
+        display: inline-block;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.15s ease, visibility 0.15s ease;
+    }
+
+    /* El lápiz ocupa el mismo espacio que la fecha */
+    .global-page .global-table .fecha-lapiz {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: block;
+        width: 16px;
+        height: 16px;
+        min-width: 16px;
+        max-width: 16px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translate(-50%, -50%) scale(0.85);
+        transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+        pointer-events: none;
+    }
+
+/* Solo en dispositivos con cursor: fecha por lápiz */
+@media (hover: hover) and (pointer: fine) {
+    .global-page .global-table .fecha-editar:hover {
+        color: #fff;
+        background-color: #0b2361;
+        border-color: #0b2361;
+        box-shadow: 0 2px 6px rgba(11, 35, 97, 0.2);
+    }
+
+        .global-page .global-table .fecha-editar:hover .fecha-texto {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .global-page .global-table .fecha-editar:hover .fecha-lapiz {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
 }
 
-.global-table .fecha-header .fecha-lapiz {
-    display: inline-block;
-    width: 13px !important;
-    height: 13px !important;
-    min-width: 13px;
-    max-width: 13px;
-    opacity: 0;
-    visibility: hidden;
-    flex-shrink: 0;
-    transition: opacity 0.15s ease, visibility 0.15s ease;
-}
-
-.global-table .fecha-header:hover .fecha-lapiz,
-.global-table .fecha-header .fecha-editar:focus-visible .fecha-lapiz {
-    opacity: 1;
-    visibility: visible;
-}
-
-.global-table .fecha-header .fecha-editar:focus-visible {
+/* Accesibilidad: mismo efecto al navegar con teclado */
+.global-page .global-table .fecha-editar:focus-visible {
+    color: #fff;
+    background-color: #0b2361;
+    border-color: #0b2361;
     outline: 2px solid #6478d3;
-    outline-offset: 3px;
-    border-radius: 3px;
+    outline-offset: 2px;
 }
 
-@media (hover: none) {
-    .global-table .fecha-header .fecha-lapiz {
+    .global-page .global-table .fecha-editar:focus-visible .fecha-texto {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .global-page .global-table .fecha-editar:focus-visible .fecha-lapiz {
+        opacity: 1;
+        visibility: visible;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+/* Pantallas táctiles: conservar siempre la fecha visible */
+@media (hover: none), (pointer: coarse) {
+    .global-page .global-table .fecha-editar {
+        background-color: transparent;
+        color: inherit;
+        box-shadow: none;
+    }
+
+    .global-page .global-table .fecha-texto {
         opacity: 1;
         visibility: visible;
     }
+
+    .global-page .global-table .fecha-lapiz {
+        opacity: 0;
+        visibility: hidden;
+    }
 }
+
+/* Ajuste de tamaño en celulares */
+@media (max-width: 520px) {
+    .global-page .global-table .fecha-editar {
+        min-height: 26px;
+        padding: 3px;
+        border-radius: 6px;
+    }
+}
+
 
 /* =========================================
-   MODIFICAR ASISTENCIA: TABLA Y CONTROLES
+   FILTRO DE CARRERA Y MATERIA
+   Recuperar el tamaño original
    ========================================= */
 
-.fila-bloqueada {
-    background-color: #f3f4f6;
-    color: #6b7280;
-}
-
-    .fila-bloqueada .custom-checkbox,
-    .fila-bloqueada .observacion-input {
-        opacity: 0.65;
-        cursor: not-allowed;
-    }
-
-.aviso-fila-bloqueada {
+.global-page .main-container-global .filtro-global-seccion {
     display: block;
-    margin-top: 6px;
-    color: #92400e;
-    font-size: 0.8rem;
-}
-
-.aviso-modulos-faltantes {
-    margin-bottom: 8px;
-    padding: 10px 12px;
-    border: 1px solid #f0c36d;
-    border-radius: 6px;
-    background: #fff8e6;
-    color: #7a4b00;
-    font-size: 0.85rem;
-    line-height: 1.4;
-}
-
-.observacion-input {
-    width: 100%;
-    min-width: 150px;
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    font: inherit;
-    resize: vertical;
+    width: calc(100% - 4rem);
+    max-width: 1150px;
+    min-width: 0;
+    margin: 35px auto 25px;
     box-sizing: border-box;
 }
 
-    .observacion-input:focus {
-        outline: none;
-        border-color: #6478d3;
-        box-shadow: 0 0 0 3px rgba(100, 120, 211, 0.15);
-    }
-
-.percentage-cell {
-    white-space: nowrap;
-    text-align: center;
-    font-weight: 600;
+.global-page .filtro-global-seccion .admin-filter-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.modules-group {
+.global-page .filtro-global-seccion .filtro-catedra-form {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
+    width: 100%;
+    gap: 15px;
+    align-items: flex-end;
+    box-sizing: border-box;
 }
 
-.modulo-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-}
-
-    .modulo-item label {
-        margin: 0;
-        cursor: pointer;
+    .global-page .filtro-global-seccion .filtro-catedra-form > div {
+        flex: 1 1 0;
+        min-width: 0;
     }
 
-.fila-bloqueada .modulo-item label {
-    cursor: not-allowed;
-}
-
-.fecha-edicion {
-    font-weight: 600;
-}
-
-.mensaje-error {
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    border: 1px solid #f1aeb5;
-    border-radius: 6px;
-    background-color: #f8d7da;
-    color: #842029;
-}
-
-.mensaje-exito {
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    border: 1px solid #a3cfbb;
-    border-radius: 6px;
-    background-color: #d1e7dd;
-    color: #0f5132;
-}
-
-.acciones-edicion {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-    .acciones-edicion .btn-cancel {
-        text-decoration: none;
-        display: inline-flex;
-        justify-content: center;
-        align-items: center;
+    .global-page .filtro-global-seccion .filtro-catedra-form select {
+        width: 100%;
+        min-height: 45px;
+        padding: 10px;
+        box-sizing: border-box;
+        font-size: 1rem;
     }
 
-/* =========================================
-   RESPONSIVE
-   ========================================= */
-
-@media (max-width: 700px) {
-    .main-container-global .filtro-global-seccion .filtro-catedra-form {
-        grid-template-columns: minmax(0, 1fr);
+    .global-page .filtro-global-seccion .filtro-catedra-form button {
+        min-height: 45px;
+        padding: 10px 24px;
+        flex-shrink: 0;
+        font-size: 0.95rem;
     }
 
-        .main-container-global .filtro-global-seccion .filtro-catedra-form button {
+/* Adaptación para celulares */
+@media (max-width: 768px) {
+    .global-page .main-container-global .filtro-global-seccion {
+        width: calc(100% - 1rem);
+        margin: 24px auto 20px;
+    }
+
+    .global-page .filtro-global-seccion .admin-filter-container {
+        padding: 16px;
+    }
+
+    .global-page .filtro-global-seccion .filtro-catedra-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+        .global-page .filtro-global-seccion .filtro-catedra-form > div {
+            width: 100%;
+            flex: 1 1 auto;
+        }
+
+        .global-page .filtro-global-seccion .filtro-catedra-form button {
             width: 100%;
         }
 }
 
+
+/* =========================================
+   RESPONSIVE: TABLETS
+   ========================================= */
+
 @media (max-width: 768px) {
-    .table-container.attendance-table-card {
+    .global-page .global-table-container {
+        width: calc(100% - 1rem);
+        max-width: 100%;
+        margin-top: 18px;
+        margin-bottom: 30px;
+        border-radius: 12px;
+    }
+
+    .global-page .global-table {
+        width: max-content;
+        max-width: none;
+        min-width: 100%;
+        table-layout: auto;
+    }
+
+        .global-page .global-table th,
+        .global-page .global-table td {
+            padding: 12px 6px;
+            font-size: 0.82rem;
+        }
+
+        .global-page .global-table .alumno-global-header,
+        .global-page .global-table .alumno-global-cell {
+            min-width: 165px;
+            max-width: 220px;
+        }
+
+        .global-page .global-table .fecha-header,
+        .global-page .global-table .global-porcentaje-cell {
+            min-width: 60px;
+        }
+}
+
+/* =========================================
+   RESPONSIVE: CELULARES
+   ========================================= */
+
+@media (max-width: 520px) {
+    .global-page {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: clip;
+    }
+
+    .main-container-global {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 0 8px;
+        box-sizing: border-box;
+    }
+
+    .global-page .global-table-container {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 18px 0 30px;
+        padding: 0;
+        border-radius: 12px;
         overflow-x: auto;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .attendance-table.admin-modulos-table {
-        min-width: 750px;
+    .global-page .global-table {
+        width: max-content;
+        max-width: none;
+        min-width: 100%;
+        table-layout: auto;
     }
 
-    .acciones-edicion {
-        justify-content: stretch;
-    }
+        .global-page .global-table th,
+        .global-page .global-table td {
+            padding: 9px 5px;
+            font-size: 0.75rem;
+            overflow-wrap: normal;
+        }
 
-        .acciones-edicion button,
-        .acciones-edicion a {
-            flex: 1;
+        .global-page .global-table th {
+            font-size: 0.68rem;
+            letter-spacing: 0.2px;
+        }
+
+        .global-page .global-table .title-cell {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .global-page .global-table .alumno-global-header,
+        .global-page .global-table .alumno-global-cell {
+            min-width: 145px;
+            max-width: 180px;
+            overflow-wrap: anywhere;
+        }
+
+        .global-page .global-table .fecha-header,
+        .global-page .global-table .global-porcentaje-cell {
+            min-width: 56px;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .global-page .global-table .icon-cell,
+        .global-page .global-table .total-col {
+            min-width: 64px;
+        }
+
+        .global-page .global-table .fecha-editar {
+            gap: 3px;
+        }
+
+        .global-page .global-table .fecha-lapiz {
+            width: 11px;
+            height: 11px;
+            min-width: 11px;
+            max-width: 11px;
         }
 }
 
@@ -1541,6 +1884,124 @@ body {
             flex: 1;
         }
 }
+
+/* =========================================
+   MODIFICAR ASISTENCIA: TABLA Y CONTROLES
+   ========================================= */
+.fila-bloqueada {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+    .fila-bloqueada .custom-checkbox,
+    .fila-bloqueada .observacion-input {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+.aviso-fila-bloqueada {
+    display: block;
+    margin-top: 6px;
+    color: #92400e;
+    font-size: 0.8rem;
+}
+
+.aviso-modulos-faltantes {
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid #f0c36d;
+    border-radius: 6px;
+    background: #fff8e6;
+    color: #7a4b00;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.observacion-input {
+    width: 100%;
+    min-width: 150px;
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+    .observacion-input:focus {
+        outline: none;
+        border-color: #6478d3;
+        box-shadow: 0 0 0 3px rgba(100, 120, 211, 0.15);
+    }
+
+.percentage-cell {
+    white-space: nowrap;
+    text-align: center;
+    font-weight: 600;
+}
+
+.modules-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.modulo-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+    .modulo-item label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+.fila-bloqueada .modulo-item label {
+    cursor: not-allowed;
+}
+
+.fecha-edicion {
+    font-weight: 600;
+}
+
+.mensaje-error {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #f1aeb5;
+    border-radius: 6px;
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.mensaje-exito {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #a3cfbb;
+    border-radius: 6px;
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.acciones-edicion {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+    .acciones-edicion .btn-cancel {
+        text-decoration: none;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+    }
+
 
 /* =========================================
    PANTALLA: PANEL ADMIN
@@ -3344,35 +3805,88 @@ html.pwa-standalone body {
     }
 }
 
+
 /* =========================================
-   BOTÓN VOLVER ATRÁS (MINIMALISTA)
+   BOTONES VOLVER - ESTILO GLOBAL
    ========================================= */
+
+
+/* Contenedor transparente para los botones Volver */
 .contenedor-volver {
-    width: 100%;
-    max-width: 1100px;
-    margin: 10px auto 0 auto;
-    padding: 0 1.5rem;
+    width: calc(100% - 4rem);
+    max-width: 1140px;
+    margin: 24px auto 20px;
+    padding: 0;
     box-sizing: border-box;
     display: flex;
     justify-content: flex-start;
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
 
+/* Botón Volver */
 .btn-volver-atras {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    color: var(--text-muted, #64748b);
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #0b2361;
     text-decoration: none;
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
-    transition: color 0.2s ease, transform 0.2s ease;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
     .btn-volver-atras:hover {
-        color: var(--primary-color, #002e8c);
-        transform: translateX(-4px); /* Efecto elegante: se desliza un poquito hacia atrás */
+        background: #0b2361;
+        border-color: #0b2361;
+        color: #fff;
+        transform: translateX(-2px);
+        box-shadow: 0 3px 8px rgba(11, 35, 97, 0.18);
     }
+
+    .btn-volver-atras:focus-visible {
+        outline: 3px solid rgba(11, 35, 97, 0.25);
+        outline-offset: 3px;
+    }
+
+    /* El ícono conserva el tamaño y no se comprime */
+    .btn-volver-atras svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+/* Adaptación para celulares */
+
+@media (max-width: 768px) {
+    .contenedor-volver {
+        width: calc(100% - 1rem);
+        margin: 18px auto 16px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+}
+
+    .btn-volver-atras {
+        padding: 9px 13px;
+        font-size: 0.85rem;
+    }
+}
+
 
 /* ---- Checkbox táctil: base celular más grande (dedo), se achica en desktop ----
    Mismo criterio que el resto de esta sección: no toca color/forma, solo el tamaño de
@@ -3436,6 +3950,11 @@ label.required-asterisk > .required-asterisk-span {
   font-size: 0.95em;
 }
 
+/* Alineación del botón Volver en Asistencia Global */
+.global-volver {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
 /* =========================================
    NOTIFICACIONES Y ALERTAS (OPERATION NOTICE)
    ========================================= */

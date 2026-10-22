@@ -27,6 +27,40 @@
         </div>
     }
 
+            <div class="contenedor-volver global-volver">
+        @if (User.IsInRole("Docente"))
+        {
+            <a asp-controller="Profesor"
+               asp-action="Index"
+               class="btn-volver-atras"
+               title="Volver al índice de asistencias">
+                <svg width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Volver
+            </a>
+        }
+        else if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
+        {
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="btn-volver-atras"
+               title="Volver al panel de administración">
+                <svg width="18" height="18" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Volver
+            </a>
+        }
+    </div>
+
+
     @if (User.Identity != null &&
         (User.IsInRole("Admin") ||
          User.IsInRole("Dirección") ||
@@ -137,40 +171,6 @@
             });
         </script>
     }
-
-    <div class="seccion-centrada" style="margin-bottom: 15px;">
-        @if (User.IsInRole("Docente"))
-        {
-            <a asp-controller="Profesor"
-               asp-action="Index"
-               class="btn-volver-atras"
-               title="Volver al índice de asistencias">
-                <svg width="18" height="18" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Volver
-            </a>
-        }
-        else if (User.IsInRole("Admin") || User.IsInRole("Dirección"))
-        {
-            <a asp-controller="Admin"
-               asp-action="Index"
-               class="btn-volver-atras"
-               title="Volver al panel de administración">
-                <svg width="18" height="18" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                </svg>
-                Volver
-            </a>
-        }
-    </div>
-
     @if (TempData["SuccessMessage"] is string successMessage)
     {
         <div class="operation-notice operation-notice-success"
@@ -191,104 +191,119 @@
         </div>
     }
 
-    <div class="global-table-container" style="margin-top: 0;">
-        <table class="global-table">
-            <thead>
-                <tr>
-                    <th colspan="@((Model.Fechas?.Count ?? 0) + 2)"
-                        class="title-cell">
-                        Asistencia Global
-                    </th>
-                </tr>
-                <tr>
-                    <th class="align-left">Alumnos</th>
+        <div class="table-container attendance-table-card global-table-container">
+            <table class="attendance-table admin-modulos-table global-table">
+                <thead>
+                    <tr>
+                        <th colspan="@((Model.Fechas?.Count ?? 0) + 2)"
+                            class="title-cell">
+                            Asistencia Global
+                        </th>
+                    </tr>
 
-                    @if (Model.Fechas != null)
-                    {
-                        foreach (var f in Model.Fechas)
+                    <tr>
+                        <th class="align-left alumno-global-header">
+                            Apellido y Nombre
+                        </th>
+
+                        @if (Model.Fechas != null)
                         {
-                            <th class="fecha-header"
-                                title="Editar asistencia del @f.ToString("dd/MM/yyyy")">
-        
-                                <a asp-controller="Asistencias"
-                                   asp-action="ModificarAsistencia"
-                                   asp-route-CaMaId="@Model.CaMaId"
-                                   asp-route-fecha="@f.ToString("yyyy-MM-dd")"
-                                   class="fecha-editar"
-                                   aria-label="Editar asistencia del @f.ToString("dd/MM/yyyy")">
-
-                                    <span class="fecha-texto">
-                                        @f.ToString("dd/MM")
-                                    </span>
-
-                                    <svg class="fecha-lapiz"
-                                         xmlns="http://www.w3.org/2000/svg"
-                                         viewBox="0 0 24 24"
-                                         fill="none"
-                                         stroke="currentColor"
-                                         stroke-width="2"
-                                         stroke-linecap="round"
-                                         stroke-linejoin="round"
-                                         aria-hidden="true">
-                                        <path d="M12 20h9" />
-                                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
-                                    </svg>
-                                </a>
-                            </th>
-                        }
-                    }
-
-                    <th class="icon-cell"
-                        style="border-left: 2px solid #e2e8f0;">
-                        %
-                    </th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @if (Model.Rows != null && Model.Rows.Count > 0)
-                {
-                    foreach (var row in Model.Rows)
-                    {
-                        <tr>
-                            <td class="align-left">@row.FullName</td>
-
-                            @if (Model.Fechas != null)
+                            foreach (var f in Model.Fechas)
                             {
-                                foreach (var f in Model.Fechas)
-                                {
-                                    if (row.AsistenciaPorFecha.TryGetValue(
-                                        f, out var porcentaje) &&
-                                        porcentaje.HasValue)
+                                <th class="fecha-header text-center">
+                                    @if (User.IsInRole("Docente"))
                                     {
-                                        <td>
-                                            @porcentaje.Value.ToString("0.#")%
-                                        </td>
+                                        <a asp-controller="Asistencias"
+                                           asp-action="ModificarAsistencia"
+                                           asp-route-CaMaId="@Model.CaMaId"
+                                           asp-route-fecha="@f.ToString("yyyy-MM-dd")"
+                                           class="fecha-editar"
+                                           title="Editar asistencia del @f.ToString("dd/MM/yyyy")"
+                                           aria-label="Editar asistencia del @f.ToString("dd/MM/yyyy")">
+
+                                            <span class="fecha-texto">
+                                                @f.ToString("dd/MM")
+                                            </span>
+
+                                            <svg class="fecha-lapiz"
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 viewBox="0 0 24 24"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 stroke-width="2"
+                                                 stroke-linecap="round"
+                                                 stroke-linejoin="round"
+                                                 aria-hidden="true">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
+                                            </svg>
+                                        </a>
                                     }
                                     else
                                     {
-                                        <td>—</td>
+                                        <span class="fecha-texto">
+                                            @f.ToString("dd/MM")
+                                        </span>
+                                    }
+                                </th>
+                            }
+                        }
+
+                        <th class="icon-cell total-global-header text-center">
+                            %
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Rows != null && Model.Rows.Count > 0)
+                    {
+                        foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td class="align-left alumno-global-cell">
+                                    @row.FullName
+                                </td>
+
+                                @if (Model.Fechas != null)
+                                {
+                                    foreach (var f in Model.Fechas)
+                                    {
+                                        if (row.AsistenciaPorFecha.TryGetValue(
+                                            f, out var porcentaje) &&
+                                            porcentaje.HasValue)
+                                        {
+                                            <td class="global-porcentaje-cell text-center">
+                                                @porcentaje.Value.ToString("0.#")%
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="global-porcentaje-cell text-center">
+                                                —
+                                            </td>
+                                        }
                                     }
                                 }
-                            }
 
-                            <td class="total-col">
-                                @(row.PorcentajeAsistencia.HasValue
-                                    ? row.PorcentajeAsistencia.Value.ToString("0.#") + "%"
-                                    : "—")
+                                <td class="total-col global-porcentaje-cell text-center">
+                                    @(row.PorcentajeAsistencia.HasValue
+                                        ? row.PorcentajeAsistencia.Value.ToString("0.#") + "%"
+                                        : "—")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@((Model.Fechas?.Count ?? 0) + 2)"
+                                class="global-sin-registros">
+                                No hay registros para la materia seleccionada.
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="@((Model.Fechas?.Count ?? 0) + 2)">
-                            No hay registros para la materia seleccionada.
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </tbody>
+            </table>
+        </div>
 </main>
