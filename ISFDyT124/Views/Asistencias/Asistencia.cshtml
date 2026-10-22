@@ -6,53 +6,6 @@
     ViewData["BodyClass"] = "asistencia-page";
 }
 
-<style>
-    .fila-bloqueada {
-        background-color: #f1f5f9;
-        color: #64748b;
-    }
-
-    .fila-bloqueada input:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    .fila-bloqueada td {
-        vertical-align: middle;
-    }
-
-    .porcentaje-historico-input {
-        width: 90px;
-        max-width: 100%;
-        padding: 8px;
-        text-align: center;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        box-sizing: border-box;
-    }
-
-    .justificacion-historica {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-    }
-
-    .observacion-historica-input {
-        width: 100%;
-        min-width: 120px;
-        padding: 8px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        box-sizing: border-box;
-    }
-
-    .aviso-fila-bloqueada {
-        display: block;
-        margin-top: 4px;
-        color: #64748b;
-        font-size: 0.8rem;
-    }
-</style>
 
 <main class="main-container-asistencia">
 
@@ -304,8 +257,8 @@
                 Guardar
             </button>
 
-            <a asp-controller="Asistencias"
-               asp-action="AsistenciaGlobal"
+            <a asp-controller="Profesor"
+               asp-action="Index"
                asp-route-CaMaId="@Model.CaMaId"
                class="btn-cancel">
                 Cancelar
