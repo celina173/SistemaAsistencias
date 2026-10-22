@@ -83,6 +83,19 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            // El Estudiante no tiene ninguna pantalla propia en el sistema: hasta ahora el
+            // login no miraba el rol y lo dejaba entrar, y después cada pantalla lo mandaba a
+            // /Home/AccessDenied (que no existe), así que veía un error en cualquier botón.
+            // Se rechaza con el MISMO mensaje genérico de credenciales incorrectas, y recién
+            // después de validar la contraseña: así quien no la conoce no puede usar este
+            // login para descubrir qué DNI son de estudiantes. Va antes de crear la cookie,
+            // para que tampoco llegue a CambiarContrasena (que exige sesión abierta).
+            if (usuario.RoId == RolId.Estudiante)
+            {
+                ModelState.AddModelError(string.Empty, "Usuario o contraseña incorrectos.");
+                return View(model);
+            }
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, $"{usuario.UsId}"),

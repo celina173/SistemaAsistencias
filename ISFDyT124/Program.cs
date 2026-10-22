@@ -86,6 +86,19 @@ builder
 
             options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
             {
+                // El Estudiante no tiene pantallas propias y el login ya no lo deja entrar,
+                // pero una cookie emitida ANTES de ese cambio dura hasta 30 días (y se renueva
+                // sola mientras se use). Se revisa en cada pedido, sin ir a la base: el rol
+                // viaja dentro de la cookie. Si es Estudiante se descarta la sesión y se cierra.
+                OnValidatePrincipal = async context =>
+                {
+                    if (context.Principal?.IsInRole("Estudiante") == true)
+                    {
+                        context.RejectPrincipal();
+                        await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions
+                            .SignOutAsync(context.HttpContext, "Cookies");
+                    }
+                },
                 OnRedirectToLogin = context =>
                 {
                     if (context.Request.Path.StartsWithSegments("/api"))
