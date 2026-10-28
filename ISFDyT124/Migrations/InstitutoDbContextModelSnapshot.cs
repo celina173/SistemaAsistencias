@@ -311,7 +311,6 @@ namespace ISFDyT124.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UsEmail")
-                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
 
@@ -336,9 +335,29 @@ namespace ISFDyT124.Migrations
                         .IsUnique();
 
                     b.HasIndex("UsEmail")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UsEmail] IS NOT NULL");
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("UsuarioCarreraMateria", b =>

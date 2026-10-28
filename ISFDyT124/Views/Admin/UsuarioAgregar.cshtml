@@ -42,7 +42,7 @@
             </div>
 
             <div class="input-field">
-                <label asp-for="UsEmail">Email *</label>
+                <label asp-for="UsEmail">Email </label>
                 <input asp-for="UsEmail" autocomplete="new-password" placeholder="Ej: correo@instituto.com">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
             </div>
@@ -68,13 +68,19 @@
             </div>
 
             <div id="materiasGroup" class="input-field" style="display:none; grid-column: span 2;">
-                <label>Materias Asignadas *</label>
-                <div id="materiasList" style="height:150px; overflow:auto; border:1px solid #e6e6e6; padding:8px; border-radius: 6px;">
+                <label>Materias Asignadas</label>
+                <div id="materiasList" class="materias-checklist" role="group" aria-label="Materias asignadas">
                     @foreach (var cm in ViewBag.CarreraMateriasList)
                     {
-                        <label style="display:block; margin-bottom:6px; cursor: pointer;">
-                            <input type="checkbox" name="SelectedCaMaIds" value="@cm.CaMaId" />
-                            @cm.Denominacion
+                        var materiaId = $"materia_{cm.CaMaId}";
+                        <label class="materia-check" for="@materiaId">
+                            <input class="materia-check__input"
+                                   type="checkbox"
+                                   id="@materiaId"
+                                   name="SelectedCaMaIds"
+                                   value="@cm.CaMaId"
+                                   checked="@(Model.SelectedCaMaIds?.Contains(cm.CaMaId) == true ? "checked" : null)" />
+                            <span class="materia-check__label">@cm.Denominacion</span>
                         </label>
                     }
                 </div>
@@ -94,6 +100,48 @@
     </div>
 </main>
 
+<style>
+    #materiasList.materias-checklist {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 6px 16px;
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #e6e6e6;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    #materiasList .materia-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 0;
+        margin: 0;
+        padding: 5px 4px;
+        cursor: pointer;
+        line-height: 1.35;
+    }
+
+    #materiasList .materia-check__input {
+        flex: 0 0 auto;
+        width: 1rem;
+        height: 1rem;
+        margin: 0.18rem 0 0;
+    }
+
+    #materiasList .materia-check__label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    @@media (max-width: 576px) {
+        #materiasList.materias-checklist {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+</style>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -112,6 +160,19 @@
             document.getElementById('carreraCohorteGroup').style.display = esEstudiante ? 'flex' : 'none';
             document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
             caCoIdSelect.required = esEstudiante;
+
+            // LÓGICA PARA ESTUDIANTE: Deshabilitar u ocultar el campo Email
+            var emailInput = document.getElementById('UsEmail');
+            var emailLabel = document.getElementById('emailLabel');
+            if (esEstudiante) {
+                emailInput.value = ''; // Limpia el valor si cambia a estudiante
+                emailInput.disabled = true; // Deshabilita el input
+                emailInput.required = false;
+                if (emailLabel) emailLabel.textContent = 'Email (Opcional para Estudiantes)';
+            } else {
+                emailInput.disabled = false; // Habilita para Admin / Docente / Dirección
+                if (emailLabel) emailLabel.textContent = 'Email *';
+            }
 
             materiasCheckboxes.forEach(function (cb) { cb.required = false; });
             if (esDocente && materiasCheckboxes.length > 0) {
