@@ -336,7 +336,7 @@ namespace ISFDyT124.Controllers
                 await transaccionId.CommitAsync();
 
                 // 3. ENVÍA EL CORREO JUSTO DESPUÉS DE ASEGURARTE DE QUE LA TRANSACCIÓN SE GUARDÓ
-                if (requiereActivacion)
+                if (requiereActivacion && !string.IsNullOrWhiteSpace(usuario.UsEmail))
                 {
                     try
                     {
@@ -346,12 +346,12 @@ namespace ISFDyT124.Controllers
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error al enviar correo de activación al usuario {UsId}", usuario.UsId);
-                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}' creado, pero no se pudo enviar el correo de activación (revise configuración SMTP).";
+                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}' creado, pero no se pudo enviar el correo de activación.";
                     }
                 }
                 else
                 {
-                    TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente con la contraseña ingresada.";
+                    TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente.";
                 }
 
                 return RedirectToAction(nameof(UsuariosABM));
@@ -1043,10 +1043,14 @@ namespace ISFDyT124.Controllers
                 else if (!dnisVistos.Add(dni)) errores.Add("DNI duplicado en la previsualización");
                 if (string.IsNullOrWhiteSpace(fila.Apellido) || fila.Apellido.Trim().Length > 100 || !nombreValido.IsMatch(fila.Apellido.Trim())) errores.Add("Apellido inválido");
                 if (string.IsNullOrWhiteSpace(fila.Nombre) || fila.Nombre.Trim().Length > 100 || !nombreValido.IsMatch(fila.Nombre.Trim())) errores.Add("Nombre inválido");
-                fila.Email = fila.Email.Trim();
-                if (string.IsNullOrWhiteSpace(fila.Email) || fila.Email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(fila.Email))
-                    errores.Add("Correo electrónico inválido");
-                else if (!emailsVistos.Add(fila.Email)) errores.Add("Correo electrónico duplicado en la previsualización");
+                fila.Email = fila.Email?.Trim() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(fila.Email))
+                {
+                    if (fila.Email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(fila.Email))
+                        errores.Add("Correo electrónico inválido");
+                    else if (!emailsVistos.Add(fila.Email))
+                        errores.Add("Correo electrónico duplicado en la previsualización");
+                }
                 if (!carrerasValidas.Contains(fila.CaCoId)) errores.Add("Carrera/cohorte inexistente");
                 if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date > DateTime.Today)
                     errores.Add("La fecha de inscripción no puede ser posterior a hoy");

@@ -13,6 +13,28 @@
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --transition: all 0.3s ease;
 }
+
+.global-table th .sort-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: inherit;
+    gap: 6px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+.global-table th .sort-button:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
 /* =========================================
    RESETEO Y ESTILOS BASE
    ========================================= */
@@ -72,11 +94,23 @@ body {
     width: 26px;
     height: 18px;
     display: flex;
-    flex-direction: column;
+    align-items: stretch;
     justify-content: space-between;
+    flex-direction: column;
     cursor: pointer;
     transition: var(--transition);
     z-index: 1100;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    appearance: none;
+}
+
+.menu-icon:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 6px;
+    border-radius: 4px;
 }
 
     .menu-icon .bar {
@@ -91,19 +125,13 @@ body {
         width: 70%;
     }
 
-    .menu-icon:hover .bar:nth-child(3) {
-        width: 40%;
-    }
-
-.sidebar.active ~ .top-header .menu-icon .bar:nth-child(1) {
+.menu-icon.is-open .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
-
-.sidebar.active ~ .top-header .menu-icon .bar:nth-child(2) {
+.menu-icon.is-open .bar:nth-child(2) {
     opacity: 0;
 }
-
-.sidebar.active ~ .top-header .menu-icon .bar:nth-child(3) {
+.menu-icon.is-open .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
 }
 

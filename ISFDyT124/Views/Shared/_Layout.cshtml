@@ -30,11 +30,16 @@
     <partial name="_PwaInstallBanner" />
 
     <header class="top-header">
-        <div class="menu-icon" id="toggleSidebar">
+        <button type="button"
+                class="menu-icon"
+                id="toggleSidebar"
+                aria-label="Abrir menú"
+                aria-expanded="false"
+                aria-controls="sidebarMenu">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
-        </div>
+        </button>
 
         @{
             // Definimos las rutas y variables globales de la sesión

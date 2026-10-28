@@ -111,6 +111,19 @@
             document.getElementById('materiasGroup').style.display = esDocente ? 'flex' : 'none';
             caCoIdSelect.required = esEstudiante;
 
+            // LÓGICA PARA ESTUDIANTE: Deshabilitar u ocultar el campo Email
+            var emailInput = document.getElementById('UsEmail');
+            var emailLabel = document.getElementById('emailLabel');
+            if (esEstudiante) {
+                emailInput.value = ''; // Limpia el valor si cambia a estudiante
+                emailInput.disabled = true; // Deshabilita el input
+                emailInput.required = false;
+                if (emailLabel) emailLabel.textContent = 'Email (Opcional para Estudiantes)';
+            } else {
+                emailInput.disabled = false; // Habilita para Admin / Docente / Dirección
+                if (emailLabel) emailLabel.textContent = 'Email *';
+            }
+
             materiasCheckboxes.forEach(function (cb) { cb.required = false; });
             if (esDocente && materiasCheckboxes.length > 0) {
                 materiasCheckboxes[0].required = true;
