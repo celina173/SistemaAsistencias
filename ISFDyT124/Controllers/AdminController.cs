@@ -79,6 +79,17 @@ namespace ISFDyT124.Controllers
             ViewBag.CarreraMateriasList = materiasLimpias;
         }
 
+        // Admin es exclusivo del desarrollo (ticket 3.34): el alta de usuario no debe
+        // poder crear otro Admin. Se filtra en una lista aparte en vez de tocar
+        // ViewBag.RolesList del método de arriba porque UsuarioEditar sigue necesitando
+        // la lista completa (si no, al editar un Admin existente se perdería la opción
+        // de su propio rol en el select).
+        private async Task CargarListasFormularioAltaUsuarioAsync()
+        {
+            await CargarListasFormularioUsuarioAsync();
+            ViewBag.RolesList = ((List<Rol>)ViewBag.RolesList).Where(r => r.RoId != RolId.Admin).ToList();
+        }
+
         public async Task<IActionResult> Index()
         {
             ViewBag.TotalAlumnos = await _context.Usuarios.Where(u => u.RoId == RolId.Estudiante).CountAsync();
@@ -210,7 +221,7 @@ namespace ISFDyT124.Controllers
         [HttpGet]
         public async Task<IActionResult> UsuarioAgregar()
         {
-            await CargarListasFormularioUsuarioAsync();
+            await CargarListasFormularioAltaUsuarioAsync();
             return View(new UsuarioCrearDto());
         }
 
@@ -220,7 +231,17 @@ namespace ISFDyT124.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
+                return View(model);
+            }
+
+            // Admin es exclusivo del desarrollo (ticket 3.34): se valida en el servidor,
+            // no solo ocultando la opción en el <select>, porque nada impide mandar
+            // selectedRoleId=1 por POST sin pasar por la vista.
+            if (selectedRoleId == RolId.Admin)
+            {
+                ModelState.AddModelError("selectedRoleId", "No se puede asignar el rol Admin desde el alta de usuario.");
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -231,7 +252,7 @@ namespace ISFDyT124.Controllers
                 if (emailExists)
                 {
                     ModelState.AddModelError("UsEmail", "El email ya se encuentra registrado.");
-                    await CargarListasFormularioUsuarioAsync();
+                    await CargarListasFormularioAltaUsuarioAsync();
                     return View(model);
                 }
             }
@@ -239,7 +260,7 @@ namespace ISFDyT124.Controllers
             if (await _context.Usuarios.AnyAsync(u => u.UsDni == model.UsDni))
             {
                 ModelState.AddModelError("UsDni", "El DNI ya se encuentra registrado.");
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -249,7 +270,7 @@ namespace ISFDyT124.Controllers
                     "CaCoId",
                     "El usuario debe estar asociado a una carrera/cohorte."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -259,7 +280,7 @@ namespace ISFDyT124.Controllers
                     "SelectedCaMaIds",
                     "Debe seleccionar al menos una materia para un Docente."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
 
@@ -322,7 +343,7 @@ namespace ISFDyT124.Controllers
                     string.Empty,
                     "No se pudo guardar el usuario. Verifique que todos los campos obligatorios estén completos e intente nuevamente."
                 );
-                await CargarListasFormularioUsuarioAsync();
+                await CargarListasFormularioAltaUsuarioAsync();
                 return View(model);
             }
             catch (Exception ex)
@@ -489,8 +510,7 @@ namespace ISFDyT124.Controllers
         public async Task<IActionResult> UsuarioEliminarConfirmado(int id)
         {
             var usuario = await _context
-                .Usuarios.Include(u => u.UsuarioRoles)
-                .Include(u => u.CarreraMaterias)
+                .Usuarios.Include(u => u.CarreraMaterias)
                 .FirstOrDefaultAsync(u => u.UsId == id);
 
             if (usuario != null)
@@ -510,7 +530,6 @@ namespace ISFDyT124.Controllers
                 }
 
                 usuario.CarreraMaterias.Clear();
-                _context.UsuarioRoles.RemoveRange(usuario.UsuarioRoles);
                 _context.Usuarios.Remove(usuario);
 
                 try
@@ -579,14 +598,21 @@ namespace ISFDyT124.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CargaMasivaMapear(CargaMasivaPaso1Dto model)
         {
+            var materiasSeleccionadas = model.SelectedCaMaIds ?? new List<int>();
+            model.SelectedCaMaIds = materiasSeleccionadas;
             if (model.CaCoId == null)
             {
                 ModelState.AddModelError("CaCoId", "Debe seleccionar una Carrera / Cohorte.");
             }
 
-            if (model.SelectedCaMaIds == null || !model.SelectedCaMaIds.Any())
+            if (!materiasSeleccionadas.Any())
             {
                 ModelState.AddModelError("SelectedCaMaIds", "Debe seleccionar al menos una materia para inscribir a los estudiantes.");
+            }
+
+            if (model.FechaInscripcion.HasValue && model.FechaInscripcion.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("FechaInscripcion", "La fecha de inscripción no puede ser posterior al día de hoy.");
             }
 
             if (model.ArchivoExcel == null || model.ArchivoExcel.Length == 0)
@@ -600,6 +626,22 @@ namespace ISFDyT124.Controllers
                 {
                     ModelState.AddModelError("ArchivoExcel", "El archivo debe tener formato .xlsx (Excel).");
                 }
+                else if (model.ArchivoExcel.Length > ExcelImportService.MaximoBytes)
+                {
+                    ModelState.AddModelError("ArchivoExcel", "El archivo no puede superar los 5 MB.");
+                }
+            }
+
+            var caCoIdSeleccionado = model.CaCoId.GetValueOrDefault();
+            var materiasValidas = model.CaCoId.HasValue
+                ? await _context.CarreraMaterias
+                    .Where(cm => cm.CaCoId == caCoIdSeleccionado && materiasSeleccionadas.Contains(cm.CaMaId))
+                    .Select(cm => cm.CaMaId)
+                    .ToListAsync()
+                : new List<int>();
+            if (materiasSeleccionadas.Distinct().Count() != materiasValidas.Count)
+            {
+                ModelState.AddModelError("SelectedCaMaIds", "Todas las materias deben pertenecer a la carrera y cohorte seleccionadas.");
             }
 
             if (!ModelState.IsValid)
@@ -612,7 +654,7 @@ namespace ISFDyT124.Controllers
             string tempPath;
             try
             {
-                tempToken = ExcelImportService.GuardarArchivoTemporal(model.ArchivoExcel!);
+                tempToken = ExcelImportService.GuardarArchivoTemporal(model.ArchivoExcel!, User.FindFirstValue(ClaimTypes.NameIdentifier));
                 tempPath = ExcelImportService.ObtenerRutaArchivoTemporal(tempToken);
             }
             catch (Exception ex)
@@ -650,17 +692,17 @@ namespace ISFDyT124.Controllers
             var cc = await _context.CarreraCohortes
                 .Include(c => c.Carrera)
                 .Include(c => c.Cohorte)
-                .FirstOrDefaultAsync(c => c.CaCoId == model.CaCoId.Value);
+                .FirstOrDefaultAsync(c => c.CaCoId == caCoIdSeleccionado);
 
             string ccDenom = cc != null
-                ? $"{cc.Carrera.CaDenominacion} - {cc.Cohorte.CoAnio}"
+                ? $"{cc.Carrera!.CaDenominacion} - {cc.Cohorte!.CoAnio}"
                 : "Carrera seleccionada";
 
             // Obtener nombres de materias seleccionadas
             var nombresMaterias = await _context.CarreraMaterias
-                .Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
+                .Where(cm => materiasSeleccionadas.Contains(cm.CaMaId))
                 .Include(cm => cm.Materia)
-                .Select(cm => cm.Materia.MaDenominacion)
+                .Select(cm => cm.Materia!.MaDenominacion)
                 .ToListAsync();
 
             // Inferir mapeo inicial
@@ -669,9 +711,10 @@ namespace ISFDyT124.Controllers
             var mapeoDto = new CargaMasivaMapeoDto
             {
                 TempFileToken = tempToken,
-                CaCoId = model.CaCoId.Value,
+                CaCoId = caCoIdSeleccionado,
+                FechaInscripcion = model.FechaInscripcion?.Date,
                 CarreraCohorteDenominacion = ccDenom,
-                SelectedCaMaIds = model.SelectedCaMaIds,
+                SelectedCaMaIds = materiasSeleccionadas,
                 MateriasSeleccionadasNombres = nombresMaterias,
                 ColumnasExcel = columnas,
                 ColumnaDni = dniSugerido,
@@ -680,248 +723,338 @@ namespace ISFDyT124.Controllers
                 ColumnaEmail = emailSugerido,
                 PreviewRows = previewRows
             };
+            mapeoDto.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+            mapeoDto.HojasSeleccionadas = mapeoDto.HojasExcel.Where(h => h.TieneDatos).Select(h => h.Nombre).ToList();
 
             return View("CargaMasivaMapear", mapeoDto);
         }
 
+        private async Task CompletarCatalogosPrevisualizacionAsync(CargaMasivaPrevisualizacionDto model)
+        {
+            model.Carreras = await _context.CarreraCohortes
+                .Include(cc => cc.Carrera).Include(cc => cc.Cohorte)
+                .OrderBy(cc => cc.Carrera!.CaDenominacion).ThenBy(cc => cc.Cohorte!.CoAnio)
+                .Select(cc => new CargaMasivaCarreraOpcionDto
+                {
+                    CaCoId = cc.CaCoId,
+                    Denominacion = cc.Carrera!.CaDenominacion + " - " + cc.Cohorte!.CoAnio
+                }).ToListAsync();
+
+            model.Materias = await _context.CarreraMaterias
+                .Include(cm => cm.Materia)
+                .OrderBy(cm => cm.Materia!.MaDenominacion)
+                .Select(cm => new CargaMasivaMateriaOpcionDto
+                {
+                    CaMaId = cm.CaMaId,
+                    CaCoId = cm.CaCoId,
+                    Denominacion = cm.Materia!.MaDenominacion
+                }).ToListAsync();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CargaMasivaProcesar(CargaMasivaMapeoDto model)
+        public async Task<IActionResult> CargaMasivaPrevisualizar(CargaMasivaMapeoDto model)
         {
             var tempPath = ExcelImportService.ObtenerRutaArchivoTemporal(model.TempFileToken);
-            if (!System.IO.File.Exists(tempPath))
+            if (!System.IO.File.Exists(tempPath) || !ExcelImportService.ArchivoPerteneceA(model.TempFileToken, User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty))
             {
-                TempData["Error"] = "El archivo temporal ha expirado. Por favor, suba el archivo nuevamente.";
+                TempData["Error"] = "El archivo temporal ha expirado. Vuelva a subirlo.";
                 return RedirectToAction(nameof(CargaMasivaAlumnos));
             }
 
-            if (string.IsNullOrWhiteSpace(model.ColumnaDni) ||
-                string.IsNullOrWhiteSpace(model.ColumnaApellido) ||
-                string.IsNullOrWhiteSpace(model.ColumnaNombre) ||
-                string.IsNullOrWhiteSpace(model.ColumnaEmail))
+            model.HojasSeleccionadas ??= new List<string>();
+            var columnasMapeadas = new[] { model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail };
+            if (model.HojasSeleccionadas.Count == 0 || columnasMapeadas.Any(string.IsNullOrWhiteSpace)
+                || columnasMapeadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 4)
             {
-                ModelState.AddModelError("", "Debe mapear las 4 columnas obligatorias (DNI, Apellido, Nombre y Email).");
+                ModelState.AddModelError("", "Seleccione al menos una pestaña y cuatro columnas diferentes para DNI, apellido, nombre y correo.");
+                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
+                model.ColumnasExcel = leido.Columnas;
+                model.PreviewRows = leido.PreviewRows;
+                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
-            // Validar y parsear filas del Excel
-            var parseResult = ExcelImportService.ValidarYLeerFilas(
-                tempPath,
-                model.ColumnaDni,
-                model.ColumnaApellido,
-                model.ColumnaNombre,
-                model.ColumnaEmail
-            );
-
-            // Obtener denominación para el reporte
-            var cc = await _context.CarreraCohortes
-                .Include(c => c.Carrera)
-                .Include(c => c.Cohorte)
-                .FirstOrDefaultAsync(c => c.CaCoId == model.CaCoId);
-
-            string ccDenom = cc != null
-                ? $"{cc.Carrera.CaDenominacion} - {cc.Cohorte.CoAnio}"
-                : "Carrera seleccionada";
-
-            var nombresMaterias = await _context.CarreraMaterias
-                .Where(cm => model.SelectedCaMaIds.Contains(cm.CaMaId))
-                .Include(cm => cm.Materia)
-                .Select(cm => cm.Materia.MaDenominacion)
-                .ToListAsync();
-
-            // Si hay filas válidas, comprobar conflictos de DNI con la base de datos
-            var dnis = parseResult.FilasValidas.Select(f => f.Dni).Distinct().ToList();
-            var usuariosExistentes = await _context.Usuarios
-                .Where(u => dnis.Contains(u.UsDni))
-                .ToListAsync();
-            var dictUsuarios = usuariosExistentes.ToDictionary(u => u.UsDni);
-
-            foreach (var fila in parseResult.FilasValidas)
+            var hojasDisponibles = ExcelImportService.ObtenerHojas(tempPath)
+                .Where(h => h.TieneDatos).Select(h => h.Nombre).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (model.HojasSeleccionadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != model.HojasSeleccionadas.Count
+                || model.HojasSeleccionadas.Any(h => !hojasDisponibles.Contains(h)))
             {
-                if (dictUsuarios.TryGetValue(fila.Dni, out var userExistente))
-                {
-                    // Si existe pero no es Alumno (RoId != 3) -> es error
-                    if (userExistente.RoId != 3)
-                    {
-                        var rolNombre = userExistente.RoId == RolId.Docente ? "Docente" : (userExistente.RoId == RolId.Admin ? "Admin" : "Dirección");
-                        parseResult.Errores.Add(new CargaMasivaFilaErrorDto
-                        {
-                            Fila = fila.Fila,
-                            Dni = fila.Dni.ToString(),
-                            Apellido = fila.Apellido,
-                            Nombre = fila.Nombre,
-                            Email = fila.Email,
-                            Motivo = $"El DNI pertenece a un usuario existente con rol {rolNombre}. No puede registrarse como Estudiante."
-                        });
-                    }
-                }
+                ModelState.AddModelError("", "La selección de pestañas no coincide con el archivo cargado.");
+                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
+                model.ColumnasExcel = leido.Columnas;
+                model.PreviewRows = leido.PreviewRows;
+                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                return View("CargaMasivaMapear", model);
             }
 
-            // ESTRATEGIA TODO O NADA: Si hay al menos un error, abortar sin guardar nada
-            if (parseResult.Errores.Any())
-            {
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
-
-                // Ordenar errores por número de fila
-                parseResult.Errores = parseResult.Errores.OrderBy(e => e.Fila).ToList();
-
-                var resultadoError = new CargaMasivaResultadoDto
-                {
-                    EsExitoso = false,
-                    Mensaje = $"Se detectaron {parseResult.Errores.Count} filas con errores en el archivo. La carga fue abortada sin aplicar cambios en la base de datos.",
-                    CarreraCohorteDenominacion = ccDenom,
-                    TotalFilas = parseResult.TotalFilas,
-                    Errores = parseResult.Errores,
-                    MateriasInscriptas = nombresMaterias
-                };
-
-                return View("CargaMasivaResultado", resultadoError);
-            }
-
-            // Si no hay filas de datos
-            if (!parseResult.FilasValidas.Any())
-            {
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
-                var resultadoVacio = new CargaMasivaResultadoDto
-                {
-                    EsExitoso = false,
-                    Mensaje = "El archivo no contenía filas con datos válidos para procesar.",
-                    CarreraCohorteDenominacion = ccDenom,
-                    TotalFilas = 0
-                };
-                return View("CargaMasivaResultado", resultadoVacio);
-            }
-
-            // TRANSACCIÓN: Aplicar cambios en la base de datos
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            ResultadoValidacionExcel parseResult;
             try
             {
-                // UPDLOCK+HOLDLOCK: mismo motivo que en UsuarioAgregar (ticket 6.13) -- sin
-                // esto, una alta individual simultánea a esta carga masiva podía leer el
-                // mismo MAX y chocar de UsId con la primera fila del lote.
-                int maxUsId = await _context
-                    .Database.SqlQuery<int>(
-                        $"SELECT ISNULL(MAX(UsId), 0) AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)"
-                    )
-                    .FirstAsync();
-                int alumnosNuevos = 0;
-                int alumnosReutilizados = 0;
-                int inscripcionesCreadas = 0;
-                var listaProcesados = new List<CargaMasivaAlumnoProcesadoDto>();
+                parseResult = ExcelImportService.ValidarYLeerFilasDeHojas(tempPath, model.HojasSeleccionadas,
+                    model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo leer el Excel de carga masiva");
+                ModelState.AddModelError("", "No se pudo leer el archivo. Verifique que sea un Excel válido y no esté protegido.");
+                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
+                model.ColumnasExcel = leido.Columnas;
+                model.PreviewRows = leido.PreviewRows;
+                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                return View("CargaMasivaMapear", model);
+            }
 
-                // Precargar inscripciones existentes de los alumnos existentes en las materias seleccionadas
-                var existingUsIds = usuariosExistentes.Select(u => u.UsId).ToList();
-                var inscripcionesExistentes = await _context.Inscripciones
-                    .Where(i => existingUsIds.Contains(i.UsId) && model.SelectedCaMaIds.Contains(i.CaMaId))
-                    .ToListAsync();
-                var setInscripciones = new HashSet<(int UsId, int CaMaId)>(
-                    inscripcionesExistentes.Select(i => (i.UsId, i.CaMaId))
-                );
+            var erroresEstructurales = parseResult.Errores.Where(e =>
+                string.IsNullOrWhiteSpace(e.Dni) && string.IsNullOrWhiteSpace(e.Apellido)
+                && string.IsNullOrWhiteSpace(e.Nombre) && string.IsNullOrWhiteSpace(e.Email)).ToList();
+            if (erroresEstructurales.Count > 0)
+            {
+                foreach (var error in erroresEstructurales)
+                    ModelState.AddModelError("", $"{(string.IsNullOrWhiteSpace(error.Hoja) ? "Archivo" : error.Hoja)}: {error.Motivo}");
+                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
+                model.ColumnasExcel = leido.Columnas;
+                model.PreviewRows = leido.PreviewRows;
+                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                return View("CargaMasivaMapear", model);
+            }
 
-                foreach (var fila in parseResult.FilasValidas)
+            var preview = new CargaMasivaPrevisualizacionDto
+            {
+                TempFileToken = model.TempFileToken,
+                HojasSeleccionadas = model.HojasSeleccionadas,
+                // Copia de la lista: si fuera la misma, el error de conflicto entre pestañas que se agrega
+                // más abajo volvería a leerse como si fuera una fila del archivo con errores y aparecería
+                // como una fila editable vacía en la previsualización.
+                Errores = parseResult.Errores.ToList()
+            };
+
+            foreach (var grupo in parseResult.FilasValidas.GroupBy(f => f.Dni))
+            {
+                var primera = grupo.First();
+                if (grupo.Any(f => !string.Equals(f.Apellido, primera.Apellido, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(f.Nombre, primera.Nombre, StringComparison.OrdinalIgnoreCase)
+                    || !string.Equals(f.Email, primera.Email, StringComparison.OrdinalIgnoreCase)))
                 {
-                    int currentUsId;
-                    string estado;
-                    int inscripcionesFila = 0;
-
-                    if (dictUsuarios.TryGetValue(fila.Dni, out var existingUser))
+                    preview.Errores.Add(new CargaMasivaFilaErrorDto
                     {
-                        currentUsId = existingUser.UsId;
-                        estado = "Alumno existente";
-                        alumnosReutilizados++;
-
-                        // Si no tenía carrera asignada, asignarle la carrera elegida
-                        if (existingUser.CaCoId == null)
+                        Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
+                        Dni = primera.Dni.ToString(), Motivo = "El DNI aparece en varias pestañas con datos personales diferentes."
+                    });
+                    foreach (var filaConflicto in grupo)
+                    {
+                        preview.Alumnos.Add(new CargaMasivaAlumnoEditableDto
                         {
-                            existingUser.CaCoId = model.CaCoId;
-                        }
+                            Hoja = filaConflicto.Hoja, Fila = filaConflicto.Fila, Dni = filaConflicto.Dni.ToString(),
+                            Apellido = filaConflicto.Apellido, Nombre = filaConflicto.Nombre, Email = filaConflicto.Email,
+                            CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                            SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
+                        });
+                    }
+                    continue;
+                }
+
+                preview.Alumnos.Add(new CargaMasivaAlumnoEditableDto
+                {
+                    Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
+                    Dni = primera.Dni.ToString(), Apellido = primera.Apellido, Nombre = primera.Nombre,
+                    Email = primera.Email, CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                    SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
+                });
+            }
+
+            foreach (var error in parseResult.Errores.Where(e => e.Fila > 1 &&
+                         (!string.IsNullOrWhiteSpace(e.Dni) || !string.IsNullOrWhiteSpace(e.Apellido)
+                          || !string.IsNullOrWhiteSpace(e.Nombre) || !string.IsNullOrWhiteSpace(e.Email))))
+            {
+                preview.Alumnos.Add(new CargaMasivaAlumnoEditableDto
+                {
+                    Hoja = error.Hoja ?? string.Empty,
+                    Fila = error.Fila,
+                    Dni = error.Dni ?? string.Empty,
+                    Apellido = error.Apellido ?? string.Empty,
+                    Nombre = error.Nombre ?? string.Empty,
+                    Email = error.Email ?? string.Empty,
+                    CaCoId = model.CaCoId,
+                    FechaInscripcion = model.FechaInscripcion?.Date,
+                    SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
+                });
+            }
+
+            await CompletarCatalogosPrevisualizacionAsync(preview);
+            return View("CargaMasivaPrevisualizar", preview);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CargaMasivaConfirmar(CargaMasivaPrevisualizacionDto model)
+        {
+            var propietario = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            if (!ExcelImportService.ArchivoPerteneceA(model.TempFileToken, propietario))
+            {
+                TempData["Error"] = "La carga temporal no existe, venció o pertenece a otra sesión.";
+                return RedirectToAction(nameof(CargaMasivaAlumnos));
+            }
+
+            model.Alumnos ??= new List<CargaMasivaAlumnoEditableDto>();
+            model.Errores = new List<CargaMasivaFilaErrorDto>();
+            model.Alumnos = model.Alumnos.Where(a => a.Incluir).Take(ExcelImportService.MaximoFilas + 1).ToList();
+            if (model.Alumnos.Count == 0)
+                model.Errores.Add(new CargaMasivaFilaErrorDto { Fila = 1, Motivo = "Debe incluir al menos un alumno." });
+            if (model.Alumnos.Count > ExcelImportService.MaximoFilas)
+                model.Errores.Add(new CargaMasivaFilaErrorDto { Fila = 1, Motivo = $"La carga supera el máximo de {ExcelImportService.MaximoFilas} alumnos." });
+
+            var carrerasIds = model.Alumnos.Select(a => a.CaCoId).Distinct().ToList();
+            var carrerasValidas = await _context.CarreraCohortes
+                .Where(cc => carrerasIds.Contains(cc.CaCoId))
+                .Select(cc => cc.CaCoId).ToListAsync();
+            var materiasIds = model.Alumnos.SelectMany(a => a.SelectedCaMaIds).Distinct().ToList();
+            var materias = await _context.CarreraMaterias
+                .Include(cm => cm.Materia)
+                .Where(cm => materiasIds.Contains(cm.CaMaId))
+                .ToDictionaryAsync(cm => cm.CaMaId);
+
+            var filasValidas = new List<(CargaMasivaAlumnoEditableDto Fila, int Dni)>();
+            var dnisVistos = new HashSet<int>();
+            var emailsVistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var nombreValido = new System.Text.RegularExpressions.Regex(@"^[\p{L}\p{M}\s'’-]+$");
+            foreach (var fila in model.Alumnos)
+            {
+                var errores = new List<string>();
+                fila.Dni ??= string.Empty;
+                fila.Apellido ??= string.Empty;
+                fila.Nombre ??= string.Empty;
+                fila.Email ??= string.Empty;
+                fila.SelectedCaMaIds ??= new List<int>();
+                var dniLimpio = fila.Dni.Replace(".", "").Replace("-", "").Replace(" ", "");
+                if (!int.TryParse(dniLimpio, out var dni) || dni < 1000000 || dni > 99999999)
+                    errores.Add("DNI inválido");
+                else if (!dnisVistos.Add(dni)) errores.Add("DNI duplicado en la previsualización");
+                if (string.IsNullOrWhiteSpace(fila.Apellido) || fila.Apellido.Trim().Length > 100 || !nombreValido.IsMatch(fila.Apellido.Trim())) errores.Add("Apellido inválido");
+                if (string.IsNullOrWhiteSpace(fila.Nombre) || fila.Nombre.Trim().Length > 100 || !nombreValido.IsMatch(fila.Nombre.Trim())) errores.Add("Nombre inválido");
+                fila.Email = fila.Email.Trim();
+                if (string.IsNullOrWhiteSpace(fila.Email) || fila.Email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(fila.Email))
+                    errores.Add("Correo electrónico inválido");
+                else if (!emailsVistos.Add(fila.Email)) errores.Add("Correo electrónico duplicado en la previsualización");
+                if (!carrerasValidas.Contains(fila.CaCoId)) errores.Add("Carrera/cohorte inexistente");
+                if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date > DateTime.Today)
+                    errores.Add("La fecha de inscripción no puede ser posterior a hoy");
+                else if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date < new DateTime(2000, 1, 1))
+                    errores.Add("Fecha de inscripción inválida");
+                fila.SelectedCaMaIds = fila.SelectedCaMaIds.Distinct().ToList();
+                if (fila.SelectedCaMaIds.Count == 0) errores.Add("Debe seleccionar al menos una materia");
+                if (fila.SelectedCaMaIds.Any(id => !materias.TryGetValue(id, out var materia) || materia.CaCoId != fila.CaCoId))
+                    errores.Add("Hay materias que no pertenecen a la carrera/cohorte elegida");
+
+                if (errores.Count > 0)
+                    model.Errores.Add(new CargaMasivaFilaErrorDto { Hoja = fila.Hoja, Fila = fila.Fila, Dni = fila.Dni, Apellido = fila.Apellido, Nombre = fila.Nombre, Email = fila.Email, Motivo = string.Join(" | ", errores) });
+                else
+                    filasValidas.Add((fila, dni));
+            }
+
+            var dnis = filasValidas.Select(x => x.Dni).ToList();
+            var emails = filasValidas.Select(x => x.Fila.Email).ToList();
+            var usuarios = await _context.Usuarios.Where(u => dnis.Contains(u.UsDni) || emails.Contains(u.UsEmail!)).ToListAsync();
+            var porDni = usuarios.GroupBy(u => u.UsDni).ToDictionary(g => g.Key, g => g.First());
+            var porEmail = usuarios.Where(u => u.UsEmail != null).GroupBy(u => u.UsEmail!, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in filasValidas)
+            {
+                var fila = item.Fila;
+                var errores = new List<string>();
+                if (porEmail.TryGetValue(fila.Email, out var usuarioEmail) && usuarioEmail.UsDni != item.Dni)
+                    errores.Add("El correo electrónico ya pertenece a otro DNI");
+                if (porDni.TryGetValue(item.Dni, out var existente))
+                {
+                    if (existente.RoId != RolId.Estudiante) errores.Add("El DNI pertenece a un usuario con otro rol");
+                    if (!existente.UsActivo) errores.Add("El alumno está inactivo");
+                    if (existente.CaCoId.HasValue && existente.CaCoId.Value != fila.CaCoId) errores.Add("El alumno pertenece a otra carrera/cohorte");
+                    if (!string.Equals(existente.UsEmail?.Trim(), fila.Email, StringComparison.OrdinalIgnoreCase)) errores.Add("El correo no coincide con el registrado para este DNI");
+                }
+                if (errores.Count > 0)
+                    model.Errores.Add(new CargaMasivaFilaErrorDto { Hoja = fila.Hoja, Fila = fila.Fila, Dni = fila.Dni, Apellido = fila.Apellido, Nombre = fila.Nombre, Email = fila.Email, Motivo = string.Join(" | ", errores) });
+            }
+
+            if (model.Errores.Count > 0)
+            {
+                await CompletarCatalogosPrevisualizacionAsync(model);
+                return View("CargaMasivaPrevisualizar", model);
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var maxUsId = await _context.Database.SqlQuery<int>($"SELECT ISNULL(MAX(UsId), 0) AS Value FROM Usuarios WITH (UPDLOCK, HOLDLOCK)").FirstAsync();
+                var existentesIds = porDni.Values.Where(u => u.RoId == RolId.Estudiante).Select(u => u.UsId).ToList();
+                var inscripcionesExistentes = await _context.Inscripciones
+                    .Where(i => existentesIds.Contains(i.UsId) && materiasIds.Contains(i.CaMaId))
+                    .Select(i => new { i.UsId, i.CaMaId }).ToListAsync();
+                var existentesSet = new HashSet<(int, int)>(inscripcionesExistentes.Select(i => (i.UsId, i.CaMaId)));
+                var procesados = new List<CargaMasivaAlumnoProcesadoDto>();
+                var nuevos = 0; var reutilizados = 0; var creadas = 0;
+
+                foreach (var item in filasValidas)
+                {
+                    var fila = item.Fila;
+                    Usuario usuario;
+                    var estado = "Alumno existente";
+                    if (!porDni.TryGetValue(item.Dni, out usuario!))
+                    {
+                        usuario = new Usuario
+                        {
+                            UsId = ++maxUsId, UsDni = item.Dni, UsApellido = fila.Apellido.Trim(), UsNombre = fila.Nombre.Trim(),
+                            UsEmail = fila.Email, UsContrasena = PasswordService.HashPassword(item.Dni.ToString()),
+                            RoId = RolId.Estudiante, CaCoId = fila.CaCoId, UsActivo = true
+                        };
+                        _context.Usuarios.Add(usuario); porDni[item.Dni] = usuario; nuevos++; estado = "Nuevo alumno";
                     }
                     else
                     {
-                        maxUsId++;
-                        currentUsId = maxUsId;
-                        estado = "Nuevo alumno";
-                        alumnosNuevos++;
-
-                        var nuevoUsuario = new Usuario
-                        {
-                            UsId = currentUsId,
-                            UsDni = fila.Dni,
-                            UsApellido = fila.Apellido,
-                            UsNombre = fila.Nombre,
-                            UsEmail = fila.Email,
-                            UsContrasena = PasswordService.HashPassword(fila.Dni.ToString()),
-                            RoId = RolId.Estudiante,
-                            CaCoId = model.CaCoId
-                        };
-                        _context.Usuarios.Add(nuevoUsuario);
+                        if (usuario.CaCoId == null) usuario.CaCoId = fila.CaCoId;
+                        reutilizados++;
                     }
 
-                    // Inscribir en las materias seleccionadas que no tenga aún
-                    foreach (var caMaId in model.SelectedCaMaIds)
+                    var inscripcionesFila = 0;
+                    foreach (var materiaId in fila.SelectedCaMaIds)
                     {
-                        if (!setInscripciones.Contains((currentUsId, caMaId)))
+                        if (existentesSet.Add((usuario.UsId, materiaId)))
                         {
                             _context.Inscripciones.Add(new Inscripciones
                             {
-                                UsId = currentUsId,
-                                CaMaId = caMaId
+                                UsId = usuario.UsId,
+                                CaMaId = materiaId,
+                                InFechaInscripcion = fila.FechaInscripcion?.Date ?? DateTime.Today
                             });
-                            setInscripciones.Add((currentUsId, caMaId));
-                            inscripcionesCreadas++;
-                            inscripcionesFila++;
+                            creadas++; inscripcionesFila++;
                         }
                     }
-
-                    listaProcesados.Add(new CargaMasivaAlumnoProcesadoDto
-                    {
-                        Fila = fila.Fila,
-                        Dni = fila.Dni,
-                        NombreCompleto = $"{fila.Apellido}, {fila.Nombre}",
-                        Email = fila.Email,
-                        Estado = estado,
-                        MateriasInscriptas = inscripcionesFila
-                    });
+                    procesados.Add(new CargaMasivaAlumnoProcesadoDto { Fila = fila.Fila, Dni = item.Dni, NombreCompleto = $"{fila.Apellido}, {fila.Nombre}", Email = fila.Email, Estado = estado, MateriasInscriptas = inscripcionesFila });
                 }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
                 ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
-
-                var resultadoExitoso = new CargaMasivaResultadoDto
+                var carreras = await _context.CarreraCohortes.Include(cc => cc.Carrera).Include(cc => cc.Cohorte).Where(cc => carrerasIds.Contains(cc.CaCoId)).ToListAsync();
+                return View("CargaMasivaResultado", new CargaMasivaResultadoDto
                 {
-                    EsExitoso = true,
-                    Mensaje = $"Se procesaron correctamente {parseResult.FilasValidas.Count} estudiantes ({alumnosNuevos} nuevos y {alumnosReutilizados} existentes). Se crearon {inscripcionesCreadas} inscripciones a materias.",
-                    CarreraCohorteDenominacion = ccDenom,
-                    TotalFilas = parseResult.FilasValidas.Count,
-                    AlumnosNuevos = alumnosNuevos,
-                    AlumnosReutilizados = alumnosReutilizados,
-                    InscripcionesCreadas = inscripcionesCreadas,
-                    MateriasInscriptas = nombresMaterias,
-                    AlumnosProcesados = listaProcesados
-                };
-
-                return View("CargaMasivaResultado", resultadoExitoso);
+                    EsExitoso = true, TotalFilas = procesados.Count, AlumnosNuevos = nuevos, AlumnosReutilizados = reutilizados,
+                    InscripcionesCreadas = creadas, AlumnosProcesados = procesados,
+                    CarreraCohorteDenominacion = string.Join("; ", carreras.Select(cc => $"{cc.Carrera?.CaDenominacion} - {cc.Cohorte?.CoAnio}")),
+                    MateriasInscriptas = materias.Values.Select(m => m.Materia?.MaDenominacion ?? $"Materia {m.CaMaId}").Distinct().ToList(),
+                    Mensaje = $"Se procesaron {procesados.Count} alumnos y se crearon {creadas} inscripciones."
+                });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                ExcelImportService.EliminarArchivoTemporal(model.TempFileToken);
-
-                var resultadoFallo = new CargaMasivaResultadoDto
-                {
-                    EsExitoso = false,
-                    // No se expone ex.Message al usuario: podía filtrar detalles internos
-                    // (nombres de tabla/columna) de la excepción de base de datos (ticket 6.14).
-                    Mensaje = "Ocurrió un error inesperado al guardar los datos. Se cancelaron todas las operaciones.",
-                    CarreraCohorteDenominacion = ccDenom,
-                    TotalFilas = parseResult.FilasValidas.Count
-                };
-
-                return View("CargaMasivaResultado", resultadoFallo);
+                _logger.LogError(ex, "Error al confirmar la carga masiva");
+                model.Errores.Add(new CargaMasivaFilaErrorDto { Fila = 1, Motivo = "No se pudieron guardar los cambios. No se modificó ningún dato." });
+                await CompletarCatalogosPrevisualizacionAsync(model);
+                return View("CargaMasivaPrevisualizar", model);
             }
         }
 
         #endregion
+
     }
 }

@@ -7,6 +7,7 @@ namespace ISFDyT124.Services
 {
     public class FilaExcelValidada
     {
+        public string Hoja { get; set; } = string.Empty;
         public int Fila { get; set; }
         public int Dni { get; set; }
         public string Apellido { get; set; } = string.Empty;
@@ -24,24 +25,83 @@ namespace ISFDyT124.Services
 
     public class ExcelImportService
     {
-        private static readonly Regex SoloLetrasRegex = new Regex(@"^[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]+$", RegexOptions.Compiled);
+        public const long MaximoBytes = 5 * 1024 * 1024;
+        public const int MaximoFilas = 1000;
+        private static readonly Regex SoloLetrasRegex = new Regex(@"^[\p{L}\p{M}\s'’-]+$", RegexOptions.Compiled);
         private static readonly EmailAddressAttribute EmailValidator = new EmailAddressAttribute();
 
-        public static string GuardarArchivoTemporal(IFormFile archivo)
+        public static string GuardarArchivoTemporal(IFormFile archivo, string? propietario = null)
         {
+            if (archivo.Length > MaximoBytes)
+            {
+                throw new InvalidDataException("El archivo supera el límite de 5 MB.");
+            }
+
+            LimpiarArchivosTemporalesVencidos();
             var token = Guid.NewGuid().ToString("N");
             var tempPath = ObtenerRutaArchivoTemporal(token);
             using (var stream = new FileStream(tempPath, FileMode.Create))
             {
                 archivo.CopyTo(stream);
             }
+            if (!string.IsNullOrWhiteSpace(propietario)) File.WriteAllText(tempPath + ".owner", propietario);
             return token;
+        }
+
+        public static bool ArchivoPerteneceA(string token, string propietario)
+        {
+            if (string.IsNullOrWhiteSpace(propietario) || !Regex.IsMatch(token ?? string.Empty, "^[a-fA-F0-9]{32}$")) return false;
+            try
+            {
+                var ownerPath = ObtenerRutaArchivoTemporal(token!) + ".owner";
+                return File.Exists(ownerPath) && string.Equals(File.ReadAllText(ownerPath), propietario, StringComparison.Ordinal);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static void LimpiarArchivosTemporalesVencidos()
+        {
+            try
+            {
+                foreach (var ruta in Directory.EnumerateFiles(Path.GetTempPath(), "alumnos_import_*.xlsx"))
+                {
+                    if (File.GetLastWriteTimeUtc(ruta) < DateTime.UtcNow.AddHours(-1))
+                    {
+                        File.Delete(ruta);
+                        if (File.Exists(ruta + ".owner")) File.Delete(ruta + ".owner");
+                    }
+                }
+            }
+            catch
+            {
+                // La limpieza no debe impedir una nueva importación.
+            }
+        }
+
+        public static List<CargaMasivaHojaDto> ObtenerHojas(string rutaArchivo)
+        {
+            using var workbook = new XLWorkbook(rutaArchivo);
+            return workbook.Worksheets.Select(worksheet =>
+            {
+                var first = worksheet.FirstRowUsed();
+                var last = worksheet.LastRowUsed();
+                var filas = first == null || last == null ? 0 : Math.Max(0, last.RowNumber() - first.RowNumber());
+                return new CargaMasivaHojaDto
+                {
+                    Nombre = worksheet.Name,
+                    TotalFilas = filas,
+                    TieneDatos = filas > 0
+                };
+            }).ToList();
         }
 
         public static string ObtenerRutaArchivoTemporal(string token)
         {
             // Sanitizar token para evitar path traversal
-            var safeToken = Regex.Replace(token, @"[^a-zA-Z0-9]", "");
+            var safeToken = Regex.Replace(token ?? string.Empty, @"[^a-zA-Z0-9]", "");
             return Path.Combine(Path.GetTempPath(), $"alumnos_import_{safeToken}.xlsx");
         }
 
@@ -54,6 +114,8 @@ namespace ISFDyT124.Services
                 {
                     File.Delete(ruta);
                 }
+                var ownerPath = ruta + ".owner";
+                if (File.Exists(ownerPath)) File.Delete(ownerPath);
             }
             catch
             {
@@ -68,7 +130,12 @@ namespace ISFDyT124.Services
 
             using (var workbook = new XLWorkbook(rutaArchivo))
             {
-                var worksheet = workbook.Worksheets.FirstOrDefault();
+                var worksheet = workbook.Worksheets.FirstOrDefault(w =>
+                {
+                    var first = w.FirstRowUsed();
+                    var last = w.LastRowUsed();
+                    return first != null && last != null && last.RowNumber() > first.RowNumber();
+                }) ?? workbook.Worksheets.FirstOrDefault();
                 if (worksheet == null)
                 {
                     return (columnas, previewRows);
@@ -267,7 +334,7 @@ namespace ISFDyT124.Services
                     }
                     else if (!SoloLetrasRegex.IsMatch(rawApellido))
                     {
-                        listaErroresFila.Add("El Apellido contiene caracteres inválidos (solo letras y espacios permitidos).");
+                        listaErroresFila.Add("El Apellido contiene caracteres inválidos.");
                     }
 
                     // 3. Validación de Nombre
@@ -281,7 +348,7 @@ namespace ISFDyT124.Services
                     }
                     else if (!SoloLetrasRegex.IsMatch(rawNombre))
                     {
-                        listaErroresFila.Add("El Nombre contiene caracteres inválidos (solo letras y espacios permitidos).");
+                        listaErroresFila.Add("El Nombre contiene caracteres inválidos.");
                     }
 
                     // 4. Validación de Email
@@ -292,6 +359,10 @@ namespace ISFDyT124.Services
                     else if (!EmailValidator.IsValid(rawEmail))
                     {
                         listaErroresFila.Add($"El Email '{rawEmail}' no tiene un formato válido.");
+                    }
+                    else if (rawEmail.Length > 254)
+                    {
+                        listaErroresFila.Add("El Email supera el límite de 254 caracteres.");
                     }
 
                     // Registro de errores o fila válida
@@ -324,6 +395,67 @@ namespace ISFDyT124.Services
             }
 
             return resultado;
+        }
+
+        public static ResultadoValidacionExcel ValidarYLeerFilasDeHojas(
+            string rutaArchivo,
+            IReadOnlyCollection<string> hojasSeleccionadas,
+            string colDni,
+            string colApellido,
+            string colNombre,
+            string colEmail)
+        {
+            var acumulado = new ResultadoValidacionExcel();
+            using var workbook = new XLWorkbook(rutaArchivo);
+            var hojas = workbook.Worksheets
+                .Where(w => hojasSeleccionadas.Contains(w.Name, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            if (hojas.Count == 0)
+            {
+                acumulado.Errores.Add(new CargaMasivaFilaErrorDto
+                {
+                    Fila = 1,
+                    Motivo = "Debe seleccionar al menos una pestaña válida del archivo."
+                });
+                return acumulado;
+            }
+
+            foreach (var hoja in hojas)
+            {
+                var rutaHoja = Path.Combine(Path.GetTempPath(), $"alumnos_hoja_{Guid.NewGuid():N}.xlsx");
+                try
+                {
+                    using (var libroHoja = new XLWorkbook())
+                    {
+                        hoja.CopyTo(libroHoja, "Datos");
+                        libroHoja.SaveAs(rutaHoja);
+                    }
+
+                    var parcial = ValidarYLeerFilas(rutaHoja, colDni, colApellido, colNombre, colEmail);
+                    foreach (var fila in parcial.FilasValidas) fila.Hoja = hoja.Name;
+                    foreach (var error in parcial.Errores) error.Hoja = hoja.Name;
+                    acumulado.FilasValidas.AddRange(parcial.FilasValidas);
+                    acumulado.Errores.AddRange(parcial.Errores);
+                    acumulado.TotalFilas += parcial.TotalFilas;
+                }
+                finally
+                {
+                    if (File.Exists(rutaHoja)) File.Delete(rutaHoja);
+                }
+            }
+
+            if (acumulado.TotalFilas > MaximoFilas)
+            {
+                acumulado.Errores.Add(new CargaMasivaFilaErrorDto
+                {
+                    Fila = 1,
+                    Motivo = $"La importación contiene {acumulado.TotalFilas} filas y el máximo permitido es {MaximoFilas}."
+                });
+                acumulado.FilasValidas.Clear();
+            }
+
+            return acumulado;
         }
 
         private static string NormalizarTexto(string texto)

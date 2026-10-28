@@ -12,9 +12,9 @@
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
 </head>
 <body class="login-page">
-    
+
     <div class="auth-wrapper-global">
-        
+
         <main class="auth-card">
             <div class="auth-header">
                 <img src="~/images/logo.png" alt="IS 124" class="auth-logo">
@@ -23,17 +23,22 @@
                     <div class="title-large">ASISTENCIAS</div>
                 </div>
             </div>
-            
+
             <div class="header-divider-auth"></div>
 
             <h2 class="form-title-auth">Recuperar Contraseña</h2>
             <p class="auth-instruction">
                 Ingresá tu correo electrónico registrado y te enviaremos las instrucciones para restablecer tu contraseña.
             </p>
-            
+
             @if (ViewBag.Error != null)
             {
                 <div class="alerta-error" role="alert">
+                    <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
                     <div class="alerta-texto">@ViewBag.Error</div>
                 </div>
             }
@@ -41,17 +46,24 @@
             @if (TempData["Error"] != null)
             {
                 <div class="alerta-error" role="alert">
+                    <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
                     <div class="alerta-texto">@TempData["Error"]</div>
                 </div>
             }
 
             <form method="post" asp-controller="Account" asp-action="StartRecovery" class="auth-form">
+                @Html.AntiForgeryToken()
+
                 <div class="input-field-auth">
                     <label asp-for="UsEmail">Correo Electrónico</label>
-                    <input asp-for="UsEmail" type="email" placeholder="ejemplo@ies124.edu.ar" required autocomplete="off">
-                    <span asp-validation-for="UsEmail"></span>
+                    <input asp-for="UsEmail" type="text" inputmode="email" placeholder="ejemplo@ies124.edu.ar" autocomplete="off">
+                    <span asp-validation-for="UsEmail" class="text-danger"></span>
                 </div>
-                
+
                 <div class="button-container-auth">
                     <button type="submit" class="btn-enviar-recupero">Enviar Enlace</button>
                 </div>
@@ -64,6 +76,9 @@
 
     </div>
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/script.js" asp-append-version="true"></script>
 </body>
 </html>

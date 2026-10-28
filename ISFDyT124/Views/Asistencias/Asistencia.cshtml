@@ -1,12 +1,11 @@
-﻿@model ISFDyT124.Models.AsistenciaFormViewModel
+﻿
+@model ISFDyT124.Models.AsistenciaFormViewModel
 
 @{
     ViewData["Title"] = "Toma de Asistencia";
-    // Antes esta pantalla no tenía BodyClass y quedaba sin el fondo/alto de página que sí
-    // tienen el resto de las pantallas de asistencia (reutiliza la misma clase que
-    // Profesor/Asistencia.cshtml, no hace falta una nueva).
     ViewData["BodyClass"] = "asistencia-page";
 }
+
 
 <main class="main-container-asistencia">
 
@@ -15,59 +14,237 @@
             <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
             <p class="info-bold">@ViewBag.CarreraNombre</p>
         </div>
+
         <div class="info-col-right">
             <p class="info-bold">@ViewBag.MateriaNombre</p>
         </div>
     </div>
 
-    <form asp-action="Asistencia" method="post" id="formAsistencia">
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="CaMaId" />
+    @if (TempData["OperationErrorMessage"] is string errorMessage)
+    {
+        <div class="operation-notice operation-notice-error"
+             role="alert"
+             id="operationError">
 
-        @* Se reutiliza .table-container/.attendance-table (mismas clases que
-           Profesor/Asistencia.cshtml) en vez de .global-table-container/.global-table:
-           esas últimas están pensadas para una grilla tipo planilla de escritorio
-           (min-width: 900px, pensada para AsistenciaGlobal/histórico con muchas columnas
-           de fecha) y en el celular obligaban a hacer scroll horizontal para tomar
-           asistencia del día a día. Esta pantalla tiene solo 3 columnas fijas, entra
-           perfecto en una sola columna sin scroll horizontal. *@
-        <div class="table-container">
-            <table class="attendance-table admin-modulos-table">
+            <div class="operation-notice-icon" aria-hidden="true">!</div>
+
+            <div class="operation-notice-content">
+                <strong>No se pudo completar la operación</strong>
+                <p>@errorMessage</p>
+            </div>
+
+            <button type="button"
+                    class="operation-notice-close"
+                    aria-label="Cerrar notificación"
+                    onclick="this.parentElement.remove()">
+                ×
+            </button>
+        </div>
+    }
+
+    <form asp-controller="Asistencias"
+          asp-action="Asistencia"
+          asp-route-CaMaId="@Model.CaMaId"
+          method="post"
+          id="formAsistencia">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="CaMaId" />
+        <input type="hidden" asp-for="EsEdicionHistorica" />
+
+        <div class="seccion-centrada"
+             style="max-width: 650px; margin: 35px auto 25px; padding: 0 1.5rem; box-sizing: border-box;">
+
+            <div class="admin-filter-container"
+                 style="background-color: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+
+                <div class="form-group" style="margin: 0;">
+
+                    <label asp-for="FechaAsistencia"
+                           style="font-weight: 600; color: #1e293b; margin-bottom: 8px; display: block;">
+                        Fecha de cursada
+                    </label>
+
+                    <select asp-for="FechaAsistencia"
+                            asp-items="ViewBag.FechasPendientes"
+                            id="FechaAsistencia"
+                            class="form-control"
+                            style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+
+                        @if (ViewBag.SinFechasPendientes == true)
+                        {
+                            <option value="">Sin fechas disponibles</option>
+                        }
+                        else
+                        {
+                            <option value="">-- Seleccioná una jornada pendiente --</option>
+                        }
+                    </select>
+
+                    <span asp-validation-for="FechaAsistencia"
+                          class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container attendance-table-card">
+            <table class="attendance-table admin-modulos-table">         
                 <thead>
                     <tr>
-                        <th style="width: 40%;">Apellido y Nombre</th>
-                        <th style="width: 40%; text-align: center;">Módulos</th>
-                        <th style="width: 20%; text-align: center;">Justificación</th>
+                        <th>Apellido y Nombre</th>
+                        <th class="text-center">Módulos</th>
+                        <th class="text-center">
+                            <span class="porcentaje-desktop">Porcentaje</span>
+                            <span class="porcentaje-responsive">%</span>
+                        </th>
+                        <th class="text-center">Observación</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for (int i = 0; i < Model.Rows.Count; i++)
                     {
-                        <tr>
-                            <td>@Model.Rows[i].FullName
-                                <input type="hidden" name="Rows[@i].UsId" value="@Model.Rows[i].UsId" />
-                            </td>
-                            <td class="modules-cell" style="text-align: center;">
-                                @{
-                                    var moduleCount = ViewData["MaCantModulos"] as int? ?? Model.ModuleCount;
+                        var row = Model.Rows[i];
+
+                        var moduleCount =
+                            ViewData["MaCantModulos"] as int?
+                            ?? Model.ModuleCount;
+
+                        <tr class="@(Model.EsEdicionHistorica && row.BloqueadaPorInscripcion
+                            ? "fila-bloqueada"
+                            : "")">
+
+                            @* COLUMNA 1: APELLIDO Y NOMBRE *@
+                            <td>
+                                @row.FullName
+
+                                <input type="hidden"
+                                       name="Rows[@i].UsId"
+                                       value="@row.UsId" />
+
+                                @if (Model.EsEdicionHistorica && row.BloqueadaPorInscripcion)
+                                {
+                                    <span class="aviso-fila-bloqueada">
+                                        No estaba inscripto en esta fecha.
+                                    </span>
                                 }
-                                <div class="modules-group">
-                                    @for (int m = 0; m < moduleCount; m++)
-                                    {
-                                        var isChecked = (Model.Rows[i].Modulos != null && Model.Rows[i].Modulos.Count > m) ? Model.Rows[i].Modulos[m] : false;
-                                        <input type="checkbox" class="custom-checkbox" name="Rows[@i].Modulos[@m]" value="true" @(isChecked ? "checked" : "") />
-                                    }
-                                    @{
-                                        var mc = moduleCount > 0 ? moduleCount : 1;
-                                        var checkedCount = Model.Rows[i].Modulos != null ? Model.Rows[i].Modulos.Count(x => x) : 0;
-                                        var pct = Math.Round((decimal)checkedCount / mc * 100, 1);
-                                    }
-                                    <span class="row-pct" data-row="@i">@pct%</span>
-                                </div>
                             </td>
-                            <td class="justification-cell" style="text-align: center;">
-                                <input type="checkbox" class="custom-checkbox" name="Rows[@i].AsJustificacion" value="true" @(Model.Rows[i].AsJustificacion ? "checked" : "") />
-                                <input type="hidden" name="Rows[@i].AsPresente" value="@(Model.Rows[i].AsPresente ? "true" : "false")" />
+
+                            @* COLUMNA 2: MÓDULOS *@
+                            <td class="modules-cell" style="text-align: center;">
+                                @if (Model.EsEdicionHistorica)
+                                {
+                                    <span title="El detalle de módulos no se conserva en los registros históricos">
+                                        —
+                                    </span>
+                                }
+                                else
+                                {
+                                    <div class="modules-group">
+                                        @for (int m = 0; m < moduleCount; m++)
+                                        {
+                                            var isChecked =
+                                                row.Modulos != null &&
+                                                row.Modulos.Count > m &&
+                                                row.Modulos[m];
+
+                                            <input type="checkbox"
+                                                   class="custom-checkbox"
+                                                   name="Rows[@i].Modulos[@m]"
+                                                   value="true"
+                                                   @(isChecked ? "checked" : "") />
+
+                                            <input type="hidden"
+                                                   name="Rows[@i].Modulos[@m]"
+                                                   value="false" />
+                                        }
+                                    </div>
+                                }
+                            </td>
+
+                            @* COLUMNA 3: PORCENTAJE *@
+                            <td class="percentage-cell" style="text-align: center;">
+                                @if (Model.EsEdicionHistorica)
+                                {
+                                    @if (row.BloqueadaPorInscripcion)
+                                    {
+                                        <span title="El estudiante aún no estaba inscripto en esta fecha">
+                                            —
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <input type="number"
+                                               class="porcentaje-historico-input"
+                                               name="Rows[@i].PorcentajeEditado"
+                                               value="@row.PorcentajeEditado.ToString(
+                                                   System.Globalization.CultureInfo.InvariantCulture)"
+                                               min="0"
+                                               max="100"
+                                               step="0.01"
+                                               required
+                                               aria-label="Porcentaje de asistencia para @row.FullName" />
+                                    }
+                                }
+                                else
+                                {
+                                    var mc = moduleCount > 0 ? moduleCount : 1;
+
+                                    var checkedCount =
+                                        row.Modulos != null
+                                            ? row.Modulos.Count(x => x)
+                                            : 0;
+
+                                    var pct = Math.Round(
+                                        (decimal)checkedCount / mc * 100, 1);
+
+                                    <span class="row-pct" data-row="@i">@pct%</span>
+                                }
+                            </td>
+
+                            @* COLUMNA 4: OBSERVACIÓN Y JUSTIFICACIÓN *@
+                            <td class="observation-cell">
+                                @if (Model.EsEdicionHistorica)
+                                {
+                                    <div class="justificacion-container">
+                                        <input type="checkbox"
+                                               class="justificacion-historica"
+                                               id="justificacion-@i"
+                                               name="Rows[@i].AsJustificacion"
+                                               value="true"
+                                               checked="@row.AsJustificacion"
+                                               disabled="@row.BloqueadaPorInscripcion" />
+
+                                        <input type="hidden"
+                                               name="Rows[@i].AsJustificacion"
+                                               value="false"
+                                               disabled="@row.BloqueadaPorInscripcion" />
+
+                                        <label for="justificacion-@i">
+                                            Justificada
+                                        </label>
+                                    </div>
+
+                                    <input type="text"
+                                           class="observacion-historica-input"
+                                           name="Rows[@i].AsObservacion"
+                                           value="@row.AsObservacion"
+                                           disabled="@row.BloqueadaPorInscripcion"
+                                           placeholder="Escribí una observación..."
+                                           aria-label="Observación para @row.FullName" />
+                                }
+                                else
+                                {
+                                    <div class="input-field observation-field">
+                                        <input type="text"
+                                               id="observacion-@i"
+                                               class="observation-input"
+                                               name="Rows[@i].AsObservacion"
+                                               value="@row.AsObservacion"
+                                               placeholder="Escribí una observación..."
+                                               aria-label="Observación para @row.FullName" />
+                                    </div>
+                                }
                             </td>
                         </tr>
                     }
@@ -76,38 +253,76 @@
         </div>
 
         <div class="admin-asistencia-buttons">
-            <button type="submit" class="btn-guardar">Guardar</button>
-            <a asp-action="Index" asp-controller="Asistencias" class="btn-cancel">Cancelar</a>
+            <button type="submit" class="btn-guardar">
+                Guardar
+            </button>
+
+            <a asp-controller="Profesor"
+               asp-action="Index"
+               asp-route-CaMaId="@Model.CaMaId"
+               class="btn-cancel">
+                Cancelar
+            </a>
         </div>
     </form>
 </main>
 
 <script>
-    (function(){
-        // actualizar porcentaje cuando cambian checkboxes de módulos
-        function updateRowPct(rowIndex, moduleCount){
-            var checkboxes = document.querySelectorAll('input[name^="Rows['+rowIndex+'].Modulos["]');
+    (function () {
+        function updateRowPct(rowIndex, moduleCount) {
+            var checkboxes = document.querySelectorAll(
+                'input[name^="Rows[' + rowIndex + '].Modulos["][type="checkbox"]'
+            );
+
             var checked = 0;
-            for(var i=0;i<checkboxes.length;i++) if(checkboxes[i].checked) checked++;
+
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    checked++;
+                }
+            }
+
             var pct = 0;
-            if(moduleCount > 0) pct = Math.round((checked/moduleCount)*100*10)/10; // 1 decimal
-            var span = document.querySelector('.row-pct[data-row="'+rowIndex+'"]');
-            if(span) span.textContent = pct + '%';
+
+            if (moduleCount > 0) {
+                pct = Math.round((checked / moduleCount) * 100 * 10) / 10;
+            }
+
+            var span = document.querySelector(
+                '.row-pct[data-row="' + rowIndex + '"]'
+            );
+
+            if (span) {
+                span.textContent = pct + '%';
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', function(){
-            // find moduleCount from ViewData or default
-            var moduleCount = parseInt('@(ViewData["MaCantModulos"] ?? Model.ModuleCount)');
-            // attach listeners for each checkbox
-            var inputs = document.querySelectorAll('input[type=checkbox][name*=".Modulos["]');
-            inputs.forEach(function(ch){
-                ch.addEventListener('change', function(e){
-                    // extract row index from name like Rows[0].Modulos[1]
+        document.addEventListener('DOMContentLoaded', function () {
+            // El porcentaje por módulos solo se calcula en la toma normal.
+            var esEdicionHistorica =
+                document.querySelector('input[name="EsEdicionHistorica"]')?.value === 'True'
+                || document.querySelector('input[name="EsEdicionHistorica"]')?.value === 'true';
+
+            if (esEdicionHistorica) {
+                return;
+            }
+
+            var moduleCount = parseInt(
+                '@(ViewData["MaCantModulos"] ?? Model.ModuleCount)',
+                10
+            );
+
+            var inputs = document.querySelectorAll(
+                'input[type="checkbox"][name*=".Modulos["]'
+            );
+
+            inputs.forEach(function (ch) {
+                ch.addEventListener('change', function (e) {
                     var name = e.target.getAttribute('name');
-                    var m = name.match(/^Rows\[(\d+)\]\.Modulos\[/);
-                    if(m){
-                        var rowIndex = parseInt(m[1]);
-                        updateRowPct(rowIndex, moduleCount);
+                    var match = name.match(/^Rows\[(\d+)\]\.Modulos\[/);
+
+                    if (match) {
+                        updateRowPct(parseInt(match[1], 10), moduleCount);
                     }
                 });
             });
@@ -115,58 +330,84 @@
     })();
 </script>
 
-@* Ticket 8.2: portar la cola offline (Dexie) de Views/Profesor/Asistencia.cshtml a esta
-   pantalla de Admin/Dirección. Dexie y offline-asistencia.js ya se cargan en _Layout.cshtml
-   para esDocente || esAdminODireccion. *@
+@* La cola offline se utiliza únicamente para crear asistencias normales.
+   La edición histórica debe enviarse al servidor para actualizar los registros existentes. *@
 <script>
-    // Frente 7 (PWA offline) para Admin/Dirección: si no hay señal al guardar, encola en
-    // IndexedDB en vez de dejar que el submit nativo falle, sin avisos ni botones — se
-    // sincroniza sola cuando vuelva la señal. Con señal, el comportamiento de siempre no
-    // cambia en nada.
     (function () {
         var form = document.getElementById('formAsistencia');
+        var esEdicionHistorica = @Html.Raw(
+            Model.EsEdicionHistorica ? "true" : "false"
+        );
+
+        // Nunca encolar una edición histórica como si fuera una asistencia nueva.
+        if (esEdicionHistorica) {
+            return;
+        }
+
         var maId = @(ViewBag.MateriaId ?? 0);
         var caMaId = @(Model.CaMaId ?? 0);
-        // El formulario del Admin no tiene selector de fecha propio: el POST siempre usa
-        // DateTime.Today del servidor. Para que el resultado offline sea idéntico, se manda
-        // "hoy" calculado en el mismo formato que ya usa la cola del Docente (yyyy-MM-dd).
-        var fecha = '@DateTime.Today.ToString("yyyy-MM-dd")';
 
         if (form && caMaId) {
             form.addEventListener('submit', function (e) {
-                if (navigator.onLine || !window.OfflineAsistencia) return; // caso normal, sin cambios
+                if (navigator.onLine || !window.OfflineAsistencia) {
+                    return;
+                }
 
                 e.preventDefault();
 
+                var selectorFecha = document.getElementById('FechaAsistencia');
+                var fecha = selectorFecha ? selectorFecha.value : '';
+
+                if (!fecha) {
+                    alert('Seleccioná una jornada de cursada antes de guardar.');
+                    return;
+                }
+
                 var filas = [];
+
                 form.querySelectorAll('tbody tr').forEach(function (tr) {
                     var usIdInput = tr.querySelector('input[name$=".UsId"]');
-                    if (!usIdInput) return;
 
-                    // Réplica exacta del cálculo que hace AsistenciasController.Asistencia (POST):
-                    // presente = cantidad de módulos tildados > 0. No hay un solo checkbox
-                    // "Presente" en esta pantalla, son checkboxes por módulo.
-                    var moduloCheckboxes = tr.querySelectorAll('input[type=checkbox][name*=".Modulos["]');
+                    if (!usIdInput) {
+                        return;
+                    }
+
+                    var moduloCheckboxes = tr.querySelectorAll(
+                        'input[type="checkbox"][name*=".Modulos["]'
+                    );
+
                     var checkedCount = 0;
-                    moduloCheckboxes.forEach(function (ch) { if (ch.checked) checkedCount++; });
+
+                    moduloCheckboxes.forEach(function (ch) {
+                        if (ch.checked) {
+                            checkedCount++;
+                        }
+                    });
+
                     var presente = checkedCount > 0;
 
-                    var justificacionInput = tr.querySelector('input[name$=".AsJustificacion"]');
+                    var justificacionInput = tr.querySelector(
+                        'input[name$=".AsJustificacion"][type="checkbox"]'
+                    );
 
                     filas.push({
                         usId: parseInt(usIdInput.value, 10),
                         presente: presente,
-                        justificacion: !!(justificacionInput && justificacionInput.checked),
+                        justificacion: !!(
+                            justificacionInput && justificacionInput.checked
+                        )
                     });
                 });
 
-                if (filas.length === 0) return;
+                if (filas.length === 0) {
+                    return;
+                }
 
-                // Misma navegación que haría el servidor tras un guardado normal (redirige a
-                // Asistencias/Index) — la pantalla se comporta igual haya señal o no.
-                window.OfflineAsistencia.encolarAsistencia(maId, caMaId, fecha, filas).then(function () {
-                    window.location.href = '/Asistencias';
-                });
+                window.OfflineAsistencia
+                    .encolarAsistencia(maId, caMaId, fecha, filas)
+                    .then(function () {
+                        window.location.href = '/Asistencias';
+                    });
             });
         }
     })();

@@ -54,6 +54,11 @@ namespace ISFDyT124.DTO
 
         public bool UsActivo { get; set; }
 
+        // Propiedad para permitir seleccionar la fecha real de inscripción
+        [DataType(DataType.Date)]
+        [Display(Name = "Fecha de Inscripción")]
+        public DateTime? InFechaInscripcion { get; set; }
+
         // Materias (CarreraMateria.CaMaId) en las que queda inscripto el estudiante.
         // En alta se crean las Inscripciones; en edición se sincroniza (alta/baja)
         // contra las materias de su carrera. Mismo criterio que la carga masiva.

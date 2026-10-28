@@ -1,14 +1,15 @@
+using System.Threading.RateLimiting; // Necesario para Rate Limiting
 using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
 using ISFDyT124.Models; // Importa los modelos
-using ISFDyT124.Services; // Importa PasswordService para hashear la contraseña sembrada
+using ISFDyT124.Services; // Importa PasswordService y servicios auxiliares
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides; // Necesario para ForwardedHeadersOptions (deploy detrás del proxy de Railway)
+using Microsoft.AspNetCore.RateLimiting; // Necesario para Rate Limiting
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
 
-//using ISFDyT124.DTOs; // Importa objetos de transferencia de datos
+var builder = WebApplication.CreateBuilder(args);
 
-var builder = WebApplication.CreateBuilder(args); // Crea el constructor del builder de la aplicaci�n web
-
-// Configura la conexin a la base de datos SQL Server usando el contexto InstitutoDbContext
+// Configura la conexión a la base de datos SQL Server usando el contexto InstitutoDbContext
 builder.Services.AddDbContext<InstitutoDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DBSI")
@@ -16,39 +17,88 @@ builder.Services.AddDbContext<InstitutoDbContext>(options =>
     )
 );
 
-// Aade controladores con vistas para MVC
-builder.Services.AddControllersWithViews();
+// Habilita IMemoryCache para el rate limiting por correo
+builder.Services.AddMemoryCache();
 
-// El antiforgery clásico espera el token en un campo de formulario HTML
-// (__RequestVerificationToken), pensado para submits normales. La cola offline
-// sincroniza vía fetch() con JSON, así que en vez de eso el token viaja en este
-// header — [ValidateAntiForgeryToken] lo sigue validando igual, solo cambia de dónde
-// lo lee.
+// Registra el servicio que limita intentos por dirección de email
+builder.Services.AddSingleton<IEmailRateLimiter, EmailRateLimiter>();
+
+// Configura Rate Limiting nativo de ASP.NET Core (por IP)
+builder.Services.AddRateLimiter(options =>
+{
+    // Manejador cuando un usuario supera el límite por IP
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        // Si el bloqueo ocurrió intentando recuperar contraseña
+        if (context.HttpContext.Request.Path.StartsWithSegments("/Account/StartRecovery"))
+        {
+            // Redirige al Login con el flag para mostrar la advertencia
+            context.HttpContext.Response.Redirect("/Account/Login?limiteExcedido=true");
+            return;
+        }
+
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        await context.HttpContext.Response.WriteAsync("Demasiadas solicitudes. Inténtalo más tarde.", cancellationToken);
+    };
+
+    // Política específica para el endpoint de recuperación de contraseña
+    options.AddPolicy("ForgotPasswordLimiter", httpContext =>
+    {
+        // Al estar activo UseForwardedHeaders, RemoteIpAddress contiene la IP pública del cliente
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientIp,
+            factory: key => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,                         // Máximo 5 peticiones por IP
+                Window = TimeSpan.FromMinutes(15),       // Cada 15 minutos
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0                           // Sin cola de espera: rechaza de inmediato
+            });
+    });
+});
+
+// Añade controladores con vistas para MVC
+builder.Services.AddControllersWithViews();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = ExcelImportService.MaximoBytes + (256 * 1024);
+    options.ValueCountLimit = 50_000;
+});
+
+// Antiforgery para peticiones normales y fetch()
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 
-// Configura la autenticaci�n basada en cookies
+// Configura la autenticación basada en cookies
 builder
-    .Services.AddAuthentication("Cookies") // Define el esquema de autenticaci�n llamado "Cookies"
+    .Services.AddAuthentication("Cookies")
     .AddCookie(
         "Cookies",
-        options => // Configura opciones para autenticacion por cookies
+        options =>
         {
-            options.LoginPath = "/Account/Login"; // Ruta a la pagina de login para redirecci�n en caso de no autenticado
-            options.LogoutPath = "/Account/Salir"; // Ruta para cerrar sesi�n
-            // 30 días (antes 30 minutos): ahora que la cookie se persiste, este es el tiempo
-            // real que el docente puede estar sin llegar al servidor y seguir logueado. Con 30
-            // minutos, alguien que se logueaba con wifi a la mañana y llegaba al aula sin señal
-            // un par de horas después ya aparecía deslogueado y no podía tomar asistencia.
+            options.LoginPath = "/Account/Login";
+            options.LogoutPath = "/Account/Salir";
             options.ExpireTimeSpan = TimeSpan.FromDays(30);
-            options.SlidingExpiration = true; // Renueva el tiempo de expiraci�n al solicitar recursos si el usuario est� activo
-            options.AccessDeniedPath = "/Home/Privacy"; // Ruta a la que redirige si el usuario no tiene permisos
+            options.SlidingExpiration = true;
+            options.AccessDeniedPath = "/Home/AccessDenied";
 
-            // Sin esto, un fetch() a /api/* con la cookie vencida recibe un 302 a
-            // /Account/Login (HTML) en vez de un 401 — el JS de sincronización no
-            // puede reaccionar bien a eso. Para rutas /api devolvemos el status code
-            // crudo; el resto de la app sigue redirigiendo como siempre.
             options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
             {
+                // El Estudiante no tiene pantallas propias y el login ya no lo deja entrar,
+                // pero una cookie emitida ANTES de ese cambio dura hasta 30 días (y se renueva
+                // sola mientras se use). Se revisa en cada pedido, sin ir a la base: el rol
+                // viaja dentro de la cookie. Si es Estudiante se descarta la sesión y se cierra.
+                OnValidatePrincipal = async context =>
+                {
+                    if (context.Principal?.IsInRole("Estudiante") == true)
+                    {
+                        context.RejectPrincipal();
+                        await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions
+                            .SignOutAsync(context.HttpContext, "Cookies");
+                    }
+                },
                 OnRedirectToLogin = context =>
                 {
                     if (context.Request.Path.StartsWithSegments("/api"))
@@ -73,7 +123,7 @@ builder
         }
     );
 
-var app = builder.Build(); // Construye la aplicacion con la configuracion realizada
+var app = builder.Build();
 
 // Seed: crear roles y usuario admin si no existen
 using (var scope = app.Services.CreateScope())
@@ -87,9 +137,6 @@ using (var scope = app.Services.CreateScope())
         context.Roles.Add(rolAdmin);
     }
 
-    // Roles del negocio: se busca por RoId (PK fija) y se corrige la denominación si cambió,
-    // en vez de buscar por nombre (que en bases con el seed viejo insertaba una fila duplicada
-    // y rompía el arranque). Denominaciones definitivas: Docente / Estudiante / Dirección.
     var rolDocente = await context.Roles.FindAsync(RolId.Docente);
     if (rolDocente == null)
         context.Roles.Add(new Rol { RoId = RolId.Docente, RoDenominacion = "Docente" });
@@ -108,9 +155,7 @@ using (var scope = app.Services.CreateScope())
     await context.SaveChangesAsync();
 }
 
-// Railway (y cualquier proxy inverso) termina el HTTPS en su borde y reenvía la request al
-// contenedor por HTTP simple — sin esto, UseHttpsRedirection/UseHsts ven cada request como HTTP
-// y la vuelven a mandar a HTTPS, generando un loop de redirects infinito para el visitante.
+// Muy importante: ForwardedHeaders DEBE ejecutarse primero para resolver la IP real antes del Rate Limiter
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -119,15 +164,21 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 // Configuraciones para ambientes que NO son de desarrollo
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error"); // Manejo global de excepciones, lleva a la p�gina de error
-    app.UseHsts(); // Usa HTTP Strict Transport Security para proteger la app en producci�n
+    app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+    app.UseHsts();
 }
 
-//Middleware
-app.UseHttpsRedirection(); // Redirige solicitudes HTTP a HTTPS
-app.UseStaticFiles(); // Habilita servir archivos esteticos
-app.UseRouting(); // Habilita el enrutamiento de solicitudes HTTP
-app.UseAuthentication(); // Habilita la autenticacion en middleware para validar usuarios
-app.UseAuthorization(); // Habilita autorizacion para acceso a recursos // Define la ruta por defecto para las peticiones MVC: controlador, accion y parametro opcional id
+// Pipeline de Middleware
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+
+// RateLimiter debe ir OBLIGATORIAMENTE después de UseRouting y antes de UseAuthentication/UseAuthorization
+app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
-app.Run(); // Ejecuta la aplicacion web
+app.Run();
