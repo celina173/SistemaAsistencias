@@ -15,7 +15,7 @@
         <form asp-controller="Asistencias" asp-action="Index" method="get" class="form-grid">
             <div class="input-field" style="grid-column: span 2;">
                 <label for="carrera">Carrera</label>
-                <select asp-for="SelectedCarreraId" id="carrera" class="custom-select" required>
+                <select asp-for="SelectedCarreraId" id="carrera" aria-label="Seleccionar carrera para tomar asistencia" class="custom-select" required>
                     <option value="" disabled selected>Seleccione una Carrera</option>
                     @foreach (var carrera in Model.Carreras)
                     {
@@ -26,7 +26,7 @@
 
             <div class="input-field" style="grid-column: span 2;">
                 <label for="materia">Materia</label>
-                <select asp-for="SelectedMateriaId" id="materia" class="custom-select" required>
+                <select asp-for="SelectedMateriaId" id="materia" aria-label="Seleccionar materia para tomar asistencia" class="custom-select" required>
                     <option value="" disabled selected>Seleccione una Materia</option>
                     @foreach (var materia in Model.Materias)
                     {

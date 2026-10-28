@@ -22,8 +22,28 @@ namespace ISFDyT124.DTO
         public IFormFile? ArchivoExcel { get; set; }
     }
 
+    public class ImportacionMasivaEstado
+    {
+        public Guid ImportId { get; set; }
+        public string UsuarioId { get; set; } = string.Empty;
+        public DateTime CreadoUtc { get; set; }
+        public DateTime UltimoAccesoUtc { get; set; }
+        public int CaCoId { get; set; }
+        public List<int> SelectedCaMaIds { get; set; } = new();
+        public string CarreraCohorteDenominacion { get; set; } = string.Empty;
+        public List<string> MateriasSeleccionadasNombres { get; set; } = new();
+        public List<string> ColumnasExcel { get; set; } = new();
+        public List<Dictionary<string, string>> PreviewRows { get; set; } = new();
+        public string ColumnaDni { get; set; } = string.Empty;
+        public string ColumnaApellido { get; set; } = string.Empty;
+        public string ColumnaNombre { get; set; } = string.Empty;
+        public string ColumnaEmail { get; set; } = string.Empty;
+    }
+
     public class CargaMasivaMapeoDto
     {
+        public Guid ImportId { get; set; }
+
         [Required]
         public string TempFileToken { get; set; } = string.Empty;
 
@@ -38,28 +58,9 @@ namespace ISFDyT124.DTO
 
         public List<string> MateriasSeleccionadasNombres { get; set; } = new List<string>();
 
-        public List<string> ColumnasExcel { get; set; } = new List<string>();
-
-        [Required(ErrorMessage = "Debe mapear la columna correspondiente a DNI.")]
-        [Display(Name = "Columna para DNI")]
-        public string ColumnaDni { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Debe mapear la columna correspondiente a Apellido.")]
-        [Display(Name = "Columna para Apellido")]
-        public string ColumnaApellido { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Debe mapear la columna correspondiente a Nombre.")]
-        [Display(Name = "Columna para Nombre")]
-        public string ColumnaNombre { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Debe mapear la columna correspondiente a Email.")]
-        [Display(Name = "Columna para Email")]
-        public string ColumnaEmail { get; set; } = string.Empty;
-
-        public List<Dictionary<string, string>> PreviewRows { get; set; } = new List<Dictionary<string, string>>();
-
-        public List<CargaMasivaHojaDto> HojasExcel { get; set; } = new List<CargaMasivaHojaDto>();
-        public List<string> HojasSeleccionadas { get; set; } = new List<string>();
+        // Cada pestaña tiene su propia fila de cabecera y su propia asignación de columnas: las pestañas de un
+        // mismo archivo casi nunca comparten el mismo orden ni los mismos títulos.
+        public List<CargaMasivaHojaDto> Hojas { get; set; } = new List<CargaMasivaHojaDto>();
     }
 
     public class CargaMasivaHojaDto
@@ -67,6 +68,25 @@ namespace ISFDyT124.DTO
         public string Nombre { get; set; } = string.Empty;
         public int TotalFilas { get; set; }
         public bool TieneDatos { get; set; }
+
+        /// <summary>La pestaña se carga (marcada en el paso de mapeo).</summary>
+        public bool Incluir { get; set; }
+
+        /// <summary>Fila de Excel donde están los títulos de las columnas.</summary>
+        public int FilaCabecera { get; set; }
+
+        // Números de columna de Excel (1 = A); 0 = sin asignar.
+        public int ColDni { get; set; }
+        public int ColApellido { get; set; }
+        public int ColNombre { get; set; }
+        public int ColEmail { get; set; }
+
+        /// <summary>La columna de Apellido trae también el nombre y se separa al leer.</summary>
+        public bool ApellidoYNombre { get; set; }
+
+        // Sólo para mostrar; se vuelven a leer del archivo y no se reciben del formulario.
+        public List<string> Columnas { get; set; } = new List<string>();
+        public List<List<string>> PreviewRows { get; set; } = new List<List<string>>();
     }
 
     public class CargaMasivaPrevisualizacionDto
@@ -109,6 +129,8 @@ namespace ISFDyT124.DTO
 
     public class CargaMasivaResultadoDto
     {
+        public Guid? ImportId { get; set; }
+        public bool EsConfirmacion { get; set; }
         public bool EsExitoso { get; set; }
         public string Mensaje { get; set; } = string.Empty;
         public string CarreraCohorteDenominacion { get; set; } = string.Empty;

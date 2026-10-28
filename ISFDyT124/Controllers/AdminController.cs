@@ -227,7 +227,8 @@ namespace ISFDyT124.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId)
+        // 1. AGREGA 'string? userPassword' COMO PARÁMETRO PARA RECIBIR EL INPUT DEL FORMULARIO[cite: 6]
+        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId, string? userPassword)
         {
             if (!ModelState.IsValid)
             {
@@ -235,9 +236,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Admin es exclusivo del desarrollo (ticket 3.34): se valida en el servidor,
-            // no solo ocultando la opción en el <select>, porque nada impide mandar
-            // selectedRoleId=1 por POST sin pasar por la vista.
             if (selectedRoleId == RolId.Admin)
             {
                 ModelState.AddModelError("selectedRoleId", "No se puede asignar el rol Admin desde el alta de usuario.");
@@ -245,7 +243,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Validación de email único (previene duplicados a nivel de aplicación)
             if (!string.IsNullOrWhiteSpace(model.UsEmail))
             {
                 var emailExists = await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail);
@@ -292,6 +289,11 @@ namespace ISFDyT124.Controllers
                 )
                 .FirstAsync();
 
+            // 2. REEMPLAZA LA CREACIÓN DEL OBJETO "Usuario" CON ESTA LÓGICA:
+            bool requiereActivacion = string.IsNullOrEmpty(userPassword);
+            string tokenGenerado = requiereActivacion ? Guid.NewGuid().ToString("N") : "tokenbloqueado"; //[cite: 3]
+            string contrasenaFinal = requiereActivacion ? Guid.NewGuid().ToString() : userPassword!;
+
             var usuario = new Usuario
             {
                 UsId = nuevoUsId,
@@ -299,7 +301,9 @@ namespace ISFDyT124.Controllers
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
+                UsContrasena = PasswordService.HashPassword(contrasenaFinal),
+                UsTokenRecovery = tokenGenerado, //[cite: 3]
+                UsTokenRecoveryVencimiento = requiereActivacion ? DateTime.UtcNow.AddHours(24) : null, //[cite: 3]
                 RoId = selectedRoleId,
                 CaCoId = selectedRoleId == 3 ? model.CaCoId : null,
             };
@@ -331,8 +335,24 @@ namespace ISFDyT124.Controllers
 
                 await transaccionId.CommitAsync();
 
-                // Añadir mensaje de éxito
-                TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente.";
+                // 3. ENVÍA EL CORREO JUSTO DESPUÉS DE ASEGURARTE DE QUE LA TRANSACCIÓN SE GUARDÓ
+                if (requiereActivacion && !string.IsNullOrWhiteSpace(usuario.UsEmail))
+                {
+                    try
+                    {
+                        SendWelcomeEmail(usuario.UsEmail, tokenGenerado);
+                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente. Se envió un correo de activación.";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al enviar correo de activación al usuario {UsId}", usuario.UsId);
+                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}' creado, pero no se pudo enviar el correo de activación.";
+                    }
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente.";
+                }
 
                 return RedirectToAction(nameof(UsuariosABM));
             }
@@ -351,8 +371,6 @@ namespace ISFDyT124.Controllers
                 _logger.LogError(ex, "Error inesperado al crear usuario. RoleId: {RoleId}, Dni: {Dni}", selectedRoleId, model.UsDni);
                 throw;
             }
-
-            return RedirectToAction(nameof(UsuariosABM));
         }
 
         [HttpGet]
@@ -664,15 +682,19 @@ namespace ISFDyT124.Controllers
                 return View("CargaMasivaAlumnos", model);
             }
 
-            List<string> columnas;
-            List<Dictionary<string, string>> previewRows;
+            List<CargaMasivaHojaDto> hojas;
             try
             {
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                columnas = leido.Columnas;
-                previewRows = leido.PreviewRows;
+                hojas = ExcelImportService.ObtenerHojas(tempPath);
+                foreach (var hoja in hojas.Where(h => h.TieneDatos))
+                {
+                    var leida = ExcelImportService.LeerHoja(tempPath, hoja.Nombre);
+                    CompletarHojaMapeo(hoja, leida, aplicarSugerido: true);
+                    // Sólo se marca de entrada la pestaña donde el sistema reconoció los cuatro datos.
+                    hoja.Incluir = MapeoCompleto(hoja);
+                }
 
-                if (!columnas.Any())
+                if (!hojas.Any(h => h.TieneDatos))
                 {
                     ExcelImportService.EliminarArchivoTemporal(tempToken);
                     ModelState.AddModelError("ArchivoExcel", "El archivo Excel no contiene cabeceras o filas legibles.");
@@ -705,9 +727,6 @@ namespace ISFDyT124.Controllers
                 .Select(cm => cm.Materia!.MaDenominacion)
                 .ToListAsync();
 
-            // Inferir mapeo inicial
-            var (dniSugerido, apellidoSugerido, nombreSugerido, emailSugerido) = ExcelImportService.InferirMapeo(columnas);
-
             var mapeoDto = new CargaMasivaMapeoDto
             {
                 TempFileToken = tempToken,
@@ -716,17 +735,90 @@ namespace ISFDyT124.Controllers
                 CarreraCohorteDenominacion = ccDenom,
                 SelectedCaMaIds = materiasSeleccionadas,
                 MateriasSeleccionadasNombres = nombresMaterias,
-                ColumnasExcel = columnas,
-                ColumnaDni = dniSugerido,
-                ColumnaApellido = apellidoSugerido,
-                ColumnaNombre = nombreSugerido,
-                ColumnaEmail = emailSugerido,
-                PreviewRows = previewRows
+                Hojas = hojas
             };
-            mapeoDto.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
-            mapeoDto.HojasSeleccionadas = mapeoDto.HojasExcel.Where(h => h.TieneDatos).Select(h => h.Nombre).ToList();
 
             return View("CargaMasivaMapear", mapeoDto);
+        }
+
+        private static bool MapeoCompleto(CargaMasivaHojaDto hoja) =>
+            hoja.ColDni > 0 && hoja.ColApellido > 0 && hoja.ColEmail > 0 && (hoja.ApellidoYNombre || hoja.ColNombre > 0);
+
+        private static void CompletarHojaMapeo(CargaMasivaHojaDto hoja, ExcelImportService.HojaLeida leida, bool aplicarSugerido)
+        {
+            hoja.FilaCabecera = leida.FilaCabecera;
+            hoja.Columnas = leida.Columnas;
+            hoja.PreviewRows = leida.PreviewRows;
+            if (!aplicarSugerido) return;
+
+            hoja.ColDni = leida.Sugerido.Dni;
+            hoja.ColApellido = leida.Sugerido.Apellido;
+            hoja.ColNombre = leida.Sugerido.Nombre;
+            hoja.ColEmail = leida.Sugerido.Email;
+            hoja.ApellidoYNombre = leida.Sugerido.ApellidoYNombre;
+        }
+
+        /// <summary>
+        /// Vuelve a leer del archivo las columnas y la muestra de cada pestaña para volver a mostrar el mapeo
+        /// sin perder lo que el usuario había elegido.
+        /// </summary>
+        private static void RehidratarHojasMapeo(CargaMasivaMapeoDto model, string tempPath)
+        {
+            var delArchivo = ExcelImportService.ObtenerHojas(tempPath);
+            var posteadas = model.Hojas ?? new List<CargaMasivaHojaDto>();
+            var resultado = new List<CargaMasivaHojaDto>();
+
+            foreach (var real in delArchivo)
+            {
+                var posteada = posteadas.FirstOrDefault(h => string.Equals(h.Nombre, real.Nombre, StringComparison.OrdinalIgnoreCase));
+                var hoja = posteada ?? real;
+                hoja.Nombre = real.Nombre;
+                hoja.TotalFilas = real.TotalFilas;
+                hoja.TieneDatos = real.TieneDatos;
+                if (real.TieneDatos)
+                {
+                    var leida = ExcelImportService.LeerHoja(tempPath, real.Nombre, hoja.FilaCabecera > 0 ? hoja.FilaCabecera : null);
+                    CompletarHojaMapeo(hoja, leida, aplicarSugerido: posteada == null);
+                }
+                else
+                {
+                    hoja.Incluir = false;
+                }
+                resultado.Add(hoja);
+            }
+
+            model.Hojas = resultado;
+        }
+
+        [HttpGet]
+        public IActionResult CargaMasivaColumnas(string token, string hoja, int? fila)
+        {
+            if (!ExcelImportService.ArchivoPerteneceA(token, User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty))
+                return NotFound();
+
+            try
+            {
+                var leida = ExcelImportService.LeerHoja(ExcelImportService.ObtenerRutaArchivoTemporal(token), hoja, fila);
+                return Json(new
+                {
+                    filaCabecera = leida.FilaCabecera,
+                    columnas = leida.Columnas,
+                    filas = leida.PreviewRows,
+                    sugerido = new
+                    {
+                        dni = leida.Sugerido.Dni,
+                        apellido = leida.Sugerido.Apellido,
+                        nombre = leida.Sugerido.Nombre,
+                        email = leida.Sugerido.Email,
+                        apellidoYNombre = leida.Sugerido.ApellidoYNombre
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudieron leer las columnas de la pestaña {Hoja}", hoja);
+                return BadRequest();
+            }
         }
 
         private async Task CompletarCatalogosPrevisualizacionAsync(CargaMasivaPrevisualizacionDto model)
@@ -762,46 +854,68 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(CargaMasivaAlumnos));
             }
 
-            model.HojasSeleccionadas ??= new List<string>();
-            var columnasMapeadas = new[] { model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail };
-            if (model.HojasSeleccionadas.Count == 0 || columnasMapeadas.Any(string.IsNullOrWhiteSpace)
-                || columnasMapeadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 4)
+            model.Hojas ??= new List<CargaMasivaHojaDto>();
+            var seleccion = model.Hojas.Where(h => h.Incluir).ToList();
+
+            if (seleccion.Count == 0)
             {
-                ModelState.AddModelError("", "Seleccione al menos una pestaña y cuatro columnas diferentes para DNI, apellido, nombre y correo.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                ModelState.AddModelError("", "Marque al menos una pestaña para cargar.");
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
             var hojasDisponibles = ExcelImportService.ObtenerHojas(tempPath)
                 .Where(h => h.TieneDatos).Select(h => h.Nombre).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            if (model.HojasSeleccionadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != model.HojasSeleccionadas.Count
-                || model.HojasSeleccionadas.Any(h => !hojasDisponibles.Contains(h)))
+            if (seleccion.Select(h => h.Nombre).Distinct(StringComparer.OrdinalIgnoreCase).Count() != seleccion.Count
+                || seleccion.Any(h => !hojasDisponibles.Contains(h.Nombre)))
             {
                 ModelState.AddModelError("", "La selección de pestañas no coincide con el archivo cargado.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
+
+            // Cada pestaña elegida necesita cuatro columnas distintas (tres si el apellido y el nombre vienen juntos).
+            var hayErrorDeMapeo = false;
+            foreach (var hoja in seleccion)
+            {
+                var columnas = new List<int> { hoja.ColDni, hoja.ColApellido, hoja.ColEmail };
+                if (!hoja.ApellidoYNombre) columnas.Add(hoja.ColNombre);
+                if (hoja.FilaCabecera < 1 || columnas.Any(c => c < 1) || columnas.Distinct().Count() != columnas.Count)
+                {
+                    ModelState.AddModelError("", $"Pestaña '{hoja.Nombre}': indique la fila de títulos y una columna distinta para DNI, apellido, nombre y correo.");
+                    hayErrorDeMapeo = true;
+                }
+            }
+            if (hayErrorDeMapeo)
+            {
+                RehidratarHojasMapeo(model, tempPath);
+                return View("CargaMasivaMapear", model);
+            }
+
+            var mapeos = seleccion.Select(h => new ExcelImportService.MapeoHoja
+            {
+                Nombre = h.Nombre,
+                FilaCabecera = h.FilaCabecera,
+                Columnas = new ExcelImportService.MapeoColumnas
+                {
+                    Dni = h.ColDni,
+                    Apellido = h.ColApellido,
+                    Nombre = h.ApellidoYNombre ? 0 : h.ColNombre,
+                    Email = h.ColEmail,
+                    ApellidoYNombre = h.ApellidoYNombre
+                }
+            }).ToList();
 
             ResultadoValidacionExcel parseResult;
             try
             {
-                parseResult = ExcelImportService.ValidarYLeerFilasDeHojas(tempPath, model.HojasSeleccionadas,
-                    model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail);
+                parseResult = ExcelImportService.ValidarYLeerFilasDeHojas(tempPath, mapeos);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "No se pudo leer el Excel de carga masiva");
                 ModelState.AddModelError("", "No se pudo leer el archivo. Verifique que sea un Excel válido y no esté protegido.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
@@ -812,17 +926,14 @@ namespace ISFDyT124.Controllers
             {
                 foreach (var error in erroresEstructurales)
                     ModelState.AddModelError("", $"{(string.IsNullOrWhiteSpace(error.Hoja) ? "Archivo" : error.Hoja)}: {error.Motivo}");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
             var preview = new CargaMasivaPrevisualizacionDto
             {
                 TempFileToken = model.TempFileToken,
-                HojasSeleccionadas = model.HojasSeleccionadas,
+                HojasSeleccionadas = seleccion.Select(h => h.Nombre).ToList(),
                 // Copia de la lista: si fuera la misma, el error de conflicto entre pestañas que se agrega
                 // más abajo volvería a leerse como si fuera una fila del archivo con errores y aparecería
                 // como una fila editable vacía en la previsualización.
@@ -932,10 +1043,14 @@ namespace ISFDyT124.Controllers
                 else if (!dnisVistos.Add(dni)) errores.Add("DNI duplicado en la previsualización");
                 if (string.IsNullOrWhiteSpace(fila.Apellido) || fila.Apellido.Trim().Length > 100 || !nombreValido.IsMatch(fila.Apellido.Trim())) errores.Add("Apellido inválido");
                 if (string.IsNullOrWhiteSpace(fila.Nombre) || fila.Nombre.Trim().Length > 100 || !nombreValido.IsMatch(fila.Nombre.Trim())) errores.Add("Nombre inválido");
-                fila.Email = fila.Email.Trim();
-                if (string.IsNullOrWhiteSpace(fila.Email) || fila.Email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(fila.Email))
-                    errores.Add("Correo electrónico inválido");
-                else if (!emailsVistos.Add(fila.Email)) errores.Add("Correo electrónico duplicado en la previsualización");
+                fila.Email = fila.Email?.Trim() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(fila.Email))
+                {
+                    if (fila.Email.Length > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(fila.Email))
+                        errores.Add("Correo electrónico inválido");
+                    else if (!emailsVistos.Add(fila.Email))
+                        errores.Add("Correo electrónico duplicado en la previsualización");
+                }
                 if (!carrerasValidas.Contains(fila.CaCoId)) errores.Add("Carrera/cohorte inexistente");
                 if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date > DateTime.Today)
                     errores.Add("La fecha de inscripción no puede ser posterior a hoy");
@@ -1055,6 +1170,50 @@ namespace ISFDyT124.Controllers
         }
 
         #endregion
+
+
+        private void SendWelcomeEmail(string EmailDestino, string token)
+        {
+            // Reutilizamos la lógica del Url.Action para apuntar al Recovery existente
+            var url = Url.Action("Recovery", "Account", new { token = token }, Request.Scheme);
+            var urlEscaped = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(url ?? string.Empty);
+
+            var oMailMessage = new System.Net.Mail.MailMessage(
+                "softwareinstituto@gmail.com",
+                EmailDestino,
+                "Activación de cuenta – Sistema de asistencias - ISFDyT124",
+                $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #004d80;'>¡Bienvenido/a al Sistema!</h2>
+                        <p>Se ha creado su cuenta para acceder al <strong>Sistema de control de asistencias del instituto ISFDyT124</strong>.</p>
+                        <p>Para activar su cuenta y generar su contraseña de acceso, haga clic en el siguiente enlace:</p>
+                        <div style='text-align: center; margin: 25px 0;'>
+                            <a href='{urlEscaped}'
+                               style='display: inline-block; padding: 12px 24px; background-color: #004d80; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                Activar cuenta y crear contraseña
+                            </a>
+                        </div>
+                        <p>Este enlace es válido por una sola vez y expirará en 24 horas.</p>
+                        <hr style='border: 0; border-top: 1px solid #eee; margin: 30px 0;' />
+                        <p style='font-size: 0.9em; color: #666;'>
+                            Sistema creado por estudiantes de Tecnicatura Superior en Desarrollo de Software – 2026<br>
+                            <em>Instituto Superior de Formación Docente y Técnica N.º 124</em>
+                        </p>
+                    </div>"
+            );
+
+            oMailMessage.IsBodyHtml = true;
+
+            using var oSmtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Port = 587,
+                Credentials = new System.Net.NetworkCredential("softwareinstituto@gmail.com", "bdyfkwgqtxfahslt")
+            };
+
+            oSmtpClient.Send(oMailMessage);
+        }
 
     }
 }
