@@ -3,6 +3,15 @@
 @{
     ViewData["Title"] = "Detalle Carrera";
     ViewData["BodyClass"] = "agregar-page";
+
+    var relacion = Model.CarreraCohortes?
+        .OrderBy(cc => cc.CaCoId)
+        .FirstOrDefault();
+
+    var cantCohortes = ViewData["CantidadCohortes"] ?? 0;
+    var cantAsignaciones = ViewData["CantidadAsignaciones"] ?? 0;
+    var cantAlumnos = ViewData["CantidadAlumnos"] ?? 0;
+    var cantAsistencias = ViewData["CantidadAsistencias"] ?? 0;
 }
 
 <div class="admin-banner">
@@ -15,19 +24,73 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <div class="input-field">
-            <label>@Html.DisplayNameFor(model => model.CaId)</label>
-            <input value="@Model.CaId" readonly>
+
+        <!-- Panel informativo con las relaciones asociadas -->
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 25px; grid-column: span 2;">
+            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                <div style="background-color: #eff6ff; color: #1e40af; padding: 8px; border-radius: 6px; font-weight: bold;">
+                    ℹ️
+                </div>
+                <div>
+                    <h4 style="margin: 0; color: #1e3a8a; font-size: 16px; font-weight: 600;">Información y registros vinculados</h4>
+                    <p style="margin: 4px 0 0 0; color: #475569; font-size: 14px;">
+                        Resumen de los elementos asociados actualmente a esta carrera en el sistema.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Grilla de métricas informativas -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
+                    <span style="display: block; font-size: 12px; color: #64748b; font-weight: 500;">Cohortes relacionadas</span>
+                    <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">@cantCohortes</span>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
+                    <span style="display: block; font-size: 12px; color: #64748b; font-weight: 500;">Asignaciones de materias</span>
+                    <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">@cantAsignaciones</span>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
+                    <span style="display: block; font-size: 12px; color: #64748b; font-weight: 500;">Alumnos inscriptos únicos</span>
+                    <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">@cantAlumnos</span>
+                </div>
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px;">
+                    <span style="display: block; font-size: 12px; color: #64748b; font-weight: 500;">Asistencias vinculadas</span>
+                    <span style="font-size: 20px; font-weight: bold; color: #1d4ed8;">@cantAsistencias</span>
+                </div>
+            </div>
         </div>
 
         <div class="input-field">
-            <label>@Html.DisplayNameFor(model => model.CaDenominacion)</label>
-            <input value="@Model.CaDenominacion" readonly>
+            <label>ID Carrera</label>
+            <input value="@Model.CaId" readonly />
         </div>
 
-        <div class="form-buttons">
-            <a asp-action="Index" class="btn-cancel" style="text-decoration:none; text-align:center;">Volver</a>
-            <a asp-action="Edit" asp-route-CaId="@Model.CaId" class="btn-save" style="text-decoration:none; text-align:center;">Editar</a>
+        <div class="input-field" style="grid-column: span 2;">
+            <label>Denominación</label>
+            <input value="@Model.CaDenominacion" readonly />
         </div>
+
+        <div class="input-field">
+            <label>Año de Cohorte</label>
+            <input value="@(relacion?.Cohorte?.CoAnio.ToString() ?? "Sin cohorte")" readonly />
+        </div>
+
+        <div class="input-field">
+            <label>Fecha inicio del año</label>
+            <input value="@(relacion?.CaCoFechaInicio?.ToString("dd/MM/yyyy") ?? "Sin configurar")" readonly />
+        </div>
+
+        <div class="input-field">
+            <label>Fecha finalización del año</label>
+            <input value="@(relacion?.CaCoFechaFin?.ToString("dd/MM/yyyy") ?? "Sin configurar")" readonly />
+        </div>
+
+        <!-- Botón de Volver (sin opción de eliminar ni editar) -->
+        <div class="form-buttons" style="grid-column: span 2; display: flex; justify-content: flex-end; margin-top: 20px;">
+            <a asp-action="Index" class="btn-cancel" style="text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center;">
+                Volver
+            </a>
+        </div>
+
     </div>
 </main>

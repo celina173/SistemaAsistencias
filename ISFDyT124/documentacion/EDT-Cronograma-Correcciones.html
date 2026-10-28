@@ -187,7 +187,7 @@
 
   .edt-item {
     display: grid;
-    grid-template-columns: 52px 1fr auto;
+    grid-template-columns: 52px 1fr minmax(90px, 190px);
     gap: 12px;
     align-items: baseline;
     padding: 9px 22px 9px 62px;
@@ -201,7 +201,7 @@
     letter-spacing: 0.03em;
     padding: 2px 8px;
     border-radius: 20px;
-    white-space: nowrap;
+    white-space: normal;
     height: fit-content;
   }
   .tag.critico { background: var(--danger-tint); color: var(--danger); }
@@ -210,7 +210,7 @@
 
   .edt-milestone {
     display: grid;
-    grid-template-columns: 52px 1fr auto;
+    grid-template-columns: 52px 1fr minmax(90px, 190px);
     gap: 12px;
     align-items: baseline;
     padding: 13px 22px 13px 40px;
@@ -309,6 +309,7 @@
   .badge { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
   .badge.critico { background: var(--danger-tint); color: var(--danger); }
   .badge.mvp { background: var(--accent-mvp-tint); color: var(--accent-mvp); }
+  .badge { white-space: normal; }
   .badge.normal { background: var(--primary-tint); color: var(--primary-strong); }
 
   footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--ink-faint); font-size: 0.85rem; }
@@ -408,6 +409,8 @@
           <div class="edt-item"><span class="code">1.3</span><span class="name">Logo y nombre del header → home según rol</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">1.4</span><span class="name">Acomodar flechas del menú lateral</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">1.5</span><span class="name">Logo del sistema en el favicon</span><span class="tag mvp">MVP</span></div>
+<div class="edt-item"><span class="code">1.6</span><span class="name">Accesos duplicados a toma de asistencia</span><span class="tag normal">Solucionado</span></div>
+
         </div>
       </div>
 
@@ -419,6 +422,13 @@
           <div class="edt-item"><span class="code">2.3</span><span class="name">Encriptar las contraseñas (hash) en login</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">2.4</span><span class="name">Login no muestra error si falla la validación del DTO (bypass del frontend)</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">2.5</span><span class="name">Campo de login debería pedir "DNI" en vez de "Usuario"</span><span class="tag normal">Post-MVP</span></div>
+<div class="edt-item"><span class="code">2.6</span><span class="name">DNI m&#237;nimo en login</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">2.7</span><span class="name">Mostrar u ocultar contrase&#241;a</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">2.8</span><span class="name">Aviso de cambio de contrase&#241;a</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">2.9</span><span class="name">Dise&#241;o de Guardar al cambiar contrase&#241;a</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">2.10</span><span class="name">Vistas de Admin visibles para Profesor</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">2.11</span><span class="name">Reinicio de sesi&#243;n tras inactividad</span><span class="tag normal">Asignado; por validar</span></div>
+
         </div>
       </div>
 
@@ -428,7 +438,7 @@
           <div class="edt-item"><span class="code">3.1</span><span class="name">Revisar la vista de alta de usuario</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">3.2</span><span class="name">Corregir roles sembrados: Admin / Dirección / Docente / Alumno</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">3.3</span><span class="name">Tarjeta "Alumnos" (ex-Docentes): alumnos por carrera</span><span class="tag mvp">MVP</span></div>
-          <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos vía Excel</span><span class="tag normal">Post-MVP</span></div>
+          <div class="edt-item"><span class="code">3.4</span><span class="name">Carga masiva de alumnos desde Excel con previsualización editable</span><span class="tag normal">Implementado · Gustavo Olivera</span></div>
           <div class="edt-item"><span class="code">3.5</span><span class="name">DNI inicia en 0 en vez de vacío al agregar usuario</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">3.6</span><span class="name">Confirmación de eliminar usuario usa alert nativo del navegador</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">3.7</span><span class="name">Autocompletado de contraseñas del navegador interfiere en el campo</span><span class="tag normal">Post-MVP</span></div>
@@ -441,6 +451,18 @@
           <div class="edt-item"><span class="code">3.14</span><span class="name">Permite Docente sin materia asignada / Estudiante sin carrera-cohorte</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">3.15</span><span class="name">Select múltiple de "Materias Asignadas" ocupa demasiado espacio</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">3.16</span><span class="name">Extender el límite de longitud a otros campos de texto, no solo DNI</span><span class="tag mvp">MVP</span></div>
+<div class="edt-item"><span class="code">3.17</span><span class="name">Mensajes de validaci&#243;n en espa&#241;ol</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">3.18</span><span class="name">Carga masiva dentro de Estudiantes</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">3.19</span><span class="name">Error 500 al registrar Docente</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">3.20</span><span class="name">Usuarios con email duplicado</span><span class="tag normal">Solucionado en Cristian; sin estado en Mauro</span></div>
+<div class="edt-item"><span class="code">3.21</span><span class="name">Campos desbordados y obligatorios sin identificar</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">3.22</span><span class="name">Contrase&#241;a obligatoria al crear usuario</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">3.23</span><span class="name">Admin en selector de roles</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">3.24</span><span class="name">Email visible para Estudiante</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">3.25</span><span class="name">Checkboxes de materias desalineados</span><span class="tag normal">Asignado</span></div>
+<div class="edt-item"><span class="code">3.26</span><span class="name">Alumnos con nombre o apellido repetido</span><span class="tag normal">Asignado; regla por validar</span></div>
+<div class="edt-item"><span class="code">3.27</span><span class="name">Texto del bot&#243;n de importaci&#243;n seg&#250;n formato</span><span class="tag normal">Asignado; condicionado al formato</span></div>
+
         </div>
       </div>
 
@@ -458,6 +480,11 @@
           <div class="edt-item"><span class="code">4.9</span><span class="name">Carrera: permite denominación totalmente numérica</span><span class="tag mvp">MVP</span></div>
           <div class="edt-item"><span class="code">4.10</span><span class="name">Carrera: permite varias palabras pegadas sin espacios</span><span class="tag normal">Post-MVP</span></div>
           <div class="edt-item"><span class="code">4.11</span><span class="name">Carrera: falta cartel de confirmación al agregar/eliminar</span><span class="tag normal">Post-MVP</span></div>
+<div class="edt-item"><span class="code">4.12</span><span class="name">Validaci&#243;n de cantidad de m&#243;dulos en ingl&#233;s</span><span class="tag normal">Asignado; sugerencia contradictoria</span></div>
+<div class="edt-item"><span class="code">4.13</span><span class="name">Selecci&#243;n de carreras o materias desde cat&#225;logo</span><span class="tag normal">Asignado; descripci&#243;n y fecha por validar</span></div>
+<div class="edt-item"><span class="code">4.14</span><span class="name">Mostrar cohorte y a&#241;o de cursado</span><span class="tag normal">Asignado; fecha por validar</span></div>
+<div class="edt-item"><span class="code">4.15</span><span class="name">Buscador de carreras</span><span class="tag normal">Asignado; fecha por validar</span></div>
+
         </div>
       </div>
 
@@ -475,6 +502,11 @@
           <div class="edt-item"><span class="code">5.9</span><span class="name">Toma/consulta de asistencia accesible sin login</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">5.10</span><span class="name">Asistencia Global en blanco con una cátedra real</span><span class="tag critico">Crítico</span></div>
           <div class="edt-item"><span class="code">5.11</span><span class="name">Falta cartel de confirmación al guardar asistencia</span><span class="tag normal">Post-MVP</span></div>
+<div class="edt-item"><span class="code">5.12</span><span class="name">Porcentaje global calculado por m&#243;dulos</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">5.13</span><span class="name">HTTP 500 al abrir o seleccionar asistencia</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">5.14</span><span class="name">Filtrar materias por carrera y docente</span><span class="tag normal">Solucionado</span></div>
+<div class="edt-item"><span class="code">5.15</span><span class="name">Docente activo en cohorte para tomar asistencia</span><span class="tag normal">Asignado</span></div>
+
         </div>
       </div>
 
@@ -495,7 +527,7 @@
 
   <section>
     <h2>Cronograma</h2>
-    <p class="section-intro">4 semanas, hoy es <strong>02/09</strong>. Los ítems críticos y de seguridad van primero porque atraviesan todo lo demás (roles, login) — no tiene sentido probar el resto del sistema con eso todavía roto. La carga masiva por Excel y las features de calendario quedan para después del MVP porque son trabajo nuevo grande, no arreglos.</p>
+    <p class="section-intro">Planificación original de 4 semanas, con inicio el <strong>02/09/2026</strong>. Los ítems críticos y de seguridad van primero porque atraviesan todo lo demás (roles, login) — no tiene sentido probar el resto del sistema con eso todavía roto. La carga masiva por Excel y las features de calendario quedan para después del MVP porque son trabajo nuevo grande, no arreglos.</p>
 
     <div class="gantt-scroll">
       <div class="gantt">
@@ -547,7 +579,7 @@
           </div>
         </div>
         <div class="gantt-row">
-          <div class="label"><span class="code">3.4</span>Carga masiva por Excel</div>
+          <div class="label"><span class="code">3.4</span>Carga masiva por Excel · implementada por Gustavo Olivera</div>
           <div class="track"><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
             <div class="bar destacado" style="left:52%; width:23%;"></div>
           </div>
@@ -728,6 +760,8 @@
             <td>Reemplazar el ícono por defecto de la pestaña del navegador por el logo del instituto.</td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
+<tr><td class="code-cell">1.6</td><td><div class="wp-name">Accesos duplicados a toma de asistencia</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Inicio y Mis C&#225;tedras ofrecen la misma acci&#243;n al Profesor; revisar un flujo claro sin duplicar accesos.<p class="deliverable"><strong>Fuente:</strong> Florencia-Asistencias, fila 10 (28/09), captura 8</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+
           <tr>
             <td class="code-cell">2.1</td>
             <td><div class="wp-name">Mensaje de error en login</div></td>
@@ -737,7 +771,7 @@
           <tr>
             <td class="code-cell">2.2</td>
             <td><div class="wp-name">Vista "Olvidé mi contraseña"</div></td>
-            <td>Hoy el link del login apunta a una página que no existe como ruta real de la app. Definir el flujo mínimo viable (aunque sea manual, vía Admin) y conectar la vista.</td>
+            <td>Hoy el link del login apunta a una página que no existe como ruta real de la app. Definir el flujo mínimo viable (aunque sea manual, vía Admin) y conectar la vista.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Valentin-login(MOLINA), fila 2.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
@@ -749,15 +783,22 @@
           <tr>
             <td class="code-cell">2.4</td>
             <td><div class="wp-name">Login no muestra error (DTO)</div><div class="deliverable">Hallazgo de testing — Valentín Homs</div></td>
-            <td>Si se elude la validación HTML del navegador (ej. quitando <code>required</code>) y se envía el login con usuario o contraseña vacíos, el backend no muestra ningún mensaje — la página solo recarga en blanco. La validación de <code>ModelState</code> debería mostrar el error igual.</td>
+            <td>Si se elude la validación HTML del navegador (ej. quitando <code>required</code>) y se envía el login con usuario o contraseña vacíos, el backend no muestra ningún mensaje — la página solo recarga en blanco. La validación de <code>ModelState</code> debería mostrar el error igual.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Valentin-login(MOLINA), fila 3.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">2.5</td>
             <td><div class="wp-name">Label "DNI" en vez de "Usuario"</div><div class="deliverable">Hallazgo de testing — Valentín Homs</div></td>
-            <td>El campo de login dice "Usuario", pero en realidad pide el DNI. Un usuario nuevo probablemente no intente loguearse con su DNI al leer esa etiqueta — cambiar el texto visible del campo.</td>
+            <td>El campo de login dice "Usuario", pero en realidad pide el DNI. Un usuario nuevo probablemente no intente loguearse con su DNI al leer esa etiqueta — cambiar el texto visible del campo.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Valentin-login(MOLINA), fila 4.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
+<tr><td class="code-cell">2.6</td><td><div class="wp-name">DNI m&#237;nimo en login</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>El login procesa DNIs de 1 a 5 d&#237;gitos. Validar un m&#237;nimo razonable antes de consultar la base.<p class="deliverable"><strong>Fuente:</strong> Valentin-login(MOLINA), fila 5, captura 4</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">2.7</td><td><div class="wp-name">Mostrar u ocultar contrase&#241;a</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Agregar control de visibilidad de contrase&#241;a con icono de ojo y estado visible/oculto.<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 2, evidencia 1</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">2.8</td><td><div class="wp-name">Aviso de cambio de contrase&#241;a</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Revisar el texto del aviso: &#171;Por su seguridad, debe cambiar la contrase&#241;a&#187;.<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 3, evidencia 2</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">2.9</td><td><div class="wp-name">Dise&#241;o de Guardar al cambiar contrase&#241;a</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Acomodar el formato del bot&#243;n Guardar en el flujo de cambio de contrase&#241;a.<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 4, evidencia 2</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">2.10</td><td><div class="wp-name">Vistas de Admin visibles para Profesor</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Revisar autorizaci&#243;n en servidor y navegaci&#243;n por rol; Profesor puede visualizar una vista de Administrador. Distinto de 5.9 (acceso an&#243;nimo).<p class="deliverable"><strong>Fuente:</strong> Florencia-Asistencias, fila 11, captura 9</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">2.11</td><td><div class="wp-name">Reinicio de sesi&#243;n tras inactividad</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Testing informa que se exige iniciar sesi&#243;n despu&#233;s de un tiempo inactivo. Confirmar duraci&#243;n y comportamiento esperado antes de clasificarlo como defecto; puede ser expiraci&#243;n normal.<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 7, sin captura</p></td><td><span class="badge normal">Asignado; por validar</span></td></tr>
+
           <tr>
             <td class="code-cell">3.1</td>
             <td><div class="wp-name">Revisar vista de alta de usuario</div></td>
@@ -778,86 +819,98 @@
           </tr>
           <tr>
             <td class="code-cell">3.4</td>
-            <td><div class="wp-name">Carga masiva de alumnos (Excel)</div></td>
-            <td>Nueva pantalla: subir un Excel, mapear columnas, asignar todos los alumnos del archivo a una carrera específica. Incluye validación de filas inválidas y reporte de qué se cargó y qué no.</td>
-            <td><span class="badge normal">Post-MVP</span></td>
+            <td><div class="wp-name">Carga masiva de alumnos (Excel)</div><div class="deliverable">Actualización implementada por Gustavo Olivera</div></td>
+            <td>Importación masiva desde archivos Excel con detección y selección de múltiples pestañas. El proceso permite mapear las columnas y ofrece una previsualización editable antes de confirmar la carga. En esa instancia se puede incluir o excluir cada alumno y corregir sus datos, carrera, cohorte, materias y fecha de inscripción. Los alumnos matriculados pueden asociarse masivamente a todas las materias que correspondan. La fecha de inscripción se indica una vez para toda la carga (hoy por defecto) y se puede ajustar alumno por alumno; se aplica solo a las inscripciones nuevas y no modifica las que ya existen. De ella depende qué clases anteriores ve cada alumno en el reporte global. El sistema consolida registros repetidos por DNI entre pestañas cuando sus datos coinciden y, si difieren, lo informa como error para corregirlo; valida filas, identidad, roles, estado del usuario y compatibilidad entre carrera, cohorte y materias, e informa los errores para corregirlos. La confirmación se procesa de manera integral: si ocurre un error, no se guarda una carga parcial. El archivo debe ser .xlsx, de hasta 5 MB y 1000 filas; el acceso queda reservado a Admin y Dirección.</td>
+            <td><span class="badge normal">Implementado</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.5</td>
             <td><div class="wp-name">DNI inicia en 0</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Al entrar a "Agregar Usuario" el campo DNI se inicializa con el valor <code>0</code> en vez de quedar vacío.</td>
+            <td>Al entrar a "Agregar Usuario" el campo DNI se inicializa con el valor <code>0</code> en vez de quedar vacío.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian-Usuarios(MOLINA), fila 2.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.6</td>
             <td><div class="wp-name">Alert nativo al eliminar</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>La confirmación de eliminación usa el <code>confirm()</code> nativo del navegador, rompiendo la estética del sistema. Reemplazar por un modal propio.</td>
+            <td>La confirmación de eliminación usa el <code>confirm()</code> nativo del navegador, rompiendo la estética del sistema. Reemplazar por un modal propio.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian-Usuarios(MOLINA), fila 13.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.7</td>
             <td><div class="wp-name">Autocompletado de contraseña</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>El navegador ofrece guardar/sugerir contraseñas propias del usuario en el campo de contraseña del alta de un Estudiante. Agregar <code>autocomplete="new-password"</code>.</td>
+            <td>El navegador ofrece guardar/sugerir contraseñas propias del usuario en el campo de contraseña del alta de un Estudiante. Agregar <code>autocomplete="new-password"</code>.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian-Usuarios(MOLINA), fila 9.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.8</td>
             <td><div class="wp-name">Falta validación de formato/longitud</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>El alta/edición de usuario permite DNI de 4 dígitos, emails sin formato válido, y nombres/apellidos de un solo carácter o numéricos, en cualquier rol.</td>
+            <td>El alta/edición de usuario permite DNI de 4 dígitos, emails sin formato válido, y nombres/apellidos de un solo carácter o numéricos, en cualquier rol.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 4, y Agust&#237;n Buisart-Estudiantes, filas 4–5. DNI duplicado al editar: Agust&#237;n, fila 3, Solucionado; incorporar manejo de duplicados sin excepci&#243;n.</p></td>
             <td><span class="badge critico">Crítico</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.9</td>
             <td><div class="wp-name">Eliminar cualquier Admin</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>El sistema permite eliminar libremente usuarios con rol Admin, incluso el propio usuario logueado (autoeliminación) o el último Admin que quede en el sistema. Falta esa validación de negocio.</td>
+            <td>El sistema permite eliminar libremente usuarios con rol Admin, incluso el propio usuario logueado (autoeliminación) o el último Admin que quede en el sistema. Falta esa validación de negocio.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Asignado seg&#250;n Cristian, fila 5.</p></td>
             <td><span class="badge critico">Crítico</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.10</td>
             <td><div class="wp-name">Excepción SQL no controlada</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Si se guarda un usuario dejando vacío un campo obligatorio (ej. Email) sin que la validación C# lo frene, el intento de insert llega a SQL Server y la excepción sale sin controlar en pantalla.</td>
+            <td>Si se guarda un usuario dejando vacío un campo obligatorio (ej. Email) sin que la validación C# lo frene, el intento de insert llega a SQL Server y la excepción sale sin controlar en pantalla.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 6.</p></td>
             <td><span class="badge critico">Crítico</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.11</td>
             <td><div class="wp-name">Rol Docente → Admin no limpia materias</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Al cambiarle el rol a un Docente (con materias asignadas) a Admin, el backend no limpia la tabla intermedia — el usuario queda como Admin pero retiene materias asignadas, visibles en la grilla.</td>
+            <td>Al cambiarle el rol a un Docente (con materias asignadas) a Admin, el backend no limpia la tabla intermedia — el usuario queda como Admin pero retiene materias asignadas, visibles en la grilla.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> La sugerencia de Cristian, fila 8, pide limpiar relaciones al cambiar rol, pero su descripci&#243;n trata del select m&#250;ltiple (3.15). Figura Solucionado; no tomar esa fila ambigua como verificaci&#243;n espec&#237;fica de 3.11.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.12</td>
             <td><div class="wp-name">DNI excesivamente largo</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>El sistema acepta valores de DNI desbordados (ej. 18 dígitos) sin validar un rango razonable.</td>
+            <td>El sistema acepta valores de DNI desbordados (ej. 18 dígitos) sin validar un rango razonable.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 10.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.13</td>
             <td><div class="wp-name">Alta de usuario colapsa por ViewBag sin repoblar</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Ante cualquier fallo de validación (DNI duplicado, campos vacíos), la vista de alta de usuario colapsa al recargarse porque el controlador no repuebla los <code>ViewBag</code> de los desplegables (<code>CarreraCohortesList</code>, <code>CarreraMateriasList</code>) antes de devolver la vista con el error. Distinto de 3.10: ahí la excepción es de SQL al insertar, acá es un crash de Razor al renderizar los combos. El propio equipo de testing ya lo marcó como resuelto.</td>
+            <td>Ante cualquier fallo de validación (DNI duplicado, campos vacíos), la vista de alta de usuario colapsa al recargarse porque el controlador no repuebla los <code>ViewBag</code> de los desplegables (<code>CarreraCohortesList</code>, <code>CarreraMateriasList</code>) antes de devolver la vista con el error. Distinto de 3.10: ahí la excepción es de SQL al insertar, acá es un crash de Razor al renderizar los combos. El propio equipo de testing ya lo marcó como resuelto.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 3.</p></td>
             <td><span class="badge critico">Crítico</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.14</td>
             <td><div class="wp-name">Docente sin materia / Estudiante sin carrera-cohorte</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>El sistema permite guardar un usuario con rol Docente sin ninguna materia asignada, y crear un Estudiante dejando el campo Carrera/Cohorte en blanco. Falta hacer obligatoria esa selección según el rol elegido.</td>
+            <td>El sistema permite guardar un usuario con rol Docente sin ninguna materia asignada, y crear un Estudiante dejando el campo Carrera/Cohorte en blanco. Falta hacer obligatoria esa selección según el rol elegido.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 7, y Agust&#237;n Buisart-Estudiantes, fila 2.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.15</td>
             <td><div class="wp-name">Select múltiple de Materias Asignadas muy grande</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Al elegir el rol Docente, el campo "Materias Asignadas" se renderiza como un <code>&lt;select multiple&gt;</code> HTML nativo que ocupa un espacio vertical excesivo en el formulario — mejorarlo con un componente más compacto (checkboxes, multi-select con buscador, etc.).</td>
+            <td>Al elegir el rol Docente, el campo "Materias Asignadas" se renderiza como un <code>&lt;select multiple&gt;</code> HTML nativo que ocupa un espacio vertical excesivo en el formulario — mejorarlo con un componente más compacto (checkboxes, multi-select con buscador, etc.).<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 8, con descripci&#243;n/sugerencia mezcladas; los checkboxes actuales tienen un nuevo reporte independiente (3.25).</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">3.16</td>
             <td><div class="wp-name">Límite de longitud en otros campos de texto</div><div class="deliverable">Hallazgo de testing — Cristian Meza</div></td>
-            <td>Además del DNI (ítem 3.12), el sistema tampoco limita la longitud de otros campos de texto: se pudieron guardar cadenas excesivamente largas sin ninguna advertencia. Definir <code>[MaxLength]</code> razonables en el modelo para nombre, apellido, email, etc.</td>
+            <td>Además del DNI (ítem 3.12), el sistema tampoco limita la longitud de otros campos de texto: se pudieron guardar cadenas excesivamente largas sin ninguna advertencia. Definir <code>[MaxLength]</code> razonables en el modelo para nombre, apellido, email, etc.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Cristian, fila 10.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
+<tr><td class="code-cell">3.17</td><td><div class="wp-name">Mensajes de validaci&#243;n en espa&#241;ol</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Traducir mensajes required y n&#250;mero v&#225;lido en DNI; evitar mensajes duplicados en ingl&#233;s y espa&#241;ol.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), filas 11 y 14, capturas 10 y 13</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">3.18</td><td><div class="wp-name">Carga masiva dentro de Estudiantes</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Ubicar el bot&#243;n de carga masiva en la vista de Estudiantes; el alcance de 3.4 no especificaba su ubicaci&#243;n.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 12, captura 11</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">3.19</td><td><div class="wp-name">Error 500 al registrar Docente</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Con datos completos y materias asignadas, el alta de Docente falla en producci&#243;n. Revisar relaciones y guardado; distinto de campos vac&#237;os o ViewBag.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 15, captura 14</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">3.20</td><td><div class="wp-name">Usuarios con email duplicado</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Testing reporta email compartido entre usuarios. Revisar unicidad seg&#250;n perfil. Mauro tambi&#233;n reporta mismo email con distintos DNI en carreras distintas; no prohibir autom&#225;ticamente cursar dos carreras.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 16, captura 15; Mauro Alvarez-Estudiantes, fila 3, evidencia 2</p></td><td><span class="badge normal">Solucionado en Cristian; sin estado en Mauro</span></td></tr>
+<tr><td class="code-cell">3.21</td><td><div class="wp-name">Campos desbordados y obligatorios sin identificar</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Nombres y Email sobrepasan el contenedor. Ajustar distribuci&#243;n e identificar campos obligatorios.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 17, captura 16</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">3.22</td><td><div class="wp-name">Contrase&#241;a obligatoria al crear usuario</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>El alta permite contrase&#241;a vac&#237;a o nula; validar obligatoriedad en cliente y servidor.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 18, captura 17</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">3.23</td><td><div class="wp-name">Admin en selector de roles</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Testing pide retirar Admin del desplegable por ser exclusivo del desarrollo. Concretar la restricci&#243;n por permisos, adem&#225;s de sembrar roles (3.2).<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 19 (01/10), captura 18</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">3.24</td><td><div class="wp-name">Email visible para Estudiante</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Testing pide deshabilitar u ocultar Email para Estudiante. Confirmar coherencia con recuperaci&#243;n de contrase&#241;a, carga masiva y validaciones de 3.20.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 19 (01/10), captura 18</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">3.25</td><td><div class="wp-name">Checkboxes de materias desalineados</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Alinear cada casilla con el nombre de su materia en una misma fila. Hallazgo nuevo sobre checkboxes, distinto del antiguo select m&#250;ltiple de 3.15.<p class="deliverable"><strong>Fuente:</strong> Cristian-Usuarios(MOLINA), fila 21 (01/10), captura 19</p></td><td><span class="badge normal">Asignado</span></td></tr>
+<tr><td class="code-cell">3.26</td><td><div class="wp-name">Alumnos con nombre o apellido repetido</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Se informa registro de alumnos con nombre o apellido repetido. Validar la regla de identidad antes de corregir: personas distintas pueden compartir nombre; no imponer unicidad por nombre.<p class="deliverable"><strong>Fuente:</strong> Mauro Alvarez-Estudiantes, fila 2, evidencia 1</p></td><td><span class="badge normal">Asignado; regla por validar</span></td></tr>
+<tr><td class="code-cell">3.27</td><td><div class="wp-name">Texto del bot&#243;n de importaci&#243;n seg&#250;n formato</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Si el formato aceptado es CSV, ajustar el texto del bot&#243;n para que no anuncie Excel. Confirmar formato efectivo.<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 5, evidencia 3</p></td><td><span class="badge normal">Asignado; condicionado al formato</span></td></tr>
+
           <tr>
             <td class="code-cell">4.1</td>
             <td><div class="wp-name">Relación carrera–materia faltante</div></td>
-            <td>Completar la relación que falta en la vista de Carrera/Materia (a confirmar con el equipo cuál falta exactamente al tomar la tarea).</td>
+            <td>Completar la relación que falta en la vista de Carrera/Materia (a confirmar con el equipo cuál falta exactamente al tomar la tarea).<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Precisar el alcance: impedir guardar una Materia sin carrera seleccionada, seg&#250;n Luis-Materias, fila 8, Asignado. No duplicar como otro paquete.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
@@ -875,43 +928,43 @@
           <tr>
             <td class="code-cell">4.4</td>
             <td><div class="wp-name">Materia acepta números</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>Los campos Denominación y Modalidad de Materia aceptan valores numéricos, deberían validarse como texto.</td>
+            <td>Los campos Denominación y Modalidad de Materia aceptan valores numéricos, deberían validarse como texto.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Luis-Materias, fila 2.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.5</td>
             <td><div class="wp-name">Modalidad como lista fija</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>"Modalidad" es un campo de texto libre — debería ser un desplegable con las opciones reales (Presencial, Virtual, Libre, etc.) para no permitir cualquier valor.</td>
+            <td>"Modalidad" es un campo de texto libre — debería ser un desplegable con las opciones reales (Presencial, Virtual, Libre, etc.) para no permitir cualquier valor.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Luis-Materias, fila 4.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.6</td>
             <td><div class="wp-name">Permite materias duplicadas</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>El alta de Materia no valida que ya exista una con la misma denominación.</td>
+            <td>El alta de Materia no valida que ya exista una con la misma denominación.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Nueva Revisi&#243;n seg&#250;n Facundo-Materias, fila 2; el proyecto decidi&#243; no corregir este pedido: ver 4.6-y-4.8-no-corregir.md. Luis, fila 6, mezcla duplicados con relaci&#243;n carrera-materia y figura Solucionado. No reabrir autom&#225;ticamente.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.7</td>
             <td><div class="wp-name">Materia nueva al final del listado</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>Al guardar una materia nueva, queda al final del listado — obliga a scrollear para verla. Considerar ordenar u ofrecer feedback visual de dónde quedó.</td>
+            <td>Al guardar una materia nueva, queda al final del listado — obliga a scrollear para verla. Considerar ordenar u ofrecer feedback visual de dónde quedó.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Luis-Materias, fila 3.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.8</td>
             <td><div class="wp-name">Paso redundante Detalles → Editar</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>Desde "Detalles" de una materia hay que apretar "Editar" para poder modificarla — un paso de más si el usuario ya quería editar directamente.</td>
+            <td>Desde "Detalles" de una materia hay que apretar "Editar" para poder modificarla — un paso de más si el usuario ya quería editar directamente.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Asignado seg&#250;n Luis-Materias, fila 5; el proyecto decidi&#243; no corregir este pedido: ver 4.6-y-4.8-no-corregir.md. Mantener la decisi&#243;n.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.9</td>
             <td><div class="wp-name">Carrera con denominación numérica</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>Se pudo crear una carrera con denominación "1231231231" (solo números) — debería rechazarse.</td>
+            <td>Se pudo crear una carrera con denominación "1231231231" (solo números) — debería rechazarse.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Leonel-Carreras, fila 5.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">4.10</td>
             <td><div class="wp-name">Carrera sin espacios entre palabras</div><div class="deliverable">Hallazgo de testing — carreras/materias</div></td>
-            <td>Se pudo crear la carrera "ProfesoradodeEducaciónInicial" (varias palabras pegadas, sin espacios) — validar formato de nombre.</td>
+            <td>Se pudo crear la carrera "ProfesoradodeEducaciónInicial" (varias palabras pegadas, sin espacios) — validar formato de nombre.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Nueva Revisi&#243;n seg&#250;n Leonel-Carreras, filas 6 y 10. Fila 8 menciona caracteres inv&#225;lidos sin identificar cu&#225;les: ampliar revisi&#243;n de formato y pedir caso concreto, sin crear un defecto espec&#237;fico no descrito.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
@@ -920,6 +973,11 @@
             <td>Al agregar o eliminar una carrera no aparece ningún cartel confirmando que la acción se realizó correctamente.</td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
+<tr><td class="code-cell">4.12</td><td><div class="wp-name">Validaci&#243;n de cantidad de m&#243;dulos en ingl&#233;s</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Localizar el mensaje de cantidad incorrecta de m&#243;dulos. La sugerencia de la fuente dice &#171;en ingl&#233;s&#187; aunque describe eso como problema; confirmar y usar el idioma espa&#241;ol del producto.<p class="deliverable"><strong>Fuente:</strong> Luis-Materias, fila 7, captura 6</p></td><td><span class="badge normal">Asignado; sugerencia contradictoria</span></td></tr>
+<tr><td class="code-cell">4.13</td><td><div class="wp-name">Selecci&#243;n de carreras o materias desde cat&#225;logo</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>La descripci&#243;n indica que acepta cualquier nombre de carrera, pero la sugerencia pide seleccionar materias de la base. Aclarar pantalla y entidad antes de implementar selecci&#243;n desde cat&#225;logo.<p class="deliverable"><strong>Fuente:</strong> Cristian Valverde-Carreras, fila 2, evidencia 1; fecha 16/10/26</p></td><td><span class="badge normal">Asignado; descripci&#243;n y fecha por validar</span></td></tr>
+<tr><td class="code-cell">4.14</td><td><div class="wp-name">Mostrar cohorte y a&#241;o de cursado</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Mostrar a&#241;o de cohorte y a&#241;o de cursado para distinguir carreras y cursos.<p class="deliverable"><strong>Fuente:</strong> Cristian Valverde-Carreras, fila 3, evidencia 2; fecha 16/10/26</p></td><td><span class="badge normal">Asignado; fecha por validar</span></td></tr>
+<tr><td class="code-cell">4.15</td><td><div class="wp-name">Buscador de carreras</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Agregar b&#250;squeda en el listado de carreras para agilizar la consulta administrativa.<p class="deliverable"><strong>Fuente:</strong> Cristian Valverde-Carreras, fila 4, evidencia 3; fecha 16/10/26</p></td><td><span class="badge normal">Asignado; fecha por validar</span></td></tr>
+
           <tr>
             <td class="code-cell">5.1</td>
             <td><div class="wp-name">Bug: rol "estudiante" inexistente</div></td>
@@ -953,13 +1011,13 @@
           <tr>
             <td class="code-cell">5.6</td>
             <td><div class="wp-name">Datos de carrera/materia no visibles</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
-            <td>Los datos de carrera y materia seleccionados no aparecen correctamente en la vista de toma de asistencia.</td>
+            <td>Los datos de carrera y materia seleccionados no aparecen correctamente en la vista de toma de asistencia.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Florencia-Asistencias, fila 2.</p></td>
             <td><span class="badge mvp">MVP</span></td>
           </tr>
           <tr>
             <td class="code-cell">5.7</td>
             <td><div class="wp-name">Botón Cancelar sin estilo</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
-            <td>El botón "Cancelar" de la toma de asistencia aparece como un link de texto subrayado en vez de un botón consistente con el resto de los controles.</td>
+            <td>El botón "Cancelar" de la toma de asistencia aparece como un link de texto subrayado en vez de un botón consistente con el resto de los controles.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Ampliar alcance a los botones Guardar y Cancelar seg&#250;n Florencia-Asistencias, fila 3, Asignado.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
           <tr>
@@ -983,9 +1041,14 @@
           <tr>
             <td class="code-cell">5.11</td>
             <td><div class="wp-name">Falta cartel al guardar asistencia</div><div class="deliverable">Hallazgo de testing — Florencia</div></td>
-            <td>Al guardar la asistencia de una cátedra no aparece ningún mensaje confirmando que se guardó correctamente — mismo tipo de falta que 4.11, pero en la pantalla de Asistencias.</td>
+            <td>Al guardar la asistencia de una cátedra no aparece ningún mensaje confirmando que se guardó correctamente — mismo tipo de falta que 4.11, pero en la pantalla de Asistencias.<p class="deliverable"><strong>Comparación 06/10/2026:</strong> Solucionado seg&#250;n Florencia-Asistencias, fila 4.</p></td>
             <td><span class="badge normal">Post-MVP</span></td>
           </tr>
+<tr><td class="code-cell">5.12</td><td><div class="wp-name">Porcentaje global calculado por m&#243;dulos</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Se muestra 100% por asistir a un m&#243;dulo de tres. Calcular m&#243;dulos presentes / m&#243;dulos totales, tanto por d&#237;a como acumulado anual. Distinto del campo porcentaje de Materia (4.2).<p class="deliverable"><strong>Fuente:</strong> Florencia-Asistencias, fila 5, capturas 3 y 4</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">5.13</td><td><div class="wp-name">HTTP 500 al abrir o seleccionar asistencia</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Registrar ambos escenarios: abrir Asistencias y seleccionar una materia. La causa no est&#225; indicada; no asumir que es 5.1 o 5.10.<p class="deliverable"><strong>Fuente:</strong> Florencia-Asistencias, filas 6 y 8, capturas 5 y 7</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">5.14</td><td><div class="wp-name">Filtrar materias por carrera y docente</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Mostrar solo materias de la carrera seleccionada y c&#225;tedras del docente actual, tambi&#233;n al volver a ingresar sin cerrar sesi&#243;n.<p class="deliverable"><strong>Fuente:</strong> Florencia-Asistencias, filas 7 y 9, captura 6 y sin captura</p></td><td><span class="badge normal">Solucionado</span></td></tr>
+<tr><td class="code-cell">5.15</td><td><div class="wp-name">Docente activo en cohorte para tomar asistencia</div><div class="deliverable">Hallazgo incorporado el 06/10/2026</div></td><td>Impedir carga si el docente no est&#225; activo en la cohorte, a&#241;o, carrera y materia correspondientes. Distinto de filtrar listas (5.14).<p class="deliverable"><strong>Fuente:</strong> Magal&#237;(LUIS), fila 6, evidencia 4</p></td><td><span class="badge normal">Asignado</span></td></tr>
+
           <tr>
             <td class="code-cell">6.1</td>
             <td><div class="wp-name">Revisión responsive</div></td>
@@ -1015,6 +1078,17 @@
     </div>
   </section>
 
+  <section id="comparacion-testing">
+    <h2>Comparación con testing — 06/10/2026</h2>
+    <p class="section-intro">Fuente: <a href="https://docs.google.com/spreadsheets/d/1WhuAEKgcgOxbuCd_Fmx1n4YF-KxYuTSw7UQjLOkc9UE/edit">team-testing compartido</a>, actualizado el 01/10/2026. Se utiliza la planilla nativa más reciente, en lugar de la copia team-testing.xlsx del 29/09.</p>
+    <div class="assumptions">
+      <p><strong>Resultado:</strong> 26 paquetes nuevos incorporados al árbol y al diccionario; 26 paquetes existentes anotados o precisados sin duplicarlos. Incluye hallazgos históricos ya solucionados para conservar trazabilidad. Los estados nuevos y las notas son estados declarados por testing, no una verificación del código ni de la aplicación. La prioridad histórica MVP/Post-MVP de los paquetes existentes no equivale a su estado.</p>
+      <p><strong>Novedades del 01/10:</strong> 3.23 (Admin en selector), 3.24 (Email de Estudiante) y 3.25 (checkboxes desalineados). El resto son omisiones anteriores del EDT o precisiones de alcance.</p>
+      <p><strong>Datos por revisar:</strong> 4.13–4.15 tienen fecha 16/10/2026, posterior a esta comparación. Se conserva la fecha reportada sin dar por ocurrido un test futuro. 4.13 mezcla carreras con materias; 3.26 requiere confirmar la regla para nombres repetidos; 2.11 requiere confirmar la política de expiración. El email duplicado de Mauro no tiene estado; no prohibir automáticamente dos carreras ni nombres iguales.</p>
+      <p><strong>Decisiones previas:</strong> 4.6 y 4.8 mantienen la decisión documentada en <a href="4.6-y-4.8-no-corregir.md">4.6-y-4.8-no-corregir.md</a>, aunque testing aún los mencione. Las filas sin descripción, y los casos que explícitamente no detectan errores, no generan nuevos paquetes. Las capturas no fueron inspeccionadas; la comparación usa el texto y las celdas de la planilla.</p>
+      <p><strong>Cronograma:</strong> las fechas de septiembre se conservan como planificación original. Los nuevos paquetes quedan sin fecha ni responsable confirmado; requieren replanificación y no se insertan en semanas ya pasadas. El PDF existente corresponde a la versión anterior; este HTML es la versión actualizada.</p>
+    </div>
+  </section>
   <footer>
     Armado a partir de la lista de correcciones de la reunión con Magali (<code>documentacion/DOCUMENTACIÓN - PROGRAMACIÓN.md</code>) y la planilla de integrantes. El orden y las duraciones son una propuesta — ajustar el cronograma según cuántas horas por semana pueda dedicarle cada uno realmente.
   </footer>

@@ -60,10 +60,11 @@
             </div>
         </div>
 
-        <form asp-controller="Admin" asp-action="CargaMasivaProcesar" method="post" id="formMapeoColumnas">
+        <form asp-controller="Admin" asp-action="CargaMasivaPrevisualizar" method="post" id="formMapeoColumnas">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="TempFileToken" />
             <input type="hidden" asp-for="CaCoId" />
+            <input type="hidden" name="FechaInscripcion" value="@(Model.FechaInscripcion?.ToString("yyyy-MM-dd"))" />
             @foreach (var id in Model.SelectedCaMaIds)
             {
                 <input type="hidden" name="SelectedCaMaIds" value="@id" />
@@ -71,138 +72,221 @@
 
             <div style="margin-bottom: 20px;">
                 <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 6px; font-weight: 600;">
-                    <i class="bi bi-columns-gap" style="color: #1a73e8; margin-right: 8px;"></i> Asigne las columnas de su archivo a los campos requeridos:
+                    <i class="bi bi-columns-gap" style="color: #1a73e8; margin-right: 8px;"></i> Elija las pestañas a cargar y las columnas de cada una
                 </h3>
                 <p style="color: #64748b; font-size: 13px; margin: 0;">
-                    El sistema infirió la mejor coincidencia automáticamente. Por favor, revise y ajuste si corresponde. Las 4 columnas son obligatorias.
+                    Cada pestaña se lee por separado: marque las que tienen alumnos, indique en qué fila están los títulos y qué columna es cada dato.
+                    El sistema propone la mejor coincidencia; revísela y corríjala si hace falta. Los alumnos repetidos en varias pestañas se consolidan si sus datos coinciden.
                 </p>
             </div>
 
-            <!-- Grilla de selectores de mapeo -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 25px;">
-                <!-- DNI -->
-                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px;">
-                    <label asp-for="ColumnaDni" style="font-weight: 600; color: #0369a1; display: block; margin-bottom: 6px;">
-                        <i class="bi bi-person-vcard" style="margin-right: 4px;"></i> DNI *
+            @for (int i = 0; i < Model.Hojas.Count; i++)
+            {
+                var hoja = Model.Hojas[i];
+                <section class="hoja-card" data-hoja="@hoja.Nombre" style="margin-bottom: 18px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; opacity:@(hoja.TieneDatos ? "1" : ".55");">
+                    <input type="hidden" name="Hojas[@i].Nombre" value="@hoja.Nombre" />
+                    <label style="display:flex; align-items:center; gap:10px; padding: 12px 14px; background:#f8fafc; border-radius: 8px 8px 0 0; cursor:@(hoja.TieneDatos ? "pointer" : "not-allowed");">
+                        <input type="checkbox" class="hoja-incluir" name="Hojas[@i].Incluir" value="true"
+                               checked="@(hoja.Incluir ? "checked" : null)" disabled="@(!hoja.TieneDatos)" />
+                        <input type="hidden" name="Hojas[@i].Incluir" value="false" />
+                        <strong>@hoja.Nombre</strong>
+                        <small style="color:#64748b;">(@hoja.TotalFilas filas@(hoja.TieneDatos ? "" : ", sin datos"))</small>
                     </label>
-                    <select asp-for="ColumnaDni" id="selectColDni" class="form-control" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #7dd3fc; background: white;">
-                        <option value="" disabled>-- Seleccione columna --</option>
-                        @foreach (var col in Model.ColumnasExcel)
-                        {
-                            <option value="@col" selected="@(col == Model.ColumnaDni ? "selected" : null)">@col</option>
-                        }
-                    </select>
-                    <small style="color: #0284c7; display: block; margin-top: 4px; font-size: 11px;">7 a 8 dígitos numéricos</small>
-                </div>
 
-                <!-- Apellido -->
-                <div style="background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 8px; padding: 14px;">
-                    <label asp-for="ColumnaApellido" style="font-weight: 600; color: #86198f; display: block; margin-bottom: 6px;">
-                        <i class="bi bi-type" style="margin-right: 4px;"></i> Apellido *
-                    </label>
-                    <select asp-for="ColumnaApellido" id="selectColApellido" class="form-control" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #f0abfc; background: white;">
-                        <option value="" disabled>-- Seleccione columna --</option>
-                        @foreach (var col in Model.ColumnasExcel)
-                        {
-                            <option value="@col" selected="@(col == Model.ColumnaApellido ? "selected" : null)">@col</option>
-                        }
-                    </select>
-                    <small style="color: #a21caf; display: block; margin-top: 4px; font-size: 11px;">Solo letras y espacios</small>
-                </div>
+                    @if (hoja.TieneDatos)
+                    {
+                        <div class="hoja-cuerpo" style="padding: 14px; display:@(hoja.Incluir ? "block" : "none");">
+                            <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; margin-bottom: 14px;">
+                                <div>
+                                    <label style="font-weight: 600; display:block; margin-bottom: 4px; font-size: 13px;">Fila de los títulos</label>
+                                    <input type="number" min="1" class="form-control hoja-fila" name="Hojas[@i].FilaCabecera" value="@hoja.FilaCabecera"
+                                           style="width: 90px; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+                                </div>
+                                <label style="font-size: 13px; display:flex; align-items:center; gap:6px; padding-bottom: 8px;">
+                                    <input type="checkbox" class="hoja-combinada" name="Hojas[@i].ApellidoYNombre" value="true"
+                                           checked="@(hoja.ApellidoYNombre ? "checked" : null)" />
+                                    <input type="hidden" name="Hojas[@i].ApellidoYNombre" value="false" />
+                                    El apellido y el nombre están en la misma columna
+                                </label>
+                            </div>
 
-                <!-- Nombre -->
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px;">
-                    <label asp-for="ColumnaNombre" style="font-weight: 600; color: #15803d; display: block; margin-bottom: 6px;">
-                        <i class="bi bi-person" style="margin-right: 4px;"></i> Nombre *
-                    </label>
-                    <select asp-for="ColumnaNombre" id="selectColNombre" class="form-control" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #86efac; background: white;">
-                        <option value="" disabled>-- Seleccione columna --</option>
-                        @foreach (var col in Model.ColumnasExcel)
-                        {
-                            <option value="@col" selected="@(col == Model.ColumnaNombre ? "selected" : null)">@col</option>
-                        }
-                    </select>
-                    <small style="color: #16a34a; display: block; margin-top: 4px; font-size: 11px;">Solo letras y espacios</small>
-                </div>
-
-                <!-- Email -->
-                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 14px;">
-                    <label asp-for="ColumnaEmail" style="font-weight: 600; color: #b45309; display: block; margin-bottom: 6px;">
-                        <i class="bi bi-envelope" style="margin-right: 4px;"></i> Email *
-                    </label>
-                    <select asp-for="ColumnaEmail" id="selectColEmail" class="form-control" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #fcd34d; background: white;">
-                        <option value="" disabled>-- Seleccione columna --</option>
-                        @foreach (var col in Model.ColumnasExcel)
-                        {
-                            <option value="@col" selected="@(col == Model.ColumnaEmail ? "selected" : null)">@col</option>
-                        }
-                    </select>
-                    <small style="color: #d97706; display: block; margin-top: 4px; font-size: 11px;">Formato de correo válido</small>
-                </div>
-            </div>
-
-            <!-- Previsualización de las primeras filas del Excel -->
-            <div style="margin-bottom: 30px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h4 style="font-size: 14px; font-weight: 600; color: #334155; margin: 0;">
-                        <i class="bi bi-table" style="color: #1a73e8; margin-right: 6px;"></i> Vista previa de las primeras filas leídas del Excel:
-                    </h4>
-                    <span style="font-size: 12px; color: #64748b;">(Primeras @Model.PreviewRows.Count filas de muestra)</span>
-                </div>
-
-                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-                        <thead style="background: #f1f5f9; color: #334155;">
-                            <tr>
-                                <th style="padding: 10px 12px; border-bottom: 2px solid #cbd5e1; width: 45px; text-align: center;">#</th>
-                                @foreach (var col in Model.ColumnasExcel)
-                                {
-                                    <th class="th-excel-col" data-col-name="@col" style="padding: 10px 12px; border-bottom: 2px solid #cbd5e1; font-weight: 600;">
-                                        @col
-                                    </th>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                                @{
+                                    var campos = new[]
+                                    {
+                                        (Clave: "Dni", Titulo: "DNI *", Valor: hoja.ColDni, Fondo: "#f0f9ff", Borde: "#bae6fd", Ayuda: "7 a 8 dígitos numéricos"),
+                                        (Clave: "Apellido", Titulo: "Apellido *", Valor: hoja.ColApellido, Fondo: "#fdf4ff", Borde: "#f5d0fe", Ayuda: hoja.ApellidoYNombre ? "Apellido y nombre juntos" : "Solo letras y espacios"),
+                                        (Clave: "Nombre", Titulo: "Nombre *", Valor: hoja.ColNombre, Fondo: "#f0fdf4", Borde: "#bbf7d0", Ayuda: "Solo letras y espacios"),
+                                        (Clave: "Email", Titulo: "Email *", Valor: hoja.ColEmail, Fondo: "#fffbeb", Borde: "#fde68a", Ayuda: "Formato de correo válido"),
+                                    };
                                 }
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.PreviewRows.Any())
-                            {
-                                int rowIdx = 1;
-                                foreach (var row in Model.PreviewRows)
+                                @foreach (var campo in campos)
                                 {
-                                    <tr style="border-bottom: 1px solid #f1f5f9; background: @(rowIdx % 2 == 0 ? "#f8fafc" : "white");">
-                                        <td style="padding: 8px 12px; color: #94a3b8; text-align: center; font-size: 12px;">@rowIdx</td>
-                                        @foreach (var col in Model.ColumnasExcel)
+                                    <div class="campo-@campo.Clave.ToLower()" style="background: @campo.Fondo; border: 1px solid @campo.Borde; border-radius: 8px; padding: 12px; display:@(campo.Clave == "Nombre" && hoja.ApellidoYNombre ? "none" : "block");">
+                                        <label style="font-weight: 600; display: block; margin-bottom: 6px;">@campo.Titulo</label>
+                                        <select class="form-control hoja-col" data-campo="@campo.Clave" name="Hojas[@i].Col@(campo.Clave)"
+                                                disabled="@(campo.Clave == "Nombre" && hoja.ApellidoYNombre)"
+                                                style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: white;">
+                                            <option value="0" selected="@(campo.Valor == 0 ? "selected" : null)">-- Seleccione columna --</option>
+                                            @for (int c = 0; c < hoja.Columnas.Count; c++)
+                                            {
+                                                var titulo = string.IsNullOrWhiteSpace(hoja.Columnas[c]) ? "(sin título)" : hoja.Columnas[c];
+                                                <option value="@(c + 1)" selected="@(campo.Valor == c + 1 ? "selected" : null)">@ISFDyT124.Services.ExcelImportService.LetraColumna(c + 1) · @titulo</option>
+                                            }
+                                        </select>
+                                        <small style="display: block; margin-top: 4px; font-size: 11px; color:#475569;">@campo.Ayuda</small>
+                                    </div>
+                                }
+                            </div>
+
+                            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <table class="hoja-preview" style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                                    <thead style="background: #f1f5f9; color: #334155;">
+                                        <tr>
+                                            @for (int c = 0; c < hoja.Columnas.Count; c++)
+                                            {
+                                                <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1; font-weight: 600; white-space: nowrap;">
+                                                    <span style="color:#94a3b8; font-weight:500;">@ISFDyT124.Services.ExcelImportService.LetraColumna(c + 1)</span> @hoja.Columnas[c]
+                                                </th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (hoja.PreviewRows.Any())
                                         {
-                                            var val = row.ContainsKey(col) ? row[col] : "";
-                                            <td style="padding: 8px 12px; color: #1e293b; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                                @(string.IsNullOrWhiteSpace(val) ? Html.Raw("<span style='color:#cbd5e1;'>—</span>") : val)
-                                            </td>
+                                            foreach (var fila in hoja.PreviewRows)
+                                            {
+                                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                                    @foreach (var valor in fila)
+                                                    {
+                                                        <td style="padding: 6px 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                            @(string.IsNullOrWhiteSpace(valor) ? "—" : valor)
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
                                         }
-                                    </tr>
-                                    rowIdx++;
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="@(Model.ColumnasExcel.Count + 1)" style="padding: 20px; text-align: center; color: #64748b;">
-                                        No se encontraron filas con datos debajo de la cabecera.
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                                        else
+                                        {
+                                            <tr><td colspan="@Math.Max(1, hoja.Columnas.Count)" style="padding: 16px; text-align: center; color: #64748b;">No hay filas con datos debajo de la fila de títulos.</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <small class="hoja-aviso" style="color:#64748b; display:block; margin-top:6px;">Muestra de las primeras filas bajo la fila @hoja.FilaCabecera.</small>
+                        </div>
+                    }
+                </section>
+            }
 
             <div class="form-buttons" style="display: flex; justify-content: space-between; margin-top: 25px;">
                 <a asp-action="CargaMasivaAlumnos" class="btn-cancel" style="text-decoration:none; text-align:center; padding: 10px 20px; border-radius: 6px;">
                     <i class="bi bi-arrow-left" style="margin-right: 6px;"></i> Cambiar archivo / Carrera
                 </a>
                 <button type="submit" class="btn-save" id="btnProcesarImportacion" style="padding: 10px 24px; border-radius: 6px; background: #16a34a; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 14px;">
-                    <i class="bi bi-check2-circle" style="margin-right: 6px;"></i> Confirmar e Importar Estudiantes
+                    <i class="bi bi-eye" style="margin-right: 6px;"></i> Generar previsualización editable
                 </button>
             </div>
         </form>
     </div>
 </main>
+
+@section Scripts {
+    <script>
+        (function () {
+            var urlColumnas = '@Url.Action("CargaMasivaColumnas", "Admin")';
+            var token = '@Model.TempFileToken';
+            var campos = ['Dni', 'Apellido', 'Nombre', 'Email'];
+
+            function letra(n) {
+                var s = '';
+                while (n > 0) { var r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+                return s;
+            }
+
+            function llenarSelect(select, columnas, valor) {
+                select.innerHTML = '';
+                var vacio = document.createElement('option');
+                vacio.value = '0';
+                vacio.textContent = '-- Seleccione columna --';
+                select.appendChild(vacio);
+                columnas.forEach(function (titulo, i) {
+                    var op = document.createElement('option');
+                    op.value = String(i + 1);
+                    op.textContent = letra(i + 1) + ' · ' + (titulo.trim() === '' ? '(sin título)' : titulo);
+                    select.appendChild(op);
+                });
+                select.value = String(valor || 0);
+            }
+
+            function dibujarMuestra(card, datos) {
+                var tabla = card.querySelector('.hoja-preview');
+                tabla.innerHTML = '';
+                var cab = tabla.createTHead().insertRow();
+                datos.columnas.forEach(function (titulo, i) {
+                    var th = document.createElement('th');
+                    th.style.cssText = 'padding:8px 12px;border-bottom:2px solid #cbd5e1;font-weight:600;white-space:nowrap;';
+                    var l = document.createElement('span');
+                    l.style.cssText = 'color:#94a3b8;font-weight:500;';
+                    l.textContent = letra(i + 1);
+                    th.appendChild(l);
+                    th.appendChild(document.createTextNode(' ' + titulo));
+                    cab.appendChild(th);
+                });
+                var cuerpo = tabla.createTBody();
+                if (datos.filas.length === 0) {
+                    var td = cuerpo.insertRow().insertCell();
+                    td.colSpan = Math.max(1, datos.columnas.length);
+                    td.style.cssText = 'padding:16px;text-align:center;color:#64748b;';
+                    td.textContent = 'No hay filas con datos debajo de la fila de títulos.';
+                } else {
+                    datos.filas.forEach(function (fila) {
+                        var tr = cuerpo.insertRow();
+                        tr.style.borderBottom = '1px solid #f1f5f9';
+                        fila.forEach(function (valor) {
+                            var td = tr.insertCell();
+                            td.style.cssText = 'padding:6px 12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                            td.textContent = valor.trim() === '' ? '—' : valor;
+                        });
+                    });
+                }
+                card.querySelector('.hoja-aviso').textContent = 'Muestra de las primeras filas bajo la fila ' + datos.filaCabecera + '.';
+            }
+
+            function aplicarCombinada(card) {
+                var combinada = card.querySelector('.hoja-combinada').checked;
+                var contenedor = card.querySelector('.campo-nombre');
+                contenedor.style.display = combinada ? 'none' : 'block';
+                contenedor.querySelector('select').disabled = combinada;
+            }
+
+            function recargar(card, fila) {
+                var url = urlColumnas + '?token=' + encodeURIComponent(token) +
+                    '&hoja=' + encodeURIComponent(card.dataset.hoja) + (fila ? '&fila=' + encodeURIComponent(fila) : '');
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+                    .then(function (datos) {
+                        card.querySelector('.hoja-fila').value = datos.filaCabecera;
+                        campos.forEach(function (campo) {
+                            llenarSelect(card.querySelector('select[data-campo="' + campo + '"]'), datos.columnas, datos.sugerido[campo.toLowerCase()]);
+                        });
+                        card.querySelector('.hoja-combinada').checked = datos.sugerido.apellidoYNombre;
+                        aplicarCombinada(card);
+                        dibujarMuestra(card, datos);
+                    })
+                    .catch(function () {
+                        card.querySelector('.hoja-aviso').textContent = 'No se pudieron leer las columnas de esa fila. Pruebe con otra.';
+                    });
+            }
+
+            document.querySelectorAll('.hoja-card').forEach(function (card) {
+                var incluir = card.querySelector('.hoja-incluir');
+                var cuerpo = card.querySelector('.hoja-cuerpo');
+                if (!cuerpo) return;
+                incluir.addEventListener('change', function () { cuerpo.style.display = incluir.checked ? 'block' : 'none'; });
+                card.querySelector('.hoja-fila').addEventListener('change', function (e) { recargar(card, e.target.value); });
+                card.querySelector('.hoja-combinada').addEventListener('change', function () { aplicarCombinada(card); });
+            });
+        })();
+    </script>
+}

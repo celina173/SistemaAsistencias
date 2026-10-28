@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="ISFDyT124.Tests/ISFDyT124.Tests.csproj" />
   <Project Path="ISFDyT124/ISFDyT124.csproj" />
 </Solution>

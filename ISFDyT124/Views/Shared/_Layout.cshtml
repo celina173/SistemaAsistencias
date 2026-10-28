@@ -30,11 +30,16 @@
     <partial name="_PwaInstallBanner" />
 
     <header class="top-header">
-        <div class="menu-icon" id="toggleSidebar">
+        <button type="button"
+                class="menu-icon"
+                id="toggleSidebar"
+                aria-label="Abrir menú"
+                aria-expanded="false"
+                aria-controls="sidebarMenu">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
-        </div>
+        </button>
 
         @{
             // Definimos las rutas y variables globales de la sesión
@@ -80,33 +85,14 @@
             
             <!-- CALENDARIO INTELIGENTE -->
             <li>
-                @if (esDocente)
-                {
-                    // Buscamos si el docente ya eligió una materia
-                    var currentCaMaId = Context.Request.Query["caMaId"].ToString();
-                    if (string.IsNullOrEmpty(currentCaMaId)) {
-                        currentCaMaId = Context.Request.Query["CaMaId"].ToString();
-                    }
-                    
-                    if (!string.IsNullOrEmpty(currentCaMaId))
-                    {
-                        <!-- ACÁ ESTÁ LA CLAVE: Lo manda a la grilla de porcentajes -->
-                        <a asp-controller="Asistencias" asp-action="AsistenciaGlobal" asp-route-caMaId="@currentCaMaId"><span class="menu-arrow">➔</span>Calendario</a>
-                    }
-                    else
-                    {
-                        <a asp-controller="Profesor" asp-action="Index"><span class="menu-arrow">➔</span>Calendario</a>
-                    }
-                }
-                else
-                {
-                    <a asp-controller="Asistencias" asp-action="AsistenciaGlobal"><span class="menu-arrow">➔</span>Calendario</a>
-                }
+                <a asp-controller="Asistencias" asp-action="AsistenciaGlobal">
+                    <span class="menu-arrow">➔</span>Calendario
+                </a>
             </li>
 
             <!-- Ticket 6.8: antes iba a Login (solo mostraba la pantalla y la sesión quedaba abierta); ahora envía formLogout. -->
             <li>
-                <a href="#" onclick="document.getElementById('formLogout').submit(); return false;"><span class="menu-arrow">➔</span>Cerrar Sesion</a>
+                <a href="#" onclick="document.getElementById('formLogout').submit(); return false;"><span class="menu-arrow">➔</span>Cerrar Sesión</a>
             </li>
         </ul>
     </nav>

@@ -13,6 +13,28 @@
 </div>
 
 <main class="main-container-global" style="max-width: 1050px; margin: 0 auto; padding: 20px;">
+    @if (Model.EsConfirmacion)
+    {
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 22px; margin-bottom: 25px;">
+            <h3 style="color: #1e3a8a; margin-top: 0;">Confirme la importación</h3>
+            <p>Revise el resumen antes de crear alumnos e inscripciones. Esta acción es explícita y no se puede iniciar sin materias seleccionadas.</p>
+            <dl>
+                <dt><strong>Cantidad de alumnos de muestra:</strong></dt>
+                <dd>@Model.TotalFilas</dd>
+                <dt><strong>Carrera / Cohorte:</strong></dt>
+                <dd>@Model.CarreraCohorteDenominacion</dd>
+                <dt><strong>Materias seleccionadas (@Model.MateriasInscriptas.Count):</strong></dt>
+                <dd><ul>@foreach (var materia in Model.MateriasInscriptas) { <li>@materia</li> }</ul></dd>
+            </dl>
+            <form method="post" action="@Url.Action("ConfirmarCargaMasiva", "Admin", new { importId = Model.ImportId })">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-save" style="padding: 10px 22px; border-radius: 6px; background: #1a73e8; color: white; border: 0; font-weight: 500;">Confirmar e importar</button>
+                <a href="@Url.Action("CargaMasivaPaso2", "Admin", new { importId = Model.ImportId })" class="btn-cancel" style="margin-left: 10px;">Volver al mapeo</a>
+            </form>
+        </div>
+    }
+    else
+    {
     <!-- Indicador de pasos (Wizard) -->
     <div class="wizard-steps-container" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 25px;">
         <div class="step-item completed" style="display: flex; align-items: center; gap: 8px; color: #16a34a; border-bottom: 3px solid #16a34a; padding-bottom: 6px;">
@@ -215,4 +237,5 @@
             </a>
         }
     </div>
+    }
 </main>
