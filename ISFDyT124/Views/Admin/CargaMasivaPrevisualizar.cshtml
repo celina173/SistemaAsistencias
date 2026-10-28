@@ -37,9 +37,9 @@
         </div>
 
         <div style="overflow-x:auto;background:white;border:1px solid #e2e8f0;border-radius:8px;">
-            <table style="width:100%;border-collapse:collapse;min-width:1250px;font-size:13px;">
+            <table style="width:100%;border-collapse:collapse;min-width:1400px;font-size:13px;">
                 <thead style="background:#f1f5f9;"><tr>
-                    <th style="padding:10px;">Incluir</th><th>Pestaña/fila</th><th>DNI</th><th>Apellido</th><th>Nombre</th><th>Email</th><th>Carrera/cohorte</th><th>Materias</th>
+                    <th style="padding:10px;">Incluir</th><th>Pestaña/fila</th><th>DNI</th><th>Apellido</th><th>Nombre</th><th>Email</th><th>Carrera/cohorte</th><th>Materias</th><th>Inscripción</th>
                 </tr></thead>
                 <tbody>
                 @for (var i = 0; i < Model.Alumnos.Count; i++)
@@ -73,6 +73,11 @@
                                 }
                             </select>
                             <small>Ctrl/Cmd permite elegir varias.</small>
+                        </td>
+                        <td style="padding:8px;">
+                            <input class="form-control" type="date" name="Alumnos[@i].FechaInscripcion"
+                                   value="@(alumno.FechaInscripcion?.ToString("yyyy-MM-dd"))"
+                                   max="@DateTime.Today.ToString("yyyy-MM-dd")" style="min-width:140px;" />
                         </td>
                     </tr>
                 }

@@ -227,7 +227,8 @@ namespace ISFDyT124.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId)
+        // 1. AGREGA 'string? userPassword' COMO PARÁMETRO PARA RECIBIR EL INPUT DEL FORMULARIO[cite: 6]
+        public async Task<IActionResult> UsuarioAgregar(UsuarioCrearDto model, int selectedRoleId, string? userPassword)
         {
             if (!ModelState.IsValid)
             {
@@ -235,9 +236,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Admin es exclusivo del desarrollo (ticket 3.34): se valida en el servidor,
-            // no solo ocultando la opción en el <select>, porque nada impide mandar
-            // selectedRoleId=1 por POST sin pasar por la vista.
             if (selectedRoleId == RolId.Admin)
             {
                 ModelState.AddModelError("selectedRoleId", "No se puede asignar el rol Admin desde el alta de usuario.");
@@ -245,7 +243,6 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
-            // Validación de email único (previene duplicados a nivel de aplicación)
             if (!string.IsNullOrWhiteSpace(model.UsEmail))
             {
                 var emailExists = await _context.Usuarios.AnyAsync(u => u.UsEmail == model.UsEmail);
@@ -292,6 +289,11 @@ namespace ISFDyT124.Controllers
                 )
                 .FirstAsync();
 
+            // 2. REEMPLAZA LA CREACIÓN DEL OBJETO "Usuario" CON ESTA LÓGICA:
+            bool requiereActivacion = string.IsNullOrEmpty(userPassword);
+            string tokenGenerado = requiereActivacion ? Guid.NewGuid().ToString("N") : "tokenbloqueado"; //[cite: 3]
+            string contrasenaFinal = requiereActivacion ? Guid.NewGuid().ToString() : userPassword!;
+
             var usuario = new Usuario
             {
                 UsId = nuevoUsId,
@@ -299,7 +301,9 @@ namespace ISFDyT124.Controllers
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
                 UsEmail = model.UsEmail,
-                UsContrasena = PasswordService.HashPassword(model.UsDni.ToString()),
+                UsContrasena = PasswordService.HashPassword(contrasenaFinal),
+                UsTokenRecovery = tokenGenerado, //[cite: 3]
+                UsTokenRecoveryVencimiento = requiereActivacion ? DateTime.UtcNow.AddHours(24) : null, //[cite: 3]
                 RoId = selectedRoleId,
                 CaCoId = selectedRoleId == 3 ? model.CaCoId : null,
             };
@@ -331,8 +335,24 @@ namespace ISFDyT124.Controllers
 
                 await transaccionId.CommitAsync();
 
-                // Añadir mensaje de éxito
-                TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente.";
+                // 3. ENVÍA EL CORREO JUSTO DESPUÉS DE ASEGURARTE DE QUE LA TRANSACCIÓN SE GUARDÓ
+                if (requiereActivacion)
+                {
+                    try
+                    {
+                        SendWelcomeEmail(usuario.UsEmail, tokenGenerado);
+                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente. Se envió un correo de activación.";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al enviar correo de activación al usuario {UsId}", usuario.UsId);
+                        TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}' creado, pero no se pudo enviar el correo de activación (revise configuración SMTP).";
+                    }
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = $"Usuario '{usuario.UsApellido}, {usuario.UsNombre}' creado correctamente con la contraseña ingresada.";
+                }
 
                 return RedirectToAction(nameof(UsuariosABM));
             }
@@ -351,8 +371,6 @@ namespace ISFDyT124.Controllers
                 _logger.LogError(ex, "Error inesperado al crear usuario. RoleId: {RoleId}, Dni: {Dni}", selectedRoleId, model.UsDni);
                 throw;
             }
-
-            return RedirectToAction(nameof(UsuariosABM));
         }
 
         [HttpGet]
@@ -610,6 +628,11 @@ namespace ISFDyT124.Controllers
                 ModelState.AddModelError("SelectedCaMaIds", "Debe seleccionar al menos una materia para inscribir a los estudiantes.");
             }
 
+            if (model.FechaInscripcion.HasValue && model.FechaInscripcion.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("FechaInscripcion", "La fecha de inscripción no puede ser posterior al día de hoy.");
+            }
+
             if (model.ArchivoExcel == null || model.ArchivoExcel.Length == 0)
             {
                 ModelState.AddModelError("ArchivoExcel", "Debe seleccionar un archivo Excel (.xlsx).");
@@ -707,6 +730,7 @@ namespace ISFDyT124.Controllers
             {
                 TempFileToken = tempToken,
                 CaCoId = caCoIdSeleccionado,
+                FechaInscripcion = model.FechaInscripcion?.Date,
                 CarreraCohorteDenominacion = ccDenom,
                 SelectedCaMaIds = materiasSeleccionadas,
                 MateriasSeleccionadasNombres = nombresMaterias,
@@ -817,7 +841,10 @@ namespace ISFDyT124.Controllers
             {
                 TempFileToken = model.TempFileToken,
                 HojasSeleccionadas = model.HojasSeleccionadas,
-                Errores = parseResult.Errores
+                // Copia de la lista: si fuera la misma, el error de conflicto entre pestañas que se agrega
+                // más abajo volvería a leerse como si fuera una fila del archivo con errores y aparecería
+                // como una fila editable vacía en la previsualización.
+                Errores = parseResult.Errores.ToList()
             };
 
             foreach (var grupo in parseResult.FilasValidas.GroupBy(f => f.Dni))
@@ -838,7 +865,8 @@ namespace ISFDyT124.Controllers
                         {
                             Hoja = filaConflicto.Hoja, Fila = filaConflicto.Fila, Dni = filaConflicto.Dni.ToString(),
                             Apellido = filaConflicto.Apellido, Nombre = filaConflicto.Nombre, Email = filaConflicto.Email,
-                            CaCoId = model.CaCoId, SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
+                            CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                            SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                         });
                     }
                     continue;
@@ -848,7 +876,7 @@ namespace ISFDyT124.Controllers
                 {
                     Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
                     Dni = primera.Dni.ToString(), Apellido = primera.Apellido, Nombre = primera.Nombre,
-                    Email = primera.Email, CaCoId = model.CaCoId,
+                    Email = primera.Email, CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
                     SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                 });
             }
@@ -866,6 +894,7 @@ namespace ISFDyT124.Controllers
                     Nombre = error.Nombre ?? string.Empty,
                     Email = error.Email ?? string.Empty,
                     CaCoId = model.CaCoId,
+                    FechaInscripcion = model.FechaInscripcion?.Date,
                     SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                 });
             }
@@ -926,6 +955,10 @@ namespace ISFDyT124.Controllers
                     errores.Add("Correo electrónico inválido");
                 else if (!emailsVistos.Add(fila.Email)) errores.Add("Correo electrónico duplicado en la previsualización");
                 if (!carrerasValidas.Contains(fila.CaCoId)) errores.Add("Carrera/cohorte inexistente");
+                if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date > DateTime.Today)
+                    errores.Add("La fecha de inscripción no puede ser posterior a hoy");
+                else if (fila.FechaInscripcion.HasValue && fila.FechaInscripcion.Value.Date < new DateTime(2000, 1, 1))
+                    errores.Add("Fecha de inscripción inválida");
                 fila.SelectedCaMaIds = fila.SelectedCaMaIds.Distinct().ToList();
                 if (fila.SelectedCaMaIds.Count == 0) errores.Add("Debe seleccionar al menos una materia");
                 if (fila.SelectedCaMaIds.Any(id => !materias.TryGetValue(id, out var materia) || materia.CaCoId != fila.CaCoId))
@@ -1004,7 +1037,12 @@ namespace ISFDyT124.Controllers
                     {
                         if (existentesSet.Add((usuario.UsId, materiaId)))
                         {
-                            _context.Inscripciones.Add(new Inscripciones { UsId = usuario.UsId, CaMaId = materiaId });
+                            _context.Inscripciones.Add(new Inscripciones
+                            {
+                                UsId = usuario.UsId,
+                                CaMaId = materiaId,
+                                InFechaInscripcion = fila.FechaInscripcion?.Date ?? DateTime.Today
+                            });
                             creadas++; inscripcionesFila++;
                         }
                     }
@@ -1035,6 +1073,50 @@ namespace ISFDyT124.Controllers
         }
 
         #endregion
+
+
+        private void SendWelcomeEmail(string EmailDestino, string token)
+        {
+            // Reutilizamos la lógica del Url.Action para apuntar al Recovery existente
+            var url = Url.Action("Recovery", "Account", new { token = token }, Request.Scheme);
+            var urlEscaped = System.Text.Encodings.Web.HtmlEncoder.Default.Encode(url ?? string.Empty);
+
+            var oMailMessage = new System.Net.Mail.MailMessage(
+                "softwareinstituto@gmail.com",
+                EmailDestino,
+                "Activación de cuenta – Sistema de asistencias - ISFDyT124",
+                $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #004d80;'>¡Bienvenido/a al Sistema!</h2>
+                        <p>Se ha creado su cuenta para acceder al <strong>Sistema de control de asistencias del instituto ISFDyT124</strong>.</p>
+                        <p>Para activar su cuenta y generar su contraseña de acceso, haga clic en el siguiente enlace:</p>
+                        <div style='text-align: center; margin: 25px 0;'>
+                            <a href='{urlEscaped}'
+                               style='display: inline-block; padding: 12px 24px; background-color: #004d80; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                Activar cuenta y crear contraseña
+                            </a>
+                        </div>
+                        <p>Este enlace es válido por una sola vez y expirará en 24 horas.</p>
+                        <hr style='border: 0; border-top: 1px solid #eee; margin: 30px 0;' />
+                        <p style='font-size: 0.9em; color: #666;'>
+                            Sistema creado por estudiantes de Tecnicatura Superior en Desarrollo de Software – 2026<br>
+                            <em>Instituto Superior de Formación Docente y Técnica N.º 124</em>
+                        </p>
+                    </div>"
+            );
+
+            oMailMessage.IsBodyHtml = true;
+
+            using var oSmtpClient = new System.Net.Mail.SmtpClient("smtp.gmail.com")
+            {
+                EnableSsl = true,
+                UseDefaultCredentials = false,
+                Port = 587,
+                Credentials = new System.Net.NetworkCredential("softwareinstituto@gmail.com", "bdyfkwgqtxfahslt")
+            };
+
+            oSmtpClient.Send(oMailMessage);
+        }
 
     }
 }

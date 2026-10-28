@@ -64,6 +64,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="TempFileToken" />
             <input type="hidden" asp-for="CaCoId" />
+            <input type="hidden" name="FechaInscripcion" value="@(Model.FechaInscripcion?.ToString("yyyy-MM-dd"))" />
             @foreach (var id in Model.SelectedCaMaIds)
             {
                 <input type="hidden" name="SelectedCaMaIds" value="@id" />

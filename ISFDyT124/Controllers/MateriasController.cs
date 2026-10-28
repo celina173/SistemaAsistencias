@@ -19,7 +19,10 @@ public class MateriasController : Controller
     // GET: MATERIAS
     public async Task<IActionResult> Index()
     {
-        return View(await _context.Materias.Include(m => m.CarreraMaterias).ToListAsync());
+        return View(await _context.Materias
+            .Include(m => m.CarreraMaterias)
+            .OrderBy(m => m.MaDenominacion) // Orden alfabético por nombre
+            .ToListAsync());
     }
 
     // GET: MATERIAS/Details/5

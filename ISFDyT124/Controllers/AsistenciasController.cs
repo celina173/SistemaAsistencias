@@ -955,12 +955,18 @@ namespace ISFDyT124.Controllers
         {
             var cohorte = carreraMateria.CarreraCohorte;
 
+            // Calendario de cursada incompleto (la cohorte no tiene fecha de inicio y fin, o la
+            // cátedra no tiene días de cursada cargados): se mantiene el comportamiento anterior
+            // en lugar de dejar la lista vacía, que impedía tomar asistencia en toda cátedra que
+            // todavía no se configuró.
             if (cohorte?.CaCoFechaInicio == null ||
                 cohorte.CaCoFechaFin == null ||
                 carreraMateria.DiasCursada == null ||
                 !carreraMateria.DiasCursada.Any())
             {
-                return new List<DateTime>();
+                return await ObtenerFechasSinCalendarioAsync(
+                    carreraMateria,
+                    soloPendientes);
             }
 
             var inicio = cohorte.CaCoFechaInicio.Value.Date;
@@ -1002,6 +1008,40 @@ namespace ISFDyT124.Controllers
             }
 
             return fechas;
+        }
+
+        // Fechas disponibles para una cátedra sin calendario de cursada completo.
+        // - Para cargar una asistencia nueva (soloPendientes): únicamente el día de hoy, si todavía
+        //   no tiene carga.
+        // - Para validar, editar o consultar (no soloPendientes): las fechas ya registradas más hoy,
+        //   así el historial existente sigue siendo accesible.
+        // Las cátedras con calendario completo no pasan por acá y se rigen por su calendario.
+        private async Task<List<DateTime>> ObtenerFechasSinCalendarioAsync(
+            CarreraMateria carreraMateria,
+            bool soloPendientes)
+        {
+            var hoy = DateTime.Today;
+
+            var registradas = await _context.Asistencias
+                .Where(a =>
+                    a.CaMaId == carreraMateria.CaMaId &&
+                    a.AsFecha.HasValue)
+                .Select(a => a.AsFecha!.Value.Date)
+                .Distinct()
+                .ToListAsync();
+
+            if (soloPendientes)
+            {
+                return registradas.Contains(hoy)
+                    ? new List<DateTime>()
+                    : new List<DateTime> { hoy };
+            }
+
+            if (!registradas.Contains(hoy))
+                registradas.Add(hoy);
+
+            registradas.Sort();
+            return registradas;
         }
 
         private void PrepararFechasPendientes(

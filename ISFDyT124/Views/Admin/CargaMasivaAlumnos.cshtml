@@ -82,6 +82,19 @@
                 <span asp-validation-for="SelectedCaMaIds" class="text-danger" style="font-size: 13px; display: block; margin-top: 6px;"></span>
             </div>
 
+            <!-- Fecha de inscripción de los alumnos nuevos -->
+            <div class="input-field" style="margin-bottom: 25px;">
+                <label for="inputFechaInscripcion" style="font-weight: 600; margin-bottom: 6px; display: block;">Fecha de inscripción</label>
+                <input type="date" id="inputFechaInscripcion" name="FechaInscripcion"
+                       value="@(Model.FechaInscripcion?.ToString("yyyy-MM-dd"))"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       class="form-control" style="max-width: 220px; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;" />
+                <small style="color: #6b7280; display: block; margin-top: 4px;">
+                    Desde esta fecha se considera inscripto cada alumno nuevo. Si el curso ya empezó, indicá la fecha de inicio para que se vean las clases anteriores. Se puede corregir alumno por alumno en la previsualización. Si se deja vacía, se usa la de hoy. No modifica las inscripciones que ya existen.
+                </small>
+                <span asp-validation-for="FechaInscripcion" class="text-danger" style="font-size: 13px;"></span>
+            </div>
+
             <!-- Subida del archivo Excel -->
             <div class="input-field" style="margin-bottom: 25px;">
                 <label asp-for="ArchivoExcel" style="font-weight: 600; margin-bottom: 6px; display: block;">Archivo Excel (.xlsx) *</label>
@@ -112,6 +125,17 @@
 </main>
 
 @section Scripts {
+    <script>
+        // La fecha por defecto se calcula con el reloj del navegador (hora local de Argentina) y no con el del servidor, que trabaja en UTC y desde las 21 h ya marcaría el día siguiente.
+        (function () {
+            var campo = document.getElementById('inputFechaInscripcion');
+            if (!campo) return;
+            var d = new Date();
+            var hoy = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            campo.max = hoy;
+            if (!campo.value) campo.value = hoy;
+        })();
+    </script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>

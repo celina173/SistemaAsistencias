@@ -9,6 +9,12 @@ namespace ISFDyT124.DTO
         [Display(Name = "Carrera / Cohorte")]
         public int? CaCoId { get; set; }
 
+        // Fecha desde la que se considera inscripto a cada alumno NUEVO. Si no se informa se usa hoy.
+        // Las inscripciones que ya existen no se modifican.
+        [Display(Name = "Fecha de inscripción")]
+        [DataType(DataType.Date)]
+        public DateTime? FechaInscripcion { get; set; }
+
         [Required(ErrorMessage = "Debe seleccionar al menos una materia para inscribir a los alumnos.")]
         public List<int> SelectedCaMaIds { get; set; } = new List<int>();
 
@@ -43,6 +49,8 @@ namespace ISFDyT124.DTO
 
         [Required]
         public int CaCoId { get; set; }
+
+        public DateTime? FechaInscripcion { get; set; }
 
         public string CarreraCohorteDenominacion { get; set; } = string.Empty;
 
@@ -102,6 +110,7 @@ namespace ISFDyT124.DTO
         public string Nombre { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public int CaCoId { get; set; }
+        public DateTime? FechaInscripcion { get; set; }
         public List<int> SelectedCaMaIds { get; set; } = new List<int>();
     }
 
