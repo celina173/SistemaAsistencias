@@ -90,6 +90,33 @@ namespace ISFDyT124.Controllers
             }
 
             return View(model);
+
+
+        }
+    
+    [HttpGet]
+        [AllowAnonymous] // Permite mostrar el aviso de denegado sin causar bucles de redirección
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        [Route("Home/Error")]
+        [AllowAnonymous] // Permite capturar códigos de error y excepciones globalmente de forma segura
+        public IActionResult Error(int? statusCode = null)
+        {
+            if (statusCode == 404)
+            {
+                return View("NotFound");
+            }
+            else if (statusCode == 403)
+            {
+                return View("AccessDenied");
+            }
+
+            // Error general 500 u otras excepciones no controladas
+            return View();
         }
     }
 }
+

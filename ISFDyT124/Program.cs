@@ -122,5 +122,6 @@ app.UseStaticFiles(); // Habilita servir archivos esteticos
 app.UseRouting(); // Habilita el enrutamiento de solicitudes HTTP
 app.UseAuthentication(); // Habilita la autenticacion en middleware para validar usuarios
 app.UseAuthorization(); // Habilita autorizacion para acceso a recursos 
+
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run(); // Ejecuta la aplicacion web
