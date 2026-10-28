@@ -108,13 +108,13 @@
 
             if (!string.IsNullOrEmpty(currentCaMaId))
             {
-                <a asp-controller="Profesor" asp-action="Asistencia" asp-route-caMaId="@currentCaMaId" class="pwa-bottom-nav-item">
+                <a asp-controller="Asistencias" asp-action="Asistencia" asp-route-CaMaId="@currentCaMaId" class="pwa-bottom-nav-item">
                     <i class="bi bi-calendar3"></i><span>Calendario</span>
                 </a>
             }
             else
             {
-                <a asp-controller="Profesor" asp-action="Index" class="pwa-bottom-nav-item">
+                <a asp-controller="Asistencias" asp-action="Index" class="pwa-bottom-nav-item">
                     <i class="bi bi-calendar3"></i><span>Calendario</span>
                 </a>
             }
@@ -147,6 +147,12 @@
              offline a la pantalla de Asistencia del Admin otra vez. -->
         <script src="~/lib/dexie/dist/dexie.min.js"></script>
         <script src="~/js/offline-asistencia.js" asp-append-version="true"></script>
+    }
+    @if (esDocente)
+    {
+        <!-- PWA (pwa-web-unica): captura y reenvío de la asistencia sin conexión; sólo Docentes. -->
+        <script src="~/js/pwa-core.js" asp-append-version="true"></script>
+        <script src="~/js/pwa-asistencia.js" asp-append-version="true"></script>
     }
     @await RenderSectionAsync("Scripts", required: false)
 </body>

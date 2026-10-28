@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'is124-v5';
+const CACHE_VERSION = 'is124-v6';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 // A propósito NO atada a CACHE_VERSION: acá se va acumulando cada pantalla real
 // que el docente visitó con señal. Si la atamos a la versión, cada vez que
@@ -24,6 +24,8 @@ const APP_SHELL = [
     // localmente aunque la primera carga de la pantalla haya sido sin señal.
     '/lib/dexie/dist/dexie.min.js',
     '/js/offline-asistencia.js',
+    '/js/pwa-core.js',
+    '/js/pwa-asistencia.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -37,7 +39,6 @@ self.addEventListener('install', (event) => {
                     APP_SHELL.map((recurso) => cache.add(recurso).catch(() => null))
                 )
             )
-            .then(() => self.skipWaiting())
     );
 });
 
@@ -51,6 +52,63 @@ self.addEventListener('activate', (event) => {
             )
         ).then(() => self.clients.claim())
     );
+});
+
+// Precarga de las páginas reales del docente (lista de cátedras, planilla y asistencia global de cada una).
+// Se baja todo primero y recién entonces se reemplaza lo guardado: una precarga cortada no destruye lo anterior.
+let precargando = false;
+
+// Una respuesta que pasó por una redirección no se puede servir a una navegación: se copia limpia.
+async function copiaLimpia(r) {
+    const h = new Headers(r.headers);
+    h.set('x-guardada-en', String(Date.now()));
+    return new Response(await r.blob(), { status: r.status, statusText: r.statusText, headers: h });
+}
+
+async function precargarPaginasDocente() {
+    if (precargando) return;
+    precargando = true;
+    try {
+        const lista = await fetch('/Asistencias', { credentials: 'same-origin' });
+        if (!lista.ok || /\/Account\/Login/i.test(lista.url)) return; // sin sesión: no se guarda nada
+        const html = await lista.clone().text();
+        // La lista no trae enlaces con CaMaId: es un selector de carrera y materia. Cada combinación válida
+        // redirige a la planilla de esa cátedra (y con _global=1, a su asistencia global).
+        const valores = (nombre) => {
+            const m = new RegExp('<select[^>]*name="' + nombre + '"[^]*?</select>', 'i').exec(html);
+            return m ? [...m[0].matchAll(/<option[^>]*value="(\d+)"/gi)].map((x) => x[1]) : [];
+        };
+        const carreras = valores('SelectedCarreraId');
+        const materias = valores('SelectedMateriaId');
+        const bajadas = [['/Asistencias', await copiaLimpia(lista)]];
+        let probadas = 0;
+        for (const c of carreras) {
+            for (const m of materias) {
+                if (++probadas > 200) break;
+                const q = `?selectedCarreraId=${c}&selectedMateriaId=${m}`;
+                const r = await fetch('/Asistencias/Index' + q, { credentials: 'same-origin' });
+                if (!r.redirected || !r.ok || !/CaMaId=\d+/i.test(r.url)) continue; // combinación sin cátedra
+                const plan = new URL(r.url);
+                bajadas.push([plan.pathname + plan.search, await copiaLimpia(r)]);
+                const g = await fetch('/Asistencias/Index' + q + '&_global=1', { credentials: 'same-origin' });
+                if (g.redirected && g.ok && /CaMaId=\d+/i.test(g.url)) {
+                    const glo = new URL(g.url);
+                    bajadas.push([glo.pathname + glo.search, await copiaLimpia(g)]);
+                }
+            }
+        }
+        // Reemplazo atómico: recién con todo bajado se escribe lo guardado.
+        const cache = await caches.open(PAGES_CACHE);
+        for (const [u, r] of bajadas) await cache.put(u, r);
+    } catch (e) {
+        // sin señal o cortada: lo guardado antes queda intacto
+    } finally {
+        precargando = false;
+    }
+}
+
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.tipo === 'precargar') event.waitUntil(precargarPaginasDocente());
 });
 
 self.addEventListener('fetch', (event) => {

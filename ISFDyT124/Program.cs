@@ -2,6 +2,7 @@ using System.Threading.RateLimiting; // Necesario para Rate Limiting
 using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la base de datos
 using ISFDyT124.Models; // Importa los modelos
 using ISFDyT124.Services; // Importa PasswordService y servicios auxiliares
+using Microsoft.AspNetCore.DataProtection; // SetApplicationName y PersistKeysToDbContext
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides; // Necesario para ForwardedHeadersOptions (deploy detrás del proxy de Railway)
 using Microsoft.AspNetCore.RateLimiting; // Necesario para Rate Limiting
@@ -16,6 +17,12 @@ builder.Services.AddDbContext<InstitutoDbContext>(options =>
             ?? throw new InvalidOperationException("Connection string 'DBSI' not found.")
     )
 );
+
+// Claves de protección de datos en la base, con nombre de aplicación fijo: la sesión y las credenciales de
+// formulario sobreviven a reinicios y valen en cualquier réplica.
+builder.Services.AddDataProtection()
+    .SetApplicationName("ISFDyT124")
+    .PersistKeysToDbContext<InstitutoDbContext>();
 
 // Habilita IMemoryCache para el rate limiting por correo
 builder.Services.AddMemoryCache();

@@ -1,12 +1,16 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ISFDyT124.Models;
 
 namespace ISFDyT124.Data
 {
-    public class InstitutoDbContext : DbContext
+    public class InstitutoDbContext : DbContext, IDataProtectionKeyContext
     {
         public InstitutoDbContext(DbContextOptions<InstitutoDbContext> options)
             : base(options) { }
+
+        // Claves de protección de datos (cookies y credenciales antifalsificación) compartidas entre reinicios y réplicas
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
         // Definición de DbSets para cada una de las tablas del SQL
         public DbSet<Rol> Roles { get; set; } = null!;
