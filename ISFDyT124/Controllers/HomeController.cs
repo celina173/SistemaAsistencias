@@ -93,8 +93,8 @@ namespace ISFDyT124.Controllers
 
 
         }
-    
-    [HttpGet]
+
+        [HttpGet]
         [AllowAnonymous] // Permite mostrar el aviso de denegado sin causar bucles de redirección
         public IActionResult AccessDenied()
         {

@@ -72,7 +72,7 @@ namespace ISFDyT124.Controllers
 
             if (excluidos.Any())
             {
-                _logger.LogWarning("CarreraMaterias inválidas excluidas al poblar formulario. CaMaId/MaId: {Items}", 
+                _logger.LogWarning("CarreraMaterias inválidas excluidas al poblar formulario. CaMaId/MaId: {Items}",
                     string.Join(",", excluidos.Select(e => $"{e.CaMaId}/{e.MaId}")));
             }
 
@@ -949,16 +949,23 @@ namespace ISFDyT124.Controllers
                 {
                     preview.Errores.Add(new CargaMasivaFilaErrorDto
                     {
-                        Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
-                        Dni = primera.Dni.ToString(), Motivo = "El DNI aparece en varias pestañas con datos personales diferentes."
+                        Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()),
+                        Fila = primera.Fila,
+                        Dni = primera.Dni.ToString(),
+                        Motivo = "El DNI aparece en varias pestañas con datos personales diferentes."
                     });
                     foreach (var filaConflicto in grupo)
                     {
                         preview.Alumnos.Add(new CargaMasivaAlumnoEditableDto
                         {
-                            Hoja = filaConflicto.Hoja, Fila = filaConflicto.Fila, Dni = filaConflicto.Dni.ToString(),
-                            Apellido = filaConflicto.Apellido, Nombre = filaConflicto.Nombre, Email = filaConflicto.Email,
-                            CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                            Hoja = filaConflicto.Hoja,
+                            Fila = filaConflicto.Fila,
+                            Dni = filaConflicto.Dni.ToString(),
+                            Apellido = filaConflicto.Apellido,
+                            Nombre = filaConflicto.Nombre,
+                            Email = filaConflicto.Email,
+                            CaCoId = model.CaCoId,
+                            FechaInscripcion = model.FechaInscripcion?.Date,
                             SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                         });
                     }
@@ -967,9 +974,14 @@ namespace ISFDyT124.Controllers
 
                 preview.Alumnos.Add(new CargaMasivaAlumnoEditableDto
                 {
-                    Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()), Fila = primera.Fila,
-                    Dni = primera.Dni.ToString(), Apellido = primera.Apellido, Nombre = primera.Nombre,
-                    Email = primera.Email, CaCoId = model.CaCoId, FechaInscripcion = model.FechaInscripcion?.Date,
+                    Hoja = string.Join(", ", grupo.Select(f => f.Hoja).Distinct()),
+                    Fila = primera.Fila,
+                    Dni = primera.Dni.ToString(),
+                    Apellido = primera.Apellido,
+                    Nombre = primera.Nombre,
+                    Email = primera.Email,
+                    CaCoId = model.CaCoId,
+                    FechaInscripcion = model.FechaInscripcion?.Date,
                     SelectedCaMaIds = model.SelectedCaMaIds.Distinct().ToList()
                 });
             }
@@ -1117,9 +1129,15 @@ namespace ISFDyT124.Controllers
                     {
                         usuario = new Usuario
                         {
-                            UsId = ++maxUsId, UsDni = item.Dni, UsApellido = fila.Apellido.Trim(), UsNombre = fila.Nombre.Trim(),
-                            UsEmail = fila.Email, UsContrasena = PasswordService.HashPassword(item.Dni.ToString()),
-                            RoId = RolId.Estudiante, CaCoId = fila.CaCoId, UsActivo = true
+                            UsId = ++maxUsId,
+                            UsDni = item.Dni,
+                            UsApellido = fila.Apellido.Trim(),
+                            UsNombre = fila.Nombre.Trim(),
+                            UsEmail = fila.Email,
+                            UsContrasena = PasswordService.HashPassword(item.Dni.ToString()),
+                            RoId = RolId.Estudiante,
+                            CaCoId = fila.CaCoId,
+                            UsActivo = true
                         };
                         _context.Usuarios.Add(usuario); porDni[item.Dni] = usuario; nuevos++; estado = "Nuevo alumno";
                     }
@@ -1152,8 +1170,12 @@ namespace ISFDyT124.Controllers
                 var carreras = await _context.CarreraCohortes.Include(cc => cc.Carrera).Include(cc => cc.Cohorte).Where(cc => carrerasIds.Contains(cc.CaCoId)).ToListAsync();
                 return View("CargaMasivaResultado", new CargaMasivaResultadoDto
                 {
-                    EsExitoso = true, TotalFilas = procesados.Count, AlumnosNuevos = nuevos, AlumnosReutilizados = reutilizados,
-                    InscripcionesCreadas = creadas, AlumnosProcesados = procesados,
+                    EsExitoso = true,
+                    TotalFilas = procesados.Count,
+                    AlumnosNuevos = nuevos,
+                    AlumnosReutilizados = reutilizados,
+                    InscripcionesCreadas = creadas,
+                    AlumnosProcesados = procesados,
                     CarreraCohorteDenominacion = string.Join("; ", carreras.Select(cc => $"{cc.Carrera?.CaDenominacion} - {cc.Cohorte?.CoAnio}")),
                     MateriasInscriptas = materias.Values.Select(m => m.Materia?.MaDenominacion ?? $"Materia {m.CaMaId}").Distinct().ToList(),
                     Mensaje = $"Se procesaron {procesados.Count} alumnos y se crearon {creadas} inscripciones."
