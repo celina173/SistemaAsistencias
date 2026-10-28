@@ -19,7 +19,10 @@ namespace ISFDyT124.Models
         [ForeignKey("Materia")]
         public int MaId { get; set; }
 
-        [Display(Name = "Año de cursada")]
+        // Columna ya presente en la base de producción (migración AgregarCaMaAnio, 19/10/2026),
+        // incorporada al modelo para que el repositorio coincida con la base. Acepta nulos y
+        // todavía no la usa ninguna pantalla.
+        [Display(Name = "Año")]
         public int? CaMaAnio { get; set; }
 
         // Navegación

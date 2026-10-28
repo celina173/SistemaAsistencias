@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ISFDyT124.Migrations
 {
     [DbContext(typeof(InstitutoDbContext))]
-    [Migration("20261020203721_AgregarCaMaAnio")]
+    [Migration("20261019230329_AgregarCaMaAnio")]
     partial class AgregarCaMaAnio
     {
         /// <inheritdoc />

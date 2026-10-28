@@ -2,6 +2,7 @@ using ISFDyT124.Data; // Importa el espacio de nombres para el contexto de la ba
 using ISFDyT124.Models; // Importa los modelos
 using ISFDyT124.Services; // Importa PasswordService para hashear la contraseña sembrada
 using Microsoft.AspNetCore.HttpOverrides; // Necesario para ForwardedHeadersOptions (deploy detrás del proxy de Railway)
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore; // Importa Entity Framework Core para acceso a base de datos
 
 //using ISFDyT124.DTOs; // Importa objetos de transferencia de datos
@@ -18,6 +19,11 @@ builder.Services.AddDbContext<InstitutoDbContext>(options =>
 
 // Aade controladores con vistas para MVC
 builder.Services.AddControllersWithViews();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = ExcelImportService.MaximoBytes + (256 * 1024);
+    options.ValueCountLimit = 50_000;
+});
 
 // El antiforgery clásico espera el token en un campo de formulario HTML
 // (__RequestVerificationToken), pensado para submits normales. La cola offline

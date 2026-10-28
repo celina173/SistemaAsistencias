@@ -1,0 +1,113 @@
+@model ISFDyT124.DTO.CargaMasivaPrevisualizacionDto
+@{
+    ViewData["Title"] = "Previsualización de carga masiva";
+    ViewData["BodyClass"] = "global-page";
+}
+
+<div class="admin-banner">ADMINISTRADOR</div>
+<div class="page-title-container"><h2 class="page-main-title">Previsualización editable</h2></div>
+
+<main class="main-container-global" style="max-width:1400px;margin:0 auto;padding:20px;">
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:14px;border-radius:8px;margin-bottom:18px;">
+        Revise cada alumno. Puede corregir sus datos, cambiar la carrera/cohorte, elegir materias o excluirlo. Los cambios se validan antes de guardar.
+    </div>
+
+    @if (Model.Errores.Any())
+    {
+        <div style="background:#fef2f2;border:1px solid #fca5a5;padding:14px;border-radius:8px;margin-bottom:18px;color:#991b1b;">
+            <strong>Hay @Model.Errores.Count observaciones pendientes:</strong>
+            <ul style="margin-bottom:0;">
+                @foreach (var error in Model.Errores)
+                {
+                    <li>@(string.IsNullOrWhiteSpace(error.Hoja) ? "" : $"{error.Hoja}, ")fila @error.Fila@(string.IsNullOrWhiteSpace(error.Dni) ? "" : $", DNI {error.Dni}"): @error.Motivo</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <form asp-action="CargaMasivaConfirmar" method="post" id="formPreview">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="TempFileToken" />
+        @foreach (var hoja in Model.HojasSeleccionadas) { <input type="hidden" name="HojasSeleccionadas" value="@hoja" /> }
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+            <button type="button" id="incluirTodos" class="btn btn-outline-secondary">Incluir todos</button>
+            <button type="button" id="excluirTodos" class="btn btn-outline-secondary">Excluir todos</button>
+            <span style="align-self:center;color:#475569;">@Model.Alumnos.Count alumnos consolidados de @Model.HojasSeleccionadas.Count pestaña(s)</span>
+        </div>
+
+        <div style="overflow-x:auto;background:white;border:1px solid #e2e8f0;border-radius:8px;">
+            <table style="width:100%;border-collapse:collapse;min-width:1250px;font-size:13px;">
+                <thead style="background:#f1f5f9;"><tr>
+                    <th style="padding:10px;">Incluir</th><th>Pestaña/fila</th><th>DNI</th><th>Apellido</th><th>Nombre</th><th>Email</th><th>Carrera/cohorte</th><th>Materias</th>
+                </tr></thead>
+                <tbody>
+                @for (var i = 0; i < Model.Alumnos.Count; i++)
+                {
+                    var alumno = Model.Alumnos[i];
+                    <tr style="border-top:1px solid #e2e8f0;vertical-align:top;">
+                        <td style="padding:10px;text-align:center;">
+                            <input class="chk-incluir" type="checkbox" name="Alumnos[@i].Incluir" value="true" checked="@(alumno.Incluir ? "checked" : null)" />
+                            <input type="hidden" name="Alumnos[@i].Incluir" value="false" />
+                        </td>
+                        <td style="padding:10px;max-width:130px;">@alumno.Hoja / @alumno.Fila
+                            <input type="hidden" name="Alumnos[@i].Hoja" value="@alumno.Hoja" /><input type="hidden" name="Alumnos[@i].Fila" value="@alumno.Fila" />
+                        </td>
+                        <td style="padding:8px;"><input class="form-control" name="Alumnos[@i].Dni" value="@alumno.Dni" style="width:105px;" /></td>
+                        <td style="padding:8px;"><input class="form-control" name="Alumnos[@i].Apellido" value="@alumno.Apellido" /></td>
+                        <td style="padding:8px;"><input class="form-control" name="Alumnos[@i].Nombre" value="@alumno.Nombre" /></td>
+                        <td style="padding:8px;"><input class="form-control" type="email" name="Alumnos[@i].Email" value="@alumno.Email" style="min-width:210px;" /></td>
+                        <td style="padding:8px;">
+                            <select class="form-control carrera-select" name="Alumnos[@i].CaCoId" data-index="@i" style="min-width:210px;">
+                                @foreach (var carrera in Model.Carreras)
+                                {
+                                    <option value="@carrera.CaCoId" selected="@(carrera.CaCoId == alumno.CaCoId ? "selected" : null)">@carrera.Denominacion</option>
+                                }
+                            </select>
+                        </td>
+                        <td style="padding:8px;">
+                            <select class="form-control materias-select" id="materias_@i" name="Alumnos[@i].SelectedCaMaIds" multiple size="5" style="min-width:230px;">
+                                @foreach (var materia in Model.Materias)
+                                {
+                                    <option value="@materia.CaMaId" data-caco="@materia.CaCoId" selected="@(alumno.SelectedCaMaIds.Contains(materia.CaMaId) ? "selected" : null)">@materia.Denominacion</option>
+                                }
+                            </select>
+                            <small>Ctrl/Cmd permite elegir varias.</small>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:22px;">
+            <a asp-action="CargaMasivaAlumnos" class="btn-cancel" style="padding:10px 18px;text-decoration:none;">Cancelar</a>
+            <button type="submit" class="btn-save" style="padding:10px 22px;background:#16a34a;color:white;border:0;border-radius:6px;">Validar y confirmar carga</button>
+        </div>
+    </form>
+</main>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function filtrarMaterias(selectCarrera) {
+        var materias = document.getElementById('materias_' + selectCarrera.dataset.index);
+        Array.from(materias.options).forEach(function (opcion) {
+            var visible = opcion.dataset.caco === selectCarrera.value;
+            opcion.hidden = !visible;
+            opcion.disabled = !visible;
+            if (!visible) opcion.selected = false;
+        });
+    }
+    document.querySelectorAll('.carrera-select').forEach(function (select) {
+        filtrarMaterias(select);
+        select.addEventListener('change', function () {
+            filtrarMaterias(select);
+            Array.from(document.getElementById('materias_' + select.dataset.index).options).forEach(function (o) { if (!o.disabled) o.selected = true; });
+        });
+    });
+    document.getElementById('incluirTodos').addEventListener('click', function () { document.querySelectorAll('.chk-incluir').forEach(function(c){c.checked=true;}); });
+    document.getElementById('excluirTodos').addEventListener('click', function () { document.querySelectorAll('.chk-incluir').forEach(function(c){c.checked=false;}); });
+});
+</script>
+}

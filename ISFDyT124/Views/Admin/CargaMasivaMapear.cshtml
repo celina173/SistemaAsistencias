@@ -60,15 +60,29 @@
             </div>
         </div>
 
-        <form method="post" action="@Url.Action("CargaMasivaGuardarMapeo", "Admin", new { importId = Model.ImportId })" id="formMapeoColumnas">
+        <form asp-controller="Admin" asp-action="CargaMasivaPrevisualizar" method="post" id="formMapeoColumnas">
             @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="ImportId" />
             <input type="hidden" asp-for="TempFileToken" />
             <input type="hidden" asp-for="CaCoId" />
             @foreach (var id in Model.SelectedCaMaIds)
             {
                 <input type="hidden" name="SelectedCaMaIds" value="@id" />
             }
+
+            <div style="margin-bottom: 22px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px;">
+                <h3 style="font-size: 15px; margin: 0 0 8px;">Pestañas del archivo</h3>
+                <p style="font-size: 12px; color: #64748b;">Seleccione las pestañas que contienen alumnos. Los DNI repetidos se consolidarán si sus datos coinciden.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                    @foreach (var hoja in Model.HojasExcel)
+                    {
+                        <label style="padding:8px 12px; border:1px solid #dbeafe; border-radius:6px; background:white; opacity:@(hoja.TieneDatos ? "1" : ".55")">
+                            <input type="checkbox" name="HojasSeleccionadas" value="@hoja.Nombre"
+                                   checked="@(Model.HojasSeleccionadas.Contains(hoja.Nombre) ? "checked" : null)" disabled="@(!hoja.TieneDatos)" />
+                            <strong>@hoja.Nombre</strong> <small>(@hoja.TotalFilas filas)</small>
+                        </label>
+                    }
+                </div>
+            </div>
 
             <div style="margin-bottom: 20px;">
                 <h3 style="font-size: 16px; color: #1e293b; margin-bottom: 6px; font-weight: 600;">
@@ -201,7 +215,7 @@
                     <i class="bi bi-arrow-left" style="margin-right: 6px;"></i> Cambiar archivo / Carrera
                 </a>
                 <button type="submit" class="btn-save" id="btnProcesarImportacion" style="padding: 10px 24px; border-radius: 6px; background: #16a34a; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 14px;">
-                    <i class="bi bi-check2-circle" style="margin-right: 6px;"></i> Confirmar e Importar Estudiantes
+                    <i class="bi bi-eye" style="margin-right: 6px;"></i> Generar previsualización editable
                 </button>
             </div>
         </form>
