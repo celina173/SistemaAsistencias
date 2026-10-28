@@ -104,6 +104,9 @@
         var campos = camposDe(form);
         if (!P.formularioReconocido(action, campos)) return; // no se reconoce: el formulario sigue su camino normal
         ev.preventDefault();
+        // La vista trae su propio manejo sin conexión (cola vieja en Dexie hacia /api/asistencias/sincronizar):
+        // se corta acá para que una carga no viaje por dos caminos.
+        ev.stopImmediatePropagation();
         guardar(P.agregarEntrada(leer(), action.split('?')[0], campos));
         var aviso = document.createElement('div');
         aviso.textContent = 'Asistencia guardada. Se envía al servidor en cuanto haya conexión.';
@@ -127,6 +130,43 @@
         if (!navigator.onLine || !navigator.serviceWorker || !navigator.serviceWorker.controller) return;
         navigator.serviceWorker.controller.postMessage({ tipo: 'precargar' });
     }
+
+    // ---- Página servida desde lo guardado: "datos al ...", fechas ya cargadas y "hoy" sin señal ----
+    function adaptarPaginaGuardada() {
+        var guardada = window.__PWA_GUARDADA; // la inyecta el service worker sólo cuando sirve una copia guardada
+        if (!guardada) return;
+        var d = new Date(guardada);
+        var aviso = document.createElement('div');
+        aviso.setAttribute('role', 'status');
+        aviso.textContent = 'Sin conexión con el servidor: datos al ' + d.toLocaleDateString('es-AR') + ' ' +
+            d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        aviso.style.cssText = 'background:#fef3c7;color:#92400e;padding:6px 10px;font:13px sans-serif;text-align:center';
+        document.body.insertBefore(aviso, document.body.firstChild);
+
+        var select = document.getElementById('FechaAsistencia');
+        var caMa = document.querySelector('input[name=CaMaId]');
+        if (!select || !caMa) return;
+
+        // Una fecha ya enviada (pendiente o rechazada) no se vuelve a ofrecer.
+        var usadas = leer().filter(function (e) { return e.estado !== P.ESTADOS.SINCRONIZADO; }).map(function (e) {
+            var c = e.campos.filter(function (p) { return p[0] === 'CaMaId'; })[0];
+            var f = e.campos.filter(function (p) { return p[0] === 'FechaAsistencia'; })[0];
+            return c && f && c[1] === caMa.value ? f[1] : null;
+        });
+        Array.prototype.slice.call(select.options).forEach(function (o) { if (o.value && usadas.indexOf(o.value) >= 0) o.remove(); });
+
+        // "Hoy": sólo si la planilla ofrece UNA fecha igual al día en que se guardó (cátedra sin calendario).
+        // No valida nada: el servidor acepta o rechaza al reenviar y un rechazo queda visible con su motivo.
+        var opciones = Array.prototype.slice.call(select.options).map(function (o) { return o.value; }).filter(Boolean);
+        var hoy = P.debeAgregarHoy(opciones, guardada, Date.now(), true);
+        if (hoy && usadas.indexOf(hoy) < 0) {
+            var o = document.createElement('option');
+            o.value = hoy;
+            o.textContent = 'Hoy — ' + hoy.split('-').reverse().join('/');
+            select.appendChild(o);
+        }
+    }
+    adaptarPaginaGuardada();
 
     window.addEventListener('online', function () { ciclo(); precargar(); });
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { ciclo(); precargar(); } });

@@ -59,6 +59,24 @@ self.addEventListener('activate', (event) => {
 let precargando = false;
 
 // Una respuesta que pasó por una redirección no se puede servir a una navegación: se copia limpia.
+async function selladaParaGuardar(r, sello) {
+    const h = new Headers(r.headers);
+    h.set('x-guardada-en', String(sello));
+    return new Response(await r.blob(), { status: r.status, statusText: r.statusText, headers: h });
+}
+
+// Al servir una página guardada se le agrega la hora en que se guardó, para mostrar "datos al ...".
+async function conHoraDeGuardado(r) {
+    const sello = r.headers.get('x-guardada-en');
+    if (!sello || !(r.headers.get('content-type') || '').includes('text/html')) return r;
+    const html = await r.clone().text();
+    const marca = `<script>window.__PWA_GUARDADA=${Number(sello)};</script>`;
+    const h = new Headers(r.headers);
+    h.delete('content-length');
+    return new Response(html.includes('</head>') ? html.replace('</head>', marca + '</head>') : marca + html,
+        { status: r.status, statusText: r.statusText, headers: h });
+}
+
 async function copiaLimpia(r) {
     const h = new Headers(r.headers);
     h.set('x-guardada-en', String(Date.now()));
@@ -132,14 +150,15 @@ self.addEventListener('fetch', (event) => {
                     // nunca terminaba de guardarse.
                     if (response.ok && !response.redirected) {
                         const copy = response.clone();
+                        const sello = Date.now();
                         // waitUntil: sin esto el navegador puede matar al Service Worker apenas
                         // devuelve la respuesta (pasa seguido en celulares) y el guardado queda
                         // a medias — por eso a veces parecía que una pantalla ya visitada no
                         // estaba cacheada.
                         event.waitUntil(
-                            caches
-                                .open(PAGES_CACHE)
-                                .then((cache) => cache.put(request, copy))
+                            Promise.resolve()
+                                .then(() => selladaParaGuardar(copy, sello))
+                                .then((sellada) => caches.open(PAGES_CACHE).then((cache) => cache.put(request, sellada)))
                                 .catch(() => null)
                         );
                     }
@@ -177,7 +196,7 @@ function STATIC_CACHE_EXTENSIONS(pathname) {
 /// de red y muestra SU propia pantalla de "sin conexión" en vez de la nuestra.
 async function responderDesdeCache(request, url) {
     const exacta = await caches.match(request);
-    if (exacta) return exacta;
+    if (exacta) return conHoraDeGuardado(exacta);
 
     if (url.pathname === '/') {
         // El start_url de la PWA instalada (manifest.json) pide "/?source=pwa" — esa URL exacta
