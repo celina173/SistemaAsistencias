@@ -45,6 +45,12 @@
             </div>
 
             <div class="input-field">
+                <label asp-for="UsCuil">CUIL (opcional)</label>
+                <input asp-for="UsCuil" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 dígitos, sin guiones">
+                <span asp-validation-for="UsCuil" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
                 <label asp-for="UsEmail">Email</label>
                 <input asp-for="UsEmail" autocomplete="off">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>

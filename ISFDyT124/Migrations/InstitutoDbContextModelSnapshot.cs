@@ -307,11 +307,13 @@ namespace ISFDyT124.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("UsCuil")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("UsDni")
                         .HasColumnType("int");
 
                     b.Property<string>("UsEmail")
-                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
 
@@ -332,11 +334,16 @@ namespace ISFDyT124.Migrations
 
                     b.HasIndex("RoId");
 
+                    b.HasIndex("UsCuil")
+                        .IsUnique()
+                        .HasFilter("[UsCuil] IS NOT NULL");
+
                     b.HasIndex("UsDni")
                         .IsUnique();
 
                     b.HasIndex("UsEmail")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UsEmail] IS NOT NULL");
 
                     b.ToTable("Usuarios");
                 });

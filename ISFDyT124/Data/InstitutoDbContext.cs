@@ -45,6 +45,12 @@ namespace ISFDyT124.Data
             // Configurar DNI único de la tabla USUARIOS
             modelBuilder.Entity<Usuario>().HasIndex(u => u.UsDni).IsUnique();
 
+            // CUIL opcional: único solo entre los usuarios que lo tienen cargado
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(u => u.UsCuil)
+                .IsUnique()
+                .HasFilter("[UsCuil] IS NOT NULL");
+
             // Añadir índice único para el email de usuario
             modelBuilder.Entity<Usuario>().HasIndex(u => u.UsEmail).IsUnique();
 

@@ -37,10 +37,35 @@ builder.Services.AddRateLimiter(options =>
             return;
         }
 
+        // Demasiados intentos de CUIL en "Directivos": vuelve a la pantalla con el aviso
+        if (context.HttpContext.Request.Path.StartsWithSegments("/Profesor/Directivos"))
+        {
+            context.HttpContext.Response.Redirect("/Profesor/Directivos?limiteExcedido=true");
+            return;
+        }
+
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
         await context.HttpContext.Response.WriteAsync("Demasiadas solicitudes. Inténtalo más tarde.", cancellationToken);
     };
+
+    // Política para la verificación de CUIL de "Directivos": por usuario logueado, para frenar la adivinanza
+    options.AddPolicy("DirectivosLimiter", httpContext =>
+    {
+        var clave = httpContext.User.Identity?.IsAuthenticated == true
+            ? httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "anon"
+            : httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clave,
+            factory: key => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,                         // Máximo 5 intentos por usuario
+                Window = TimeSpan.FromMinutes(15),       // Cada 15 minutos
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
 
     // Política específica para el endpoint de recuperación de contraseña
     options.AddPolicy("ForgotPasswordLimiter", httpContext =>

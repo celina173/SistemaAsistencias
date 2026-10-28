@@ -192,6 +192,7 @@ namespace ISFDyT124.Controllers
                     UsNombre = u.UsNombre,
                     UsEmail = u.UsEmail,
                     UsDni = u.UsDni,
+                    UsCuil = u.UsCuil,
                     RoId = u.RoId,
                     RoDenominacion = u.Rol != null ? u.Rol.RoDenominacion : null,
                     CaCoId = u.CaCoId,
@@ -261,6 +262,13 @@ namespace ISFDyT124.Controllers
                 return View(model);
             }
 
+            if (model.UsCuil != null && await _context.Usuarios.AnyAsync(u => u.UsCuil == model.UsCuil))
+            {
+                ModelState.AddModelError("UsCuil", "El CUIL ya se encuentra registrado.");
+                await CargarListasFormularioAltaUsuarioAsync();
+                return View(model);
+            }
+
             if (selectedRoleId == 3 && model.CaCoId == null)
             {
                 ModelState.AddModelError(
@@ -300,6 +308,7 @@ namespace ISFDyT124.Controllers
                 UsApellido = model.UsApellido,
                 UsNombre = model.UsNombre,
                 UsDni = model.UsDni,
+                UsCuil = model.UsCuil,
                 UsEmail = model.UsEmail,
                 UsContrasena = PasswordService.HashPassword(contrasenaFinal),
                 UsTokenRecovery = tokenGenerado, //[cite: 3]
@@ -393,6 +402,7 @@ namespace ISFDyT124.Controllers
                 UsNombre = usuario.UsNombre,
                 UsEmail = usuario.UsEmail,
                 UsDni = usuario.UsDni,
+                UsCuil = usuario.UsCuil,
                 RoId = usuario.RoId,
                 CaCoId = usuario.CaCoId,
                 MateriasDenominacion = string.Join(
@@ -441,6 +451,13 @@ namespace ISFDyT124.Controllers
                 }
             }
 
+            if (model.UsCuil != null && await _context.Usuarios.AnyAsync(u => u.UsCuil == model.UsCuil && u.UsId != id))
+            {
+                ModelState.AddModelError("UsCuil", "El CUIL ya se encuentra registrado por otro usuario.");
+                await CargarListasFormularioUsuarioAsync();
+                return View(model);
+            }
+
             if (selectedRoleId == 3 && model.CaCoId == null)
             {
                 ModelState.AddModelError(
@@ -464,6 +481,7 @@ namespace ISFDyT124.Controllers
             usuario.UsApellido = model.UsApellido;
             usuario.UsNombre = model.UsNombre;
             usuario.UsDni = model.UsDni;
+            usuario.UsCuil = model.UsCuil;
             usuario.UsEmail = model.UsEmail;
             usuario.RoId = selectedRoleId;
             usuario.CaCoId = selectedRoleId == 3 ? model.CaCoId : null;

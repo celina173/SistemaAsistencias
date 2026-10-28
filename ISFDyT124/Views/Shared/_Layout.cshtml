@@ -46,6 +46,7 @@
             string targetController = "Home";
             bool esDocente = false;
             bool esAdminODireccion = false;
+            bool tieneRolDocente = User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Docente");
 
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
@@ -82,6 +83,21 @@
             <li>
                 <a asp-controller="@targetController" asp-action="Index"><span class="menu-arrow">➔</span>Inicio</a>
             </li>
+
+            @if (esDocente)
+            {
+                <!-- Acceso a permisos de directivo: pide el CUIL del docente (ProfesorController.Directivos) -->
+                <li>
+                    <a asp-controller="Profesor" asp-action="Directivos"><span class="menu-arrow">➔</span>Directivos</a>
+                </li>
+            }
+            else if (tieneRolDocente && esAdminODireccion)
+            {
+                <!-- Docente ya elevado a Dirección: conserva el acceso a su inicio de docente -->
+                <li>
+                    <a asp-controller="Profesor" asp-action="Index"><span class="menu-arrow">➔</span>Inicio Docente</a>
+                </li>
+            }
             
             <!-- CALENDARIO INTELIGENTE -->
             <li>
