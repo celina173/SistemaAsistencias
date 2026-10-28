@@ -60,7 +60,10 @@
     }
 
     function enviar(entrada) {
-        var urlPlanilla = entrada.action + '?CaMaId=' + encodeURIComponent((entrada.campos.filter(function (c) { return c[0] === 'CaMaId'; })[0] || [0, ''])[1]);
+        function campo(n) { return (entrada.campos.filter(function (c) { return c[0] === n; })[0] || [0, ''])[1]; }
+        // La edición pide la planilla de una fecha puntual; la toma nueva, sólo la cátedra.
+        var urlPlanilla = entrada.action + '?CaMaId=' + encodeURIComponent(campo('CaMaId')) +
+            (/ModificarAsistencia/i.test(entrada.action) ? '&fecha=' + encodeURIComponent(campo('FechaAsistencia')) : '');
         return pedir(urlPlanilla).then(function (r) {
             if (/\/Account\/Login/i.test(r.url)) return { status: 401, url: r.url };
             return r.text().then(function (html) {
@@ -167,6 +170,58 @@
         }
     }
     adaptarPaginaGuardada();
+
+    // ---- Avisos de versión nueva e instalación (no interrumpen la planilla en curso) ----
+    function barra(texto, boton, alPulsar) {
+        var b = document.createElement('div');
+        b.setAttribute('role', 'status');
+        b.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:9998;background:#e0e7ff;color:#1e3a8a;padding:8px 12px;' +
+            'border-radius:8px;font:14px sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between';
+        var t = document.createElement('span'); t.textContent = texto; b.appendChild(t);
+        if (boton) { var x = document.createElement('button'); x.type = 'button'; x.textContent = boton; x.onclick = function () { alPulsar(b); }; b.appendChild(x); }
+        var c = document.createElement('button'); c.type = 'button'; c.textContent = '×'; c.setAttribute('aria-label', 'Cerrar'); c.onclick = function () { b.remove(); };
+        b.appendChild(c);
+        document.body.appendChild(b);
+        return b;
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(function (reg) {
+            if (!reg) return;
+            function ofrecer(worker) {
+                barra('Hay una versión nueva de la app.', 'Actualizar', function () {
+                    // Las cargas pendientes viven en la bandeja local: una actualización no las pierde.
+                    navigator.serviceWorker.addEventListener('controllerchange', function () { location.reload(); });
+                    worker.postMessage({ tipo: 'activar' });
+                });
+            }
+            if (reg.waiting && navigator.serviceWorker.controller) ofrecer(reg.waiting);
+            reg.addEventListener('updatefound', function () {
+                var nuevo = reg.installing;
+                if (!nuevo) return;
+                nuevo.addEventListener('statechange', function () {
+                    if (nuevo.state === 'installed' && navigator.serviceWorker.controller) ofrecer(nuevo);
+                });
+            });
+        });
+    }
+
+    var enStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    var avisoInstalar = null;
+    window.addEventListener('beforeinstallprompt', function (ev) {
+        ev.preventDefault();
+        if (enStandalone) return;
+        avisoInstalar = barra('Instalá la app para tomar asistencia sin conexión.', 'Instalar', function (b) {
+            b.remove(); ev.prompt();
+        });
+    });
+    // iOS no ofrece instalación automática: se muestran las instrucciones una sola vez.
+    try {
+        if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !enStandalone && !localStorage.getItem('is124-ios-instalar')) {
+            localStorage.setItem('is124-ios-instalar', '1');
+            barra('Para instalar la app: tocá Compartir y luego "Agregar a pantalla de inicio".');
+        }
+    } catch (e) { /* sin almacenamiento */ }
 
     window.addEventListener('online', function () { ciclo(); precargar(); });
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { ciclo(); precargar(); } });

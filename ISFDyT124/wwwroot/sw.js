@@ -111,7 +111,16 @@ async function precargarPaginasDocente() {
                 const g = await fetch('/Asistencias/Index' + q + '&_global=1', { credentials: 'same-origin' });
                 if (g.redirected && g.ok && /CaMaId=\d+/i.test(g.url)) {
                     const glo = new URL(g.url);
+                    const htmlGlobal = await g.clone().text();
                     bajadas.push([glo.pathname + glo.search, await copiaLimpia(g)]);
+                    // Fechas ya registradas del año en curso: la global enlaza a la edición de cada una.
+                    const anio = String(new Date().getFullYear());
+                    const edicion = [...new Set([...htmlGlobal.matchAll(/ModificarAsistencia\?CaMaId=\d+(?:&amp;|&)fecha=([\d-]+)/gi)]
+                        .filter((x) => x[1].startsWith(anio)).map((x) => x[0].replace(/&amp;/g, '&')))].slice(0, 120);
+                    for (const e of edicion) {
+                        const re = await fetch('/Asistencias/' + e, { credentials: 'same-origin' });
+                        if (re.ok && !re.redirected) bajadas.push(['/Asistencias/' + e, await copiaLimpia(re)]);
+                    }
                 }
             }
         }
@@ -126,6 +135,7 @@ async function precargarPaginasDocente() {
 }
 
 self.addEventListener('message', (event) => {
+    if (event.data && event.data.tipo === 'activar') self.skipWaiting();
     if (event.data && event.data.tipo === 'precargar') event.waitUntil(precargarPaginasDocente());
 });
 

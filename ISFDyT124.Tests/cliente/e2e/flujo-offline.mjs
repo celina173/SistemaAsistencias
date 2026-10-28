@@ -25,6 +25,9 @@ function detener() {
     if (servidor) { try { execSync(`taskkill /PID ${servidor.pid} /T /F`, { stdio: 'ignore' }); } catch { /* ya cerrada */ } servidor = null; }
 }
 await arrancar();
+if (process.env.SEMILLA_SQL) { // los roles ya existen: la app los crea al arrancar
+    execSync(`sqlcmd -S "(localdb)\\MSSQLLocalDB" -d ${process.env.BASE_E2E} -I -b -i "${process.env.SEMILLA_SQL}"`, { stdio: 'ignore' });
+}
 const navegador = await chromium.launch();
 const contexto = await navegador.newContext();
 const page = await contexto.newPage();

@@ -87,6 +87,23 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         return cm.CaMaId;
     }
 
+    /// <summary>Otra cátedra del mismo docente, para que las pruebas no dependan del estado que dejó otra.</summary>
+    private int SembrarCatedraAparte()
+    {
+        var baseId = SembrarCatedraConAlumno();
+        using var db = new InstitutoDbContext(Opciones);
+        var materia = new Materia { MaDenominacion = "Materia " + Guid.NewGuid().ToString("N")[..6], MaModalidad = "Presencial", MaCantModulos = 2 };
+        db.Materias.Add(materia);
+        db.SaveChanges();
+        var cm = new CarreraMateria { CaCoId = db.CarreraMaterias.First(c => c.CaMaId == baseId).CaCoId, MaId = materia.MaId };
+        db.CarreraMaterias.Add(cm);
+        db.SaveChanges();
+        db.Inscripciones.Add(new Inscripciones { UsId = 11, CaMaId = cm.CaMaId, InFechaInscripcion = DateTime.Today.AddDays(-30) });
+        db.Usuarios.Include(u => u.CarreraMaterias).First(u => u.UsId == 10).CarreraMaterias.Add(cm);
+        db.SaveChanges();
+        return cm.CaMaId;
+    }
+
     private async Task<HttpClient> DocenteAsync()
     {
         var c = NuevoCliente();
@@ -182,7 +199,7 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         Assert.Equal(HttpStatusCode.OK, primera.StatusCode);
         Assert.DoesNotContain("id=\"operationError\"", await primera.Content.ReadAsStringAsync());
         using (var db = new InstitutoDbContext(Opciones))
-            Assert.Equal(1, db.Asistencias.Count());
+            Assert.Equal(1, db.Asistencias.Count(a => a.CaMaId == caMaId));
 
         // Reenvío de lo mismo (como hace la bandeja si la respuesta se perdió): el servidor NO lo duplica y lo
         // rechaza con el aviso "ya fue registrada" (redirección con id="operationError"). La PWA lo muestra como rechazo.
@@ -194,7 +211,7 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         Assert.Contains("id=\"operationError\"", await segunda.Content.ReadAsStringAsync());
         Assert.Contains("ya fue registrada", await segunda.Content.ReadAsStringAsync());
         using (var db = new InstitutoDbContext(Opciones))
-            Assert.Equal(1, db.Asistencias.Count());
+            Assert.Equal(1, db.Asistencias.Count(a => a.CaMaId == caMaId));
     }
 
     [SoloConLocalDbFact]
@@ -213,5 +230,49 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         var r = await c.PostAsync(form.GetAttribute("action"), new FormUrlEncodedContent(valores));
         Assert.Equal(HttpStatusCode.BadRequest, r.StatusCode);
         Assert.Contains("La fecha no pertenece al calendario de cursada", await r.Content.ReadAsStringAsync());
+    }
+
+    private async Task<string> RegistrarHoyAsync(HttpClient c, int caMaId)
+    {
+        var doc = await AbrirAsync(await c.GetAsync($"/Asistencias/Asistencia?CaMaId={caMaId}"));
+        var form = doc.QuerySelector("form#formAsistencia")!;
+        var valores = Valores(form);
+        var fecha = valores.First(v => v.Key == "FechaAsistencia").Value;
+        var r = await SeguirAsync(c, await c.PostAsync(form.GetAttribute("action"), new FormUrlEncodedContent(valores)));
+        Assert.DoesNotContain("id=\"operationError\"", await r.Content.ReadAsStringAsync());
+        return fecha;
+    }
+
+    [SoloConLocalDbFact]
+    public async Task La_global_enlaza_a_la_edicion_de_cada_fecha_registrada()
+    {
+        var caMaId = SembrarCatedraAparte();
+        var c = await DocenteAsync();
+        await RegistrarHoyAsync(c, caMaId);
+
+        var html = await (await c.GetAsync($"/Asistencias/AsistenciaGlobal?CaMaId={caMaId}")).Content.ReadAsStringAsync();
+        // La precarga de la PWA descubre las fechas registradas con este patrón de enlace.
+        Assert.Matches($@"ModificarAsistencia\?CaMaId={caMaId}(&amp;|&)fecha=\d{{4}}-\d{{2}}-\d{{2}}", html);
+    }
+
+    [SoloConLocalDbFact]
+    public async Task La_edicion_trae_su_formulario_y_un_POST_valido_se_acepta()
+    {
+        var caMaId = SembrarCatedraAparte();
+        var c = await DocenteAsync();
+        var fecha = await RegistrarHoyAsync(c, caMaId);
+
+        var doc = await AbrirAsync(await c.GetAsync($"/Asistencias/ModificarAsistencia?CaMaId={caMaId}&fecha={fecha}"));
+        var form = doc.QuerySelector("form#formModificarAsistencia");
+        Assert.NotNull(form);
+        Assert.Equal("/Asistencias/ModificarAsistencia", new Uri(new Uri("https://localhost"), form!.GetAttribute("action")).AbsolutePath, ignoreCase: true);
+        Assert.NotNull(form.QuerySelector("input[name=__RequestVerificationToken]"));
+        Assert.NotNull(form.QuerySelector("input[name=CaMaId]"));
+        Assert.NotNull(form.QuerySelector("input[name=FechaAsistencia]"));
+        Assert.NotEmpty(form.QuerySelectorAll("[name^='Rows['][name$='].UsId']"));
+
+        var r = await SeguirAsync(c, await c.PostAsync(form.GetAttribute("action"), new FormUrlEncodedContent(Valores(form))));
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        Assert.DoesNotContain("id=\"operationError\"", await r.Content.ReadAsStringAsync());
     }
 }
