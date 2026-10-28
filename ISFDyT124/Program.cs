@@ -182,3 +182,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run();
+
+// Expone Program a ISFDyT124.Tests (WebApplicationFactory).
+public partial class Program { }

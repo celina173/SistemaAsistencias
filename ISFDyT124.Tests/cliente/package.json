@@ -1,0 +1,14 @@
+{
+  "name": "isfdyt124-pwa-tests",
+  "private": true,
+  "description": "Pruebas de la capa offline de la PWA (solo desarrollo, no se despliega).",
+  "type": "module",
+  "scripts": {
+    "test:logica": "node --test --test-reporter=spec \"logica/**/*.test.js\"",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "fake-indexeddb": "6.0.0"
+  }
+}
