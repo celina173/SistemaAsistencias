@@ -55,15 +55,25 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         {
             db.Usuarios.Add(new Usuario
             {
-                UsId = 10, UsApellido = "Docente", UsNombre = "Contrato", UsDni = 30000004,
-                UsEmail = "docente.contrato@prueba.local", UsContrasena = PasswordService.HashPassword("Prueba123"),
-                RoId = RolId.Docente, UsActivo = true,
+                UsId = 10,
+                UsApellido = "Docente",
+                UsNombre = "Contrato",
+                UsDni = 30000004,
+                UsEmail = "docente.contrato@prueba.local",
+                UsContrasena = PasswordService.HashPassword("Prueba123"),
+                RoId = RolId.Docente,
+                UsActivo = true,
             });
             db.Usuarios.Add(new Usuario
             {
-                UsId = 11, UsApellido = "Alumno", UsNombre = "Contrato", UsDni = 40000001,
-                UsEmail = "alumno.contrato@prueba.local", UsContrasena = PasswordService.HashPassword("Prueba123"),
-                RoId = RolId.Estudiante, UsActivo = true,
+                UsId = 11,
+                UsApellido = "Alumno",
+                UsNombre = "Contrato",
+                UsDni = 40000001,
+                UsEmail = "alumno.contrato@prueba.local",
+                UsContrasena = PasswordService.HashPassword("Prueba123"),
+                RoId = RolId.Estudiante,
+                UsActivo = true,
             });
             db.SaveChanges();
         }
@@ -111,7 +121,9 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         var token = doc.QuerySelector("input[name=__RequestVerificationToken]")!.GetAttribute("value")!;
         var r = await c.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["Usuario"] = "30000004", ["Contrasena"] = "Prueba123", ["__RequestVerificationToken"] = token,
+            ["Usuario"] = "30000004",
+            ["Contrasena"] = "Prueba123",
+            ["__RequestVerificationToken"] = token,
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
         return c;
