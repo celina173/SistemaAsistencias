@@ -311,7 +311,6 @@ namespace ISFDyT124.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("UsEmail")
-                        .IsRequired()
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
 
@@ -336,7 +335,8 @@ namespace ISFDyT124.Migrations
                         .IsUnique();
 
                     b.HasIndex("UsEmail")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UsEmail] IS NOT NULL");
 
                     b.ToTable("Usuarios");
                 });
