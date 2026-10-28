@@ -58,7 +58,7 @@ public class AltaUsuarioTests : IClassFixture<AppFactory>
         contexto.SaveChanges();
     }
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Usuario_creado_con_contrasena_inicial_inicia_sesion_con_ella()
     {
         _ = _factory.Server; // arranca el host (crea los roles)

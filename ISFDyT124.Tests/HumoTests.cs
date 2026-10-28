@@ -9,7 +9,7 @@ public class HumoTests : IClassFixture<AppFactory>
 
     public HumoTests(AppFactory factory) => _factory = factory;
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Login_responde_200()
     {
         var cliente = _factory.CreateClient(new WebApplicationFactoryClientOptions

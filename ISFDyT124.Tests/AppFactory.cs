@@ -21,6 +21,8 @@ public class AppFactory : WebApplicationFactory<Program>
 
     public AppFactory()
     {
+        if (!OperatingSystem.IsWindows()) return; // sin LocalDB las pruebas se omiten (ver SoloConLocalDbFact)
+
         var opciones = new DbContextOptionsBuilder<InstitutoDbContext>()
             .UseSqlServer(CadenaConexion)
             .Options;
@@ -39,7 +41,7 @@ public class AppFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (!disposing) return;
+        if (!disposing || !OperatingSystem.IsWindows()) return;
 
         var opciones = new DbContextOptionsBuilder<InstitutoDbContext>()
             .UseSqlServer(CadenaConexion)

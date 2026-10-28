@@ -187,7 +187,7 @@ public class CargaMasivaTests : IClassFixture<AppFactory>
 
     // ---------- Pruebas ----------
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Cada_pestana_reconoce_sus_propias_columnas_aunque_la_primera_sea_otra()
     {
         var excel = CrearExcel();
@@ -223,7 +223,7 @@ public class CargaMasivaTests : IClassFixture<AppFactory>
         finally { File.Delete(excel); }
     }
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Al_cambiar_la_fila_de_titulos_se_leen_las_columnas_de_esa_pestana()
     {
         var excel = CrearExcel();
@@ -256,7 +256,7 @@ public class CargaMasivaTests : IClassFixture<AppFactory>
         finally { File.Delete(excel); }
     }
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Flujo_completo_previsualiza_consolida_y_confirma_la_carga()
     {
         var excel = CrearExcel();
@@ -310,7 +310,7 @@ public class CargaMasivaTests : IClassFixture<AppFactory>
         finally { File.Delete(excel); }
     }
 
-    [Fact]
+    [SoloConLocalDbFact]
     public async Task Sin_pestanas_marcadas_o_con_columnas_repetidas_vuelve_al_mapeo_con_el_motivo()
     {
         var excel = CrearExcel();
