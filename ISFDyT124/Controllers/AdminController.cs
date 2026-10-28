@@ -682,15 +682,19 @@ namespace ISFDyT124.Controllers
                 return View("CargaMasivaAlumnos", model);
             }
 
-            List<string> columnas;
-            List<Dictionary<string, string>> previewRows;
+            List<CargaMasivaHojaDto> hojas;
             try
             {
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                columnas = leido.Columnas;
-                previewRows = leido.PreviewRows;
+                hojas = ExcelImportService.ObtenerHojas(tempPath);
+                foreach (var hoja in hojas.Where(h => h.TieneDatos))
+                {
+                    var leida = ExcelImportService.LeerHoja(tempPath, hoja.Nombre);
+                    CompletarHojaMapeo(hoja, leida, aplicarSugerido: true);
+                    // Sólo se marca de entrada la pestaña donde el sistema reconoció los cuatro datos.
+                    hoja.Incluir = MapeoCompleto(hoja);
+                }
 
-                if (!columnas.Any())
+                if (!hojas.Any(h => h.TieneDatos))
                 {
                     ExcelImportService.EliminarArchivoTemporal(tempToken);
                     ModelState.AddModelError("ArchivoExcel", "El archivo Excel no contiene cabeceras o filas legibles.");
@@ -723,9 +727,6 @@ namespace ISFDyT124.Controllers
                 .Select(cm => cm.Materia!.MaDenominacion)
                 .ToListAsync();
 
-            // Inferir mapeo inicial
-            var (dniSugerido, apellidoSugerido, nombreSugerido, emailSugerido) = ExcelImportService.InferirMapeo(columnas);
-
             var mapeoDto = new CargaMasivaMapeoDto
             {
                 TempFileToken = tempToken,
@@ -734,17 +735,90 @@ namespace ISFDyT124.Controllers
                 CarreraCohorteDenominacion = ccDenom,
                 SelectedCaMaIds = materiasSeleccionadas,
                 MateriasSeleccionadasNombres = nombresMaterias,
-                ColumnasExcel = columnas,
-                ColumnaDni = dniSugerido,
-                ColumnaApellido = apellidoSugerido,
-                ColumnaNombre = nombreSugerido,
-                ColumnaEmail = emailSugerido,
-                PreviewRows = previewRows
+                Hojas = hojas
             };
-            mapeoDto.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
-            mapeoDto.HojasSeleccionadas = mapeoDto.HojasExcel.Where(h => h.TieneDatos).Select(h => h.Nombre).ToList();
 
             return View("CargaMasivaMapear", mapeoDto);
+        }
+
+        private static bool MapeoCompleto(CargaMasivaHojaDto hoja) =>
+            hoja.ColDni > 0 && hoja.ColApellido > 0 && hoja.ColEmail > 0 && (hoja.ApellidoYNombre || hoja.ColNombre > 0);
+
+        private static void CompletarHojaMapeo(CargaMasivaHojaDto hoja, ExcelImportService.HojaLeida leida, bool aplicarSugerido)
+        {
+            hoja.FilaCabecera = leida.FilaCabecera;
+            hoja.Columnas = leida.Columnas;
+            hoja.PreviewRows = leida.PreviewRows;
+            if (!aplicarSugerido) return;
+
+            hoja.ColDni = leida.Sugerido.Dni;
+            hoja.ColApellido = leida.Sugerido.Apellido;
+            hoja.ColNombre = leida.Sugerido.Nombre;
+            hoja.ColEmail = leida.Sugerido.Email;
+            hoja.ApellidoYNombre = leida.Sugerido.ApellidoYNombre;
+        }
+
+        /// <summary>
+        /// Vuelve a leer del archivo las columnas y la muestra de cada pestaña para volver a mostrar el mapeo
+        /// sin perder lo que el usuario había elegido.
+        /// </summary>
+        private static void RehidratarHojasMapeo(CargaMasivaMapeoDto model, string tempPath)
+        {
+            var delArchivo = ExcelImportService.ObtenerHojas(tempPath);
+            var posteadas = model.Hojas ?? new List<CargaMasivaHojaDto>();
+            var resultado = new List<CargaMasivaHojaDto>();
+
+            foreach (var real in delArchivo)
+            {
+                var posteada = posteadas.FirstOrDefault(h => string.Equals(h.Nombre, real.Nombre, StringComparison.OrdinalIgnoreCase));
+                var hoja = posteada ?? real;
+                hoja.Nombre = real.Nombre;
+                hoja.TotalFilas = real.TotalFilas;
+                hoja.TieneDatos = real.TieneDatos;
+                if (real.TieneDatos)
+                {
+                    var leida = ExcelImportService.LeerHoja(tempPath, real.Nombre, hoja.FilaCabecera > 0 ? hoja.FilaCabecera : null);
+                    CompletarHojaMapeo(hoja, leida, aplicarSugerido: posteada == null);
+                }
+                else
+                {
+                    hoja.Incluir = false;
+                }
+                resultado.Add(hoja);
+            }
+
+            model.Hojas = resultado;
+        }
+
+        [HttpGet]
+        public IActionResult CargaMasivaColumnas(string token, string hoja, int? fila)
+        {
+            if (!ExcelImportService.ArchivoPerteneceA(token, User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty))
+                return NotFound();
+
+            try
+            {
+                var leida = ExcelImportService.LeerHoja(ExcelImportService.ObtenerRutaArchivoTemporal(token), hoja, fila);
+                return Json(new
+                {
+                    filaCabecera = leida.FilaCabecera,
+                    columnas = leida.Columnas,
+                    filas = leida.PreviewRows,
+                    sugerido = new
+                    {
+                        dni = leida.Sugerido.Dni,
+                        apellido = leida.Sugerido.Apellido,
+                        nombre = leida.Sugerido.Nombre,
+                        email = leida.Sugerido.Email,
+                        apellidoYNombre = leida.Sugerido.ApellidoYNombre
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudieron leer las columnas de la pestaña {Hoja}", hoja);
+                return BadRequest();
+            }
         }
 
         private async Task CompletarCatalogosPrevisualizacionAsync(CargaMasivaPrevisualizacionDto model)
@@ -780,46 +854,68 @@ namespace ISFDyT124.Controllers
                 return RedirectToAction(nameof(CargaMasivaAlumnos));
             }
 
-            model.HojasSeleccionadas ??= new List<string>();
-            var columnasMapeadas = new[] { model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail };
-            if (model.HojasSeleccionadas.Count == 0 || columnasMapeadas.Any(string.IsNullOrWhiteSpace)
-                || columnasMapeadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != 4)
+            model.Hojas ??= new List<CargaMasivaHojaDto>();
+            var seleccion = model.Hojas.Where(h => h.Incluir).ToList();
+
+            if (seleccion.Count == 0)
             {
-                ModelState.AddModelError("", "Seleccione al menos una pestaña y cuatro columnas diferentes para DNI, apellido, nombre y correo.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                ModelState.AddModelError("", "Marque al menos una pestaña para cargar.");
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
             var hojasDisponibles = ExcelImportService.ObtenerHojas(tempPath)
                 .Where(h => h.TieneDatos).Select(h => h.Nombre).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            if (model.HojasSeleccionadas.Distinct(StringComparer.OrdinalIgnoreCase).Count() != model.HojasSeleccionadas.Count
-                || model.HojasSeleccionadas.Any(h => !hojasDisponibles.Contains(h)))
+            if (seleccion.Select(h => h.Nombre).Distinct(StringComparer.OrdinalIgnoreCase).Count() != seleccion.Count
+                || seleccion.Any(h => !hojasDisponibles.Contains(h.Nombre)))
             {
                 ModelState.AddModelError("", "La selección de pestañas no coincide con el archivo cargado.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
+
+            // Cada pestaña elegida necesita cuatro columnas distintas (tres si el apellido y el nombre vienen juntos).
+            var hayErrorDeMapeo = false;
+            foreach (var hoja in seleccion)
+            {
+                var columnas = new List<int> { hoja.ColDni, hoja.ColApellido, hoja.ColEmail };
+                if (!hoja.ApellidoYNombre) columnas.Add(hoja.ColNombre);
+                if (hoja.FilaCabecera < 1 || columnas.Any(c => c < 1) || columnas.Distinct().Count() != columnas.Count)
+                {
+                    ModelState.AddModelError("", $"Pestaña '{hoja.Nombre}': indique la fila de títulos y una columna distinta para DNI, apellido, nombre y correo.");
+                    hayErrorDeMapeo = true;
+                }
+            }
+            if (hayErrorDeMapeo)
+            {
+                RehidratarHojasMapeo(model, tempPath);
+                return View("CargaMasivaMapear", model);
+            }
+
+            var mapeos = seleccion.Select(h => new ExcelImportService.MapeoHoja
+            {
+                Nombre = h.Nombre,
+                FilaCabecera = h.FilaCabecera,
+                Columnas = new ExcelImportService.MapeoColumnas
+                {
+                    Dni = h.ColDni,
+                    Apellido = h.ColApellido,
+                    Nombre = h.ApellidoYNombre ? 0 : h.ColNombre,
+                    Email = h.ColEmail,
+                    ApellidoYNombre = h.ApellidoYNombre
+                }
+            }).ToList();
 
             ResultadoValidacionExcel parseResult;
             try
             {
-                parseResult = ExcelImportService.ValidarYLeerFilasDeHojas(tempPath, model.HojasSeleccionadas,
-                    model.ColumnaDni, model.ColumnaApellido, model.ColumnaNombre, model.ColumnaEmail);
+                parseResult = ExcelImportService.ValidarYLeerFilasDeHojas(tempPath, mapeos);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "No se pudo leer el Excel de carga masiva");
                 ModelState.AddModelError("", "No se pudo leer el archivo. Verifique que sea un Excel válido y no esté protegido.");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
@@ -830,17 +926,14 @@ namespace ISFDyT124.Controllers
             {
                 foreach (var error in erroresEstructurales)
                     ModelState.AddModelError("", $"{(string.IsNullOrWhiteSpace(error.Hoja) ? "Archivo" : error.Hoja)}: {error.Motivo}");
-                var leido = ExcelImportService.LeerCabecerasYPreview(tempPath);
-                model.ColumnasExcel = leido.Columnas;
-                model.PreviewRows = leido.PreviewRows;
-                model.HojasExcel = ExcelImportService.ObtenerHojas(tempPath);
+                RehidratarHojasMapeo(model, tempPath);
                 return View("CargaMasivaMapear", model);
             }
 
             var preview = new CargaMasivaPrevisualizacionDto
             {
                 TempFileToken = model.TempFileToken,
-                HojasSeleccionadas = model.HojasSeleccionadas,
+                HojasSeleccionadas = seleccion.Select(h => h.Nombre).ToList(),
                 // Copia de la lista: si fuera la misma, el error de conflicto entre pestañas que se agrega
                 // más abajo volvería a leerse como si fuera una fila del archivo con errores y aparecería
                 // como una fila editable vacía en la previsualización.
