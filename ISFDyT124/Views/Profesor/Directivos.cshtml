@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Directivos";
+    ViewData["BodyClass"] = "inicio-page";
+}
+
+<div class="page-title-container" style="text-align: center; margin-top: 50px;">
+    <h2 class="page-main-title" style="font-size: 1.8rem; letter-spacing: 2px;">ACCESO DIRECTIVOS</h2>
+    <p style="color: #64748b; margin-top: 10px; font-weight: 500;">Ingresá tu CUIL para habilitar los permisos de directivo</p>
+</div>
+
+<main class="main-container-form" style="display: flex; justify-content: center; align-items: flex-start; padding: 30px 20px; flex-grow: 1;">
+    <div class="form-card" style="background-color: #ffffff; width: 100%; max-width: 550px; padding: 45px 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);">
+
+        <form asp-controller="Profesor" asp-action="Directivos" method="post" novalidate>
+            @if (ViewBag.Error != null)
+            {
+                <div class="text-danger" role="alert" style="margin-bottom: 20px;">@ViewBag.Error</div>
+            }
+
+            <div class="input-field" style="margin-bottom: 35px; display: flex; flex-direction: column;">
+                <label for="cuil" style="font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">CUIL</label>
+                <input id="cuil" name="cuil" type="text" inputmode="numeric" maxlength="11" pattern="[0-9]{11}"
+                       autocomplete="off" placeholder="11 dígitos, sin guiones" required>
+            </div>
+
+            <div class="form-buttons">
+                <a asp-action="Index" class="btn-cancel">Cancelar</a>
+                <button type="submit" class="btn-save">Ingresar</button>
+            </div>
+        </form>
+    </div>
+</main>

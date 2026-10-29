@@ -397,17 +397,19 @@ namespace ISFDyT124.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CambiarEstado(int id)
+        public async Task<IActionResult> CambiarEstado(int id, bool ConfirmarCambioEstado)
         {
             var permitidos = await CaCoIdsPermitidosAsync();
             var alumno = await AlumnosVisibles(permitidos).FirstOrDefaultAsync(u => u.UsId == id);
-            if (alumno != null)
-            {
-                alumno.UsActivo = !alumno.UsActivo;
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, estado = alumno.UsActivo });
-            }
-            return Json(new { success = false });
+            if (alumno == null)
+                return NotFound();
+
+            if (!ConfirmarCambioEstado)
+                return BadRequest(new { success = false, error = "Debe confirmar el cambio de estado del estudiante." });
+
+            alumno.UsActivo = !alumno.UsActivo;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, estado = alumno.UsActivo });
         }
     }
 }

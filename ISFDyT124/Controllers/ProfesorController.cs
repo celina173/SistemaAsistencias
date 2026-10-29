@@ -2,8 +2,11 @@ using System.Security.Claims;
 using ISFDyT124.Data;
 using ISFDyT124.DTO;
 using ISFDyT124.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ISFDyT124.Controllers
@@ -62,6 +65,77 @@ namespace ISFDyT124.Controllers
                 .ToListAsync();
 
             return View(catedras);
+        }
+
+        #endregion
+
+        // ─────────────────────────────────────────────────────────────────────
+        #region SECCIÓN 1B: ACCESO "DIRECTIVOS" (ELEVACIÓN POR CUIL)
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Pantalla que pide el CUIL (11 dígitos, sin guiones) para habilitar los permisos de directivo.
+        /// </summary>
+        [HttpGet]
+        public IActionResult Directivos(bool limiteExcedido = false)
+        {
+            if (User.IsInRole("Dirección"))
+                return RedirectToAction("Index", "Admin");
+
+            if (limiteExcedido)
+                ViewBag.Error = "Demasiados intentos. Esperá unos minutos antes de volver a probar.";
+
+            return View();
+        }
+
+        /// <summary>
+        /// Compara el CUIL ingresado con el del docente logueado. Si coincide, vuelve a firmar la cookie
+        /// agregando el rol Dirección (conserva Docente); dura lo que dure la sesión.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [EnableRateLimiting("DirectivosLimiter")]
+        public async Task<IActionResult> Directivos(string? cuil)
+        {
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int docenteId))
+                return Unauthorized();
+
+            // Mismo mensaje para "formato inválido", "no tiene CUIL" y "no coincide": no revela cuál falló.
+            const string mensajeError = "El CUIL ingresado no es correcto.";
+            cuil = cuil?.Trim();
+
+            if (string.IsNullOrEmpty(cuil) || cuil.Length != 11 || !cuil.All(char.IsAsciiDigit))
+            {
+                ViewBag.Error = "Ingresá los 11 dígitos del CUIL, sin guiones.";
+                return View();
+            }
+
+            var cuilGuardado = await _context
+                .Usuarios.Where(u => u.UsId == docenteId && u.UsActivo)
+                .Select(u => u.UsCuil)
+                .FirstOrDefaultAsync();
+
+            if (cuilGuardado == null || cuilGuardado.Value.ToString() != cuil)
+            {
+                ViewBag.Error = mensajeError;
+                return View();
+            }
+
+            // Re-firma la cookie con los mismos claims + el rol Dirección
+            var claims = User.Claims.ToList();
+            if (!claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Dirección"))
+                claims.Add(new Claim(ClaimTypes.Role, "Dirección"));
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var actual = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity),
+                actual.Properties ?? new AuthenticationProperties { IsPersistent = true }
+            );
+
+            return RedirectToAction("Index", "Admin");
         }
 
         #endregion
