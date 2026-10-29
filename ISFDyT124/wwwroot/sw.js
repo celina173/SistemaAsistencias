@@ -11,9 +11,9 @@ const APP_SHELL = [
     '/css/style.css',
     '/js/script.js',
     '/lib/jquery/dist/jquery.min.js',
-    '/images/logo.png',
-    '/images/icons/icon-192.png',
-    '/images/icons/icon-512.png',
+    '/images/logo.webp',
+    '/images/icons/icon-192.webp',
+    '/images/icons/icon-512.webp',
     '/manifest.json',
     '/offline.html',
     // Pantalla pública (no requiere sesión) — se precachea para que abrir la

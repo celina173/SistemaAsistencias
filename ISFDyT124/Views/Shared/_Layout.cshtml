@@ -7,7 +7,7 @@
     <title>@ViewData["Title"] - Sistema de Asistencias</title>
     <!-- Token para que el JS de sincronización offline lo mande por header -->
     <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
-    <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/images/logo.webp" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -72,7 +72,7 @@
         <!-- LOGO:-->
         <div class="header-logo">
             <a asp-controller="@targetController" asp-action="Index">
-                <img src="~/images/logo.png" alt="IS 124" class="logo-img">
+                <img src="~/images/logo.webp" alt="IS 124" class="logo-img">
             </a>
         </div>
     </header>
