@@ -45,8 +45,12 @@ public class SesionEstableTests : IClassFixture<AppFactory>
         if (contexto.Usuarios.Any(u => u.UsDni == 30000003)) return;
         contexto.Usuarios.Add(new Usuario
         {
-            UsId = 2, UsApellido = "Admin", UsNombre = "Sesion", UsDni = 30000003,
-            UsEmail = "sesion@prueba.local", UsContrasena = PasswordService.HashPassword("Prueba123"),
+            UsId = 2,
+            UsApellido = "Admin",
+            UsNombre = "Sesion",
+            UsDni = 30000003,
+            UsEmail = "sesion@prueba.local",
+            UsContrasena = PasswordService.HashPassword("Prueba123"),
             RoId = RolId.Admin,
         });
         contexto.SaveChanges();
@@ -61,7 +65,9 @@ public class SesionEstableTests : IClassFixture<AppFactory>
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Usuario"] = "30000003", ["Contrasena"] = "Prueba123", ["__RequestVerificationToken"] = token,
+                ["Usuario"] = "30000003",
+                ["Contrasena"] = "Prueba123",
+                ["__RequestVerificationToken"] = token,
             }),
         };
         pedido.Headers.Add("Cookie", cookiesAntiforgery);
@@ -106,7 +112,9 @@ public class SesionEstableTests : IClassFixture<AppFactory>
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
-                ["Usuario"] = "30000003", ["Contrasena"] = "Prueba123", ["__RequestVerificationToken"] = token,
+                ["Usuario"] = "30000003",
+                ["Contrasena"] = "Prueba123",
+                ["__RequestVerificationToken"] = token,
             }),
         };
         pedido.Headers.Add("Cookie", cookies);

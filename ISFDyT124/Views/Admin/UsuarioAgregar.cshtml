@@ -23,6 +23,15 @@
         <form asp-controller="Admin" asp-action="UsuarioAgregar" method="post" id="formAgregarUsuario" class="form-grid" novalidate>
             <div asp-validation-summary="ModelOnly" class="text-danger" style="grid-column: span 2;"></div>
 
+
+            <div class="input-field" style="grid-column: span 2;">
+                <label for="selectedRoleId">Rol del Usuario *</label>
+                <select id="selectedRoleId" name="selectedRoleId" required
+                        asp-items="@(new SelectList(ViewBag.RolesList, "RoId", "RoDenominacion"))">
+                    <option value="" disabled selected>Seleccione un Rol</option>
+                </select>
+            </div>
+
             <div class="input-field">
                 <label asp-for="UsApellido">Apellidos *</label>
                 <input asp-for="UsApellido" autocomplete="off" placeholder="Ej: Albornoz">
@@ -42,18 +51,17 @@
             </div>
 
             <div class="input-field">
+                <label asp-for="UsCuil">CUIL (opcional)</label>
+                <input asp-for="UsCuil" type="text" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 dígitos, sin guiones">
+                <span asp-validation-for="UsCuil" class="text-danger"></span>
+            </div>
+
+            <div class="input-field">
                 <label asp-for="UsEmail">Email </label>
                 <input asp-for="UsEmail" autocomplete="new-password" placeholder="Ej: correo@instituto.com">
                 <span asp-validation-for="UsEmail" class="text-danger"></span>
             </div>
 
-            <div class="input-field" style="grid-column: span 2;">
-                <label for="selectedRoleId">Rol del Usuario *</label>
-                <select id="selectedRoleId" name="selectedRoleId" required
-                        asp-items="@(new SelectList(ViewBag.RolesList, "RoId", "RoDenominacion"))">
-                    <option value="" disabled selected>Seleccione un Rol</option>
-                </select>
-            </div>
 
             <div id="carreraCohorteGroup" class="input-field" style="display:none; grid-column: span 2;">
                 <label asp-for="CaCoId">Carrera / Cohorte *</label>

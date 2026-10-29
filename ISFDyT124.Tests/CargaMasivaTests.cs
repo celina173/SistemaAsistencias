@@ -100,15 +100,21 @@ public class CargaMasivaTests : IClassFixture<AppFactory>
             {
                 contexto.Usuarios.Add(new Usuario
                 {
-                    UsId = 1, UsApellido = "Admin", UsNombre = "Prueba", UsDni = 30000002, UsEmail = "admin@prueba.local",
-                    UsContrasena = PasswordService.HashPassword("Prueba123"), RoId = RolId.Admin,
+                    UsId = 1,
+                    UsApellido = "Admin",
+                    UsNombre = "Prueba",
+                    UsDni = 30000002,
+                    UsEmail = "admin@prueba.local",
+                    UsContrasena = PasswordService.HashPassword("Prueba123"),
+                    RoId = RolId.Admin,
                 });
                 contexto.SaveChanges();
             }
         }
         var login = await cliente.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["Usuario"] = "30000002", ["Contrasena"] = "Prueba123",
+            ["Usuario"] = "30000002",
+            ["Contrasena"] = "Prueba123",
         }));
         Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
     }

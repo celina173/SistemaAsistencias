@@ -307,6 +307,9 @@ namespace ISFDyT124.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("UsCuil")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("UsDni")
                         .HasColumnType("int");
 
@@ -330,6 +333,10 @@ namespace ISFDyT124.Migrations
                     b.HasIndex("CaCoId");
 
                     b.HasIndex("RoId");
+
+                    b.HasIndex("UsCuil")
+                        .IsUnique()
+                        .HasFilter("[UsCuil] IS NOT NULL");
 
                     b.HasIndex("UsDni")
                         .IsUnique();

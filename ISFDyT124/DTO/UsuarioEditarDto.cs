@@ -44,6 +44,11 @@ namespace ISFDyT124.DTO
         [Display(Name = "DNI")]
         public int UsDni { get; set; }
 
+        //CUIL (opcional): 11 dígitos sin guiones. Habilita el acceso "Directivos" del Docente.
+        [Range(10000000000L, 99999999999L, ErrorMessage = "Debe ingresar los 11 dígitos del CUIL, sin guiones.")] // Valida que el CUIL tenga 11 dígitos
+        [Display(Name = "CUIL")] // Etiqueta para mostrar en vistas y formularios
+        public long? UsCuil { get; set; }
+
         //Relacion de Usuario - Rol
         [ForeignKey("Rol")]
         [Required(ErrorMessage = "Debe elegir un rol.")]

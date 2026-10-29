@@ -178,7 +178,9 @@
                                 @{
                                     bool esActivo = item.UsActivo;
                                 }
-                                <form asp-action="CambiarEstado" asp-route-id="@item.UsId" method="post" class="form-estado" style="margin: 0; display: inline-block;">
+                                <form asp-action="CambiarEstado" asp-route-id="@item.UsId" method="post" class="form-estado" style="margin: 0; display: inline-block;"
+                                      data-nombre="@item.UsApellido, @item.UsNombre"
+                                      data-confirm-message="@(esActivo ? $"¿Inactivar a {item.UsApellido}, {item.UsNombre}? Dejará de aparecer en la toma de asistencia." : $"¿Activar a {item.UsApellido}, {item.UsNombre}? Volverá a aparecer en la toma de asistencia.")">
                                     <button type="submit" class="badge-estado @(esActivo ? "estado-activo" : "estado-inactivo")" title="Click para cambiar estado">
                                         @(esActivo ? "ACTIVO" : "INACTIVO")
                                     </button>
@@ -228,7 +230,13 @@
             if (e.target && e.target.classList.contains('form-estado')) {
                 e.preventDefault();
 
+                // script.js intercepta primero el submit para mostrar el modal de
+                // confirmación; solo seguimos cuando el usuario ya confirmó.
+                if (e.target.dataset.confirmed !== 'true') return;
+
                 const form = e.target;
+                // El formulario sigue en pantalla: se rearma la confirmación para el próximo clic.
+                delete form.dataset.confirmed;
                 const btn = form.querySelector('.badge-estado');
                 const url = form.action;
 
@@ -236,14 +244,20 @@
                 btn.textContent = '...';
 
                 try {
+                    const datos = new FormData(form);
+                    datos.append('ConfirmarCambioEstado', 'true');
                     const response = await fetch(url, {
                         method: 'POST',
-                        body: new FormData(form)
+                        body: datos
                     });
 
                     if (response.ok) {
                         const data = await response.json();
                         if (data.success) {
+                            const nombre = form.dataset.nombre;
+                            form.dataset.confirmMessage = data.estado
+                                ? `¿Inactivar a ${nombre}? Dejará de aparecer en la toma de asistencia.`
+                                : `¿Activar a ${nombre}? Volverá a aparecer en la toma de asistencia.`;
                             if (data.estado) {
                                 btn.classList.remove('estado-inactivo');
                                 btn.classList.add('estado-activo');
@@ -256,6 +270,8 @@
                         } else {
                             btn.textContent = textoOriginal;
                         }
+                    } else {
+                        btn.textContent = textoOriginal;
                     }
                 } catch (error) {
                     console.error("Error cambiando estado:", error);
