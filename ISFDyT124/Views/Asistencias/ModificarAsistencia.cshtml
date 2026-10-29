@@ -1,5 +1,4 @@
-﻿
-@model ISFDyT124.Models.AsistenciaFormViewModel
+﻿@model ISFDyT124.Models.AsistenciaFormViewModel
 
 @{
     ViewData["Title"] = "Modificar asistencia";
@@ -90,8 +89,7 @@
 
         <input type="hidden" name="ModuleCount" value="@moduleCount" />
 
-        <!-- Fecha: mismo estilo que el filtro de Asistencia,
-             pero sin permitir cambiar la jornada que se está editando. -->
+        <!-- Fecha de la asistencia -->
         <div class="seccion-centrada"
              style="max-width: 650px; margin: 35px auto 25px; padding: 0 1.5rem; box-sizing: border-box;">
 
@@ -113,13 +111,23 @@
             </div>
         </div>
 
+        <!-- Acción masiva -->
+        <div class="asistencia-acciones-masivas">
+            <button type="button"
+                    id="btnTodosModulos"
+                    class="btn-modulos-toggle"
+                    aria-pressed="false">
+                Marcar todos los módulos
+            </button>
+        </div>
+
         <!-- Tabla de asistencia -->
         <div class="table-container attendance-table-card">
+
             <table class="attendance-table admin-modulos-table">
                 <thead>
                     <tr>
                         <th>Apellido y Nombre</th>
-
                         <th class="text-center">Módulos</th>
 
                         <th class="text-center">
@@ -156,9 +164,26 @@
 
                             <tr class="@(row.BloqueadaPorInscripcion ? "fila-bloqueada" : "")">
 
-                                <!-- Apellido y nombre -->
-                                <td>
-                                    @row.FullName
+                                <!-- Apellido y nombre + botón individual -->
+                                <td class="alumno-asistencia-cell">
+
+                                    <div class="alumno-asistencia-info">
+
+                                        <span class="alumno-asistencia-nombre">
+                                            @row.FullName
+                                        </span>
+
+                                        @if (row.TieneDetalleModulos && !row.BloqueadaPorInscripcion)
+                                        {
+                                            <button type="button"
+                                                    class="btn-modulos-toggle btn-modulos-fila"
+                                                    data-row="@i"
+                                                    aria-pressed="false">
+                                                Marcar módulos
+                                            </button>
+                                        }
+
+                                    </div>
 
                                     <input type="hidden"
                                            name="Rows[@i].UsId"
@@ -217,7 +242,9 @@
                                 <td class="percentage-cell">
                                     <span class="row-pct"
                                           data-row="@i">
-                                        @porcentaje.ToString("0.#", System.Globalization.CultureInfo.GetCultureInfo("es-AR"))%
+                                        @porcentaje.ToString(
+                                            "0.#",
+                                            System.Globalization.CultureInfo.GetCultureInfo("es-AR"))%
                                     </span>
                                 </td>
 
@@ -235,6 +262,7 @@
                                                disabled="@row.BloqueadaPorInscripcion" />
                                     </div>
                                 </td>
+
                             </tr>
                         }
                     }
@@ -262,11 +290,38 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const filas = document.querySelectorAll(
-            "#formModificarAsistencia .attendance-table tbody tr"
+        const formulario = document.getElementById("formModificarAsistencia");
+
+        if (!formulario) {
+            return;
+        }
+
+        const filas = formulario.querySelectorAll(
+            ".attendance-table tbody tr"
         );
 
-        filas.forEach(function (fila) {
+        const btnTodosModulos = document.getElementById("btnTodosModulos");
+
+        // Devuelve únicamente los módulos editables de todo el formulario.
+        function obtenerCheckboxesEditables() {
+            return Array.from(
+                formulario.querySelectorAll(".modulo-checkbox")
+            ).filter(function (checkbox) {
+                return !checkbox.disabled;
+            });
+        }
+
+        // Devuelve los módulos editables de una fila específica.
+        function obtenerCheckboxesFila(fila) {
+            return Array.from(
+                fila.querySelectorAll(".modulo-checkbox")
+            ).filter(function (checkbox) {
+                return !checkbox.disabled;
+            });
+        }
+
+        // Actualiza el porcentaje de asistencia de una fila.
+        function actualizarPorcentaje(fila) {
             const checkboxes = fila.querySelectorAll(".modulo-checkbox");
             const porcentajeElement = fila.querySelector(".row-pct");
 
@@ -274,30 +329,160 @@
                 return;
             }
 
-            function actualizarPorcentaje() {
-                const total = checkboxes.length;
+            const presentes = Array.from(checkboxes)
+                .filter(function (checkbox) {
+                    return checkbox.checked;
+                }).length;
 
-                const presentes = Array.from(checkboxes)
-                    .filter(function (checkbox) {
-                        return checkbox.checked;
-                    }).length;
+            const porcentaje = (presentes / checkboxes.length) * 100;
 
-                const porcentaje = total > 0
-                    ? (presentes / total) * 100
-                    : 0;
+            porcentajeElement.textContent =
+                porcentaje.toLocaleString("es-AR", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 1
+                }) + "%";
+        }
 
-                porcentajeElement.textContent =
-                    porcentaje.toLocaleString("es-AR", {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 1
-                    }) + "%";
+        // Actualiza el texto y el estado del botón individual.
+        function actualizarBotonFila(fila) {
+            const boton = fila.querySelector(".btn-modulos-fila");
+
+            if (!boton) {
+                return;
             }
 
-            checkboxes.forEach(function (checkbox) {
-                checkbox.addEventListener("change", actualizarPorcentaje);
+            const checkboxes = obtenerCheckboxesFila(fila);
+
+            if (checkboxes.length === 0) {
+                boton.disabled = true;
+                boton.textContent = "No hay módulos editables";
+                boton.setAttribute("aria-pressed", "false");
+                return;
+            }
+
+            const todosMarcados = checkboxes.every(function (checkbox) {
+                return checkbox.checked;
             });
 
-            actualizarPorcentaje();
+            boton.textContent = todosMarcados
+                ? "Desmarcar módulos"
+                : "Marcar módulos";
+
+            boton.setAttribute(
+                "aria-pressed",
+                todosMarcados ? "true" : "false"
+            );
+
+            boton.disabled = false;
+        }
+
+        // Actualiza el botón global según el estado de los módulos editables.
+        function actualizarEstadoBoton() {
+            if (!btnTodosModulos) {
+                return;
+            }
+
+            const checkboxes = obtenerCheckboxesEditables();
+
+            if (checkboxes.length === 0) {
+                btnTodosModulos.disabled = true;
+                btnTodosModulos.textContent = "No hay módulos editables";
+                btnTodosModulos.setAttribute("aria-pressed", "false");
+                return;
+            }
+
+            const todosMarcados = checkboxes.every(function (checkbox) {
+                return checkbox.checked;
+            });
+
+            btnTodosModulos.textContent = todosMarcados
+                ? "Desmarcar todos los módulos"
+                : "Marcar todos los módulos";
+
+            btnTodosModulos.setAttribute(
+                "aria-pressed",
+                todosMarcados ? "true" : "false"
+            );
+
+            btnTodosModulos.disabled = false;
+        }
+
+        // Los cambios manuales y los cambios realizados con botones
+        // actualizan los porcentajes y ambos niveles de botones.
+        filas.forEach(function (fila) {
+            const checkboxes = fila.querySelectorAll(".modulo-checkbox");
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener("change", function () {
+                    actualizarPorcentaje(fila);
+                    actualizarBotonFila(fila);
+                    actualizarEstadoBoton();
+                });
+            });
+
+            // Acción individual: marcar o desmarcar los módulos de ese alumno.
+            const botonFila = fila.querySelector(".btn-modulos-fila");
+
+            if (botonFila) {
+                botonFila.addEventListener("click", function () {
+                    const checkboxesEditables = obtenerCheckboxesFila(fila);
+
+                    if (checkboxesEditables.length === 0) {
+                        return;
+                    }
+
+                    const todosMarcados = checkboxesEditables.every(
+                        function (checkbox) {
+                            return checkbox.checked;
+                        }
+                    );
+
+                    checkboxesEditables.forEach(function (checkbox) {
+                        checkbox.checked = !todosMarcados;
+
+                        checkbox.dispatchEvent(
+                            new Event("change", { bubbles: true })
+                        );
+                    });
+
+                    actualizarPorcentaje(fila);
+                    actualizarBotonFila(fila);
+                    actualizarEstadoBoton();
+                });
+            }
+
+            actualizarPorcentaje(fila);
+            actualizarBotonFila(fila);
         });
+
+        // Acción global: marcar o desmarcar los módulos editables de todos.
+        if (btnTodosModulos) {
+            btnTodosModulos.addEventListener("click", function () {
+                const checkboxes = obtenerCheckboxesEditables();
+
+                if (checkboxes.length === 0) {
+                    return;
+                }
+
+                const todosMarcados = checkboxes.every(
+                    function (checkbox) {
+                        return checkbox.checked;
+                    }
+                );
+
+                checkboxes.forEach(function (checkbox) {
+                    checkbox.checked = !todosMarcados;
+
+                    checkbox.dispatchEvent(
+                        new Event("change", { bubbles: true })
+                    );
+                });
+
+                actualizarEstadoBoton();
+            });
+        }
+
+        // Estado inicial de todos los controles.
+        actualizarEstadoBoton();
     });
 </script>
