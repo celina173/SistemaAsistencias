@@ -58,34 +58,116 @@
                 <div class="form-title-divider"></div>
             </div>
 
-            <form asp-action="ModificarInscripcionMateria" method="post" novalidate>
-                @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="InId" />
-                <input type="hidden" asp-for="UsId" />
-                <div class="form-grid">
-                    <div class="input-field">
-                        <label>Alumno</label>
-                        <input type="text" value="@(Model.Usuarios != null ? (Model.Usuarios.UsApellido + " " + Model.Usuarios.UsNombre) : "")" readonly>
+                <form asp-action="ModificarInscripcionMateria" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="InId" />
+                    <input type="hidden" asp-for="UsId" />
+    
+                    <div class="form-grid">
+                        <div class="input-field" style="grid-column: span 2;">
+                            <label>Alumno</label>
+                            <input type="text" value="@(Model.Usuarios != null ? (Model.Usuarios.UsApellido + " " + Model.Usuarios.UsNombre) : "")" readonly style="background-color: #f0f0f0;">
+                        </div>
+
+                        <!-- 1. FILTRO CARRERA/COHORTE -->
+                        <div class="input-field" style="grid-column: span 2;">
+                            <label>1. Filtrar por Carrera / Cohorte</label>
+                            <select id="filtroCarrera">
+                                <option value="">-- Todas las carreras --</option>
+                                @{
+                                    var listaCatedras = ViewData["CaMaId"] as SelectList;
+                                    var carrerasUnicas = new HashSet<string>();
+                    
+                                    if (listaCatedras != null)
+                                    {
+                                        foreach(var item in listaCatedras)
+                                        {
+                                            // Extrae la parte de la carrera (antes del ' - ')
+                                            var partes = item.Text.Split(" - ");
+                                            if(partes.Length > 0 && !carrerasUnicas.Contains(partes[0]))
+                                            {
+                                                carrerasUnicas.Add(partes[0]);
+                                                <option value="@partes[0]">@partes[0]</option>
+                                            }
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- 2. SELECTOR DE MATERIA (Filtrado) -->
+                        <div class="input-field" style="grid-column: span 2;">
+                            <label for="CaMaId">2. Seleccionar Materia</label>
+                            <select asp-for="CaMaId" id="CaMaId" required>
+                                <option value="">-- Seleccione una Materia --</option>
+                                @if(listaCatedras != null)
+                                {
+                                    foreach(var item in listaCatedras)
+                                    {
+                                        var partes = item.Text.Split(" - ");
+                                        var carreraText = partes.Length > 0 ? partes[0] : "";
+                                        var materiaText = partes.Length > 1 ? string.Join(" - ", partes.Skip(1)) : item.Text;
+                        
+                                        <option value="@item.Value" data-carrera="@carreraText" selected="@(item.Selected ? "selected" : null)">
+                                            @materiaText
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            @Html.ValidationMessageFor(m => m.CaMaId, "", new { @class = "text-danger" })
+                        </div>
                     </div>
 
-                    <div class="input-field">
-                        <label for="CaMaId">Carrera - Materia</label>
-                        <select asp-for="CaMaId" asp-items='@(ViewData["CaMaId"] as SelectList)' id="CaMaId" required>
-                            <option value="">-- Seleccione Carrera - Materia --</option>
-                        </select>
+                    <div class="form-buttons">
+                        <a asp-controller="Inscripciones" asp-action="GestionInscripcionesMaterias" class="btn-cancel">Cancelar</a>
+                        <button type="submit" class="btn-save">Guardar Cambios</button>
                     </div>
+                </form>
 
-@*                     <div class="input-field">
-                        <label for="fecha">Fecha de Alta</label>
-                        <input type="date" asp-for="InFechaAlta" id="fecha" />
-                    </div> *@
-                </div>
+                <!-- SCRIPT PARA FILTRAR EL COMBOBOX -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var filtroCarrera = document.getElementById('filtroCarrera');
+                        var selectMateria = document.getElementById('CaMaId');
+                        var opcionesMateria = Array.from(selectMateria.options);
 
-                <div class="form-buttons">
-                    <a asp-controller="Inscripciones" asp-action="GestionInscripcionesMaterias" class="btn-cancel">Cancelar</a>
-                    <button type="submit" class="btn-save">Guardar Cambios</button>
-                </div>
-            </form>
+                        // Preseleccionar el filtro si ya hay una materia elegida
+                        var opcionSeleccionada = selectMateria.options[selectMateria.selectedIndex];
+                        if (opcionSeleccionada && opcionSeleccionada.value !== "") {
+                            var carreraDeMateria = opcionSeleccionada.getAttribute('data-carrera');
+                            if (carreraDeMateria) {
+                                filtroCarrera.value = carreraDeMateria;
+                            }
+                        }
+
+                        function actualizarFiltro() {
+                            var carreraFiltro = filtroCarrera.value;
+            
+                            // Ocultar/Mostrar opciones según filtro
+                            opcionesMateria.forEach(function(opcion) {
+                                if (opcion.value === "") return; // Mantiene el placeholder
+                
+                                var carreraOpcion = opcion.getAttribute('data-carrera');
+                                if (carreraFiltro === "" || carreraOpcion === carreraFiltro) {
+                                    opcion.style.display = '';
+                                } else {
+                                    opcion.style.display = 'none';
+                                }
+                            });
+
+                            // Si la opción seleccionada quedó oculta, resetear el select
+                            if (selectMateria.selectedIndex > 0) {
+                                var seleccionActual = selectMateria.options[selectMateria.selectedIndex];
+                                if (seleccionActual.style.display === 'none') {
+                                    selectMateria.value = "";
+                                }
+                            }
+                        }
+
+                        filtroCarrera.addEventListener('change', actualizarFiltro);
+                        actualizarFiltro(); // Ejecutar al cargar
+                    });
+                </script>
         </div>
     </main>
 

@@ -46,6 +46,8 @@ namespace ISFDyT124.Controllers
                 .CarreraMaterias
                 .Include(cm => cm.CarreraCohorte)
                     .ThenInclude(cc => cc!.Carrera)
+                .Include(cm => cm.CarreraCohorte)
+                    .ThenInclude(cc => cc!.Cohorte) // <- NUEVO: Incluimos la cohorte
                 .Include(cm => cm.Materia)
                 .ToListAsync();
 
@@ -56,10 +58,11 @@ namespace ISFDyT124.Controllers
                     !string.IsNullOrWhiteSpace(cm.Materia.MaDenominacion))
                 .Select(cm => new
                 {
-                    cm.CaMaId,
+                    CaMaId = cm.CaMaId,
+                    CaCoId = cm.CaCoId, // <- NUEVO: Clave para que el JavaScript pueda filtrar
                     Denominacion =
-                        (cm.CarreraCohorte != null && cm.CarreraCohorte.Carrera != null
-                            ? cm.CarreraCohorte.Carrera.CaDenominacion
+                        (cm.CarreraCohorte != null && cm.CarreraCohorte.Carrera != null && cm.CarreraCohorte.Cohorte != null
+                            ? cm.CarreraCohorte.Carrera.CaDenominacion + " - " + cm.CarreraCohorte.Cohorte.CoAnio // <- NUEVO: Muestra carrera y año
                             : "Sin carrera")
                         + " / " + cm.Materia!.MaDenominacion
                 })
