@@ -90,38 +90,30 @@ async function precargarPaginasDocente() {
         const lista = await fetch('/Asistencias', { credentials: 'same-origin' });
         if (!lista.ok || /\/Account\/Login/i.test(lista.url)) return; // sin sesión: no se guarda nada
         const html = await lista.clone().text();
-        // La lista no trae enlaces con CaMaId: es un selector de carrera y materia. Cada combinación válida
-        // redirige a la planilla de esa cátedra (y con _global=1, a su asistencia global).
-        const valores = (nombre) => {
-            const m = new RegExp('<select[^>]*name="' + nombre + '"[^]*?</select>', 'i').exec(html);
-            return m ? [...m[0].matchAll(/<option[^>]*value="(\d+)"/gi)].map((x) => x[1]) : [];
-        };
-        const carreras = valores('SelectedCarreraId');
-        const materias = valores('SelectedMateriaId');
         const bajadas = [['/Asistencias', await copiaLimpia(lista)]];
-        let probadas = 0;
-        for (const c of carreras) {
-            for (const m of materias) {
-                if (++probadas > 200) break;
-                const q = `?selectedCarreraId=${c}&selectedMateriaId=${m}`;
-                const r = await fetch('/Asistencias/Index' + q, { credentials: 'same-origin' });
-                if (!r.redirected || !r.ok || !/CaMaId=\d+/i.test(r.url)) continue; // combinación sin cátedra
-                const plan = new URL(r.url);
-                bajadas.push([plan.pathname + plan.search, await copiaLimpia(r)]);
-                const g = await fetch('/Asistencias/Index' + q + '&_global=1', { credentials: 'same-origin' });
-                if (g.redirected && g.ok && /CaMaId=\d+/i.test(g.url)) {
-                    const glo = new URL(g.url);
-                    const htmlGlobal = await g.clone().text();
-                    bajadas.push([glo.pathname + glo.search, await copiaLimpia(g)]);
-                    // Fechas ya registradas del año en curso: la global enlaza a la edición de cada una.
-                    const anio = String(new Date().getFullYear());
-                    const edicion = [...new Set([...htmlGlobal.matchAll(/ModificarAsistencia\?CaMaId=\d+(?:&amp;|&)fecha=([\d-]+)/gi)]
-                        .filter((x) => x[1].startsWith(anio)).map((x) => x[0].replace(/&amp;/g, '&')))].slice(0, 120);
-                    for (const e of edicion) {
-                        const re = await fetch('/Asistencias/' + e, { credentials: 'same-origin' });
-                        if (re.ok && !re.redirected) bajadas.push(['/Asistencias/' + e, await copiaLimpia(re)]);
-                    }
-                }
+
+        // Inicio del docente: es lo que abre la app instalada sin conexión (ver responderDesdeCache).
+        const inicio = await fetch('/Profesor', { credentials: 'same-origin' });
+        if (inicio.ok && !inicio.redirected) bajadas.push(['/Profesor', await copiaLimpia(inicio)]);
+
+        // La lista de cátedras es un selector cuyas opciones valen el CaMaId de cada cátedra.
+        const selector = /<select[^>]*name="selectedCaMaId"[^]*?<\/select>/i.exec(html);
+        const ids = selector ? [...new Set([...selector[0].matchAll(/<option[^>]*value="(\d+)"/gi)].map((x) => x[1]))].slice(0, 80) : [];
+
+        for (const id of ids) {
+            const plan = await fetch('/Asistencias/Asistencia?CaMaId=' + id, { credentials: 'same-origin' });
+            if (plan.ok && !plan.redirected) bajadas.push(['/Asistencias/Asistencia?CaMaId=' + id, await copiaLimpia(plan)]);
+            const g = await fetch('/Asistencias/AsistenciaGlobal?CaMaId=' + id, { credentials: 'same-origin' });
+            if (!g.ok || g.redirected) continue;
+            const htmlGlobal = await g.clone().text();
+            bajadas.push(['/Asistencias/AsistenciaGlobal?CaMaId=' + id, await copiaLimpia(g)]);
+            // Fechas ya registradas del año en curso: la global enlaza a la edición de cada una.
+            const anio = String(new Date().getFullYear());
+            const edicion = [...new Set([...htmlGlobal.matchAll(/ModificarAsistencia\?CaMaId=\d+(?:&amp;|&)fecha=([\d-]+)/gi)]
+                .filter((x) => x[1].startsWith(anio)).map((x) => x[0].replace(/&amp;/g, '&')))].slice(0, 120);
+            for (const e of edicion) {
+                const re = await fetch('/Asistencias/' + e, { credentials: 'same-origin' });
+                if (re.ok && !re.redirected) bajadas.push(['/Asistencias/' + e, await copiaLimpia(re)]);
             }
         }
         // Reemplazo atómico: recién con todo bajado se escribe lo guardado.
@@ -212,7 +204,12 @@ async function responderDesdeCache(request, url) {
         // El start_url de la PWA instalada (manifest.json) pide "/?source=pwa" — esa URL exacta
         // nunca se cachea sola si el docente siempre entró por "Inicio" del menú (que pide "/").
         const inicio = await caches.match('/', { ignoreSearch: true });
-        if (inicio) return inicio;
+        if (inicio) return conHoraDeGuardado(inicio);
+
+        // El docente con sesión abierta: la precarga dejó guardado su inicio. Las páginas guardadas se borran al
+        // cerrar sesión, así que si están, hay sesión y abrir la app no debe caer en el login.
+        const inicioDocente = (await caches.match('/Profesor')) || (await caches.match('/Asistencias'));
+        if (inicioDocente) return conHoraDeGuardado(inicioDocente);
 
         // Sin sesión activa la app manda al login: mostrar esa pantalla es más útil que un
         // cartel genérico, al menos se ve la app y no un error del navegador.
