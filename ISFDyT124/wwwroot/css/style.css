@@ -3676,36 +3676,36 @@ html.pwa-standalone body {
     .pwa-bottom-nav-item:active {
         color: var(--primary-color) !important;
     }
-/* ---- Banner de instalación de la PWA ---- */
+/* ---- Botón de instalación de la PWA: chico, abajo a la derecha ---- */
 .pwa-install-banner {
     position: fixed;
-    left: 12px;
     right: 12px;
     bottom: 12px;
     z-index: 1200;
     background-color: var(--primary-color, #002e8c);
     color: #fff;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    padding: 14px 16px;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    padding: 4px 6px 4px 6px;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 2px;
 }
 
     .pwa-install-banner[hidden] {
         display: none;
     }
 
+/* El texto largo sólo se usa en iOS, donde no hay botón de instalación y hay que explicar cómo hacerlo. */
 .pwa-install-text {
-    font-size: 0.85rem;
+    display: none;
+    font-size: 0.8rem;
     line-height: 1.4;
 }
 
 .pwa-install-actions {
     display: flex;
-    gap: 10px;
-    justify-content: flex-end;
+    gap: 2px;
     align-items: center;
 }
 
@@ -3713,8 +3713,9 @@ html.pwa-standalone body {
     background-color: #fff;
     color: var(--primary-color, #002e8c);
     border: none;
-    border-radius: 10px;
-    padding: 8px 18px;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
 }
@@ -3724,25 +3725,23 @@ html.pwa-standalone body {
     border: none;
     color: #fff;
     opacity: 0.8;
-    font-size: 1rem;
+    font-size: 0.9rem;
     cursor: pointer;
     padding: 4px 8px;
 }
 
-@media (min-width: 700px) {
-    .pwa-install-banner {
-        left: auto;
-        right: 24px;
-        bottom: 24px;
-        width: 360px;
-        flex-direction: row;
-        align-items: center;
+.pwa-install-banner--ios {
+    left: 12px;
+    max-width: 320px;
+    margin-left: auto;
+    border-radius: 16px;
+    padding: 10px 12px;
+}
+
+    .pwa-install-banner--ios .pwa-install-text {
+        display: block;
     }
 
-    .pwa-install-actions {
-        flex-shrink: 0;
-    }
-}
 /* ---- Filtro de Carrera/Materia en Asistencia Global: apilado en celular ---- */
 .filtro-catedra-form {
     display: flex;

@@ -171,7 +171,7 @@
     }
     adaptarPaginaGuardada();
 
-    // ---- Avisos de versión nueva e instalación (no interrumpen la planilla en curso) ----
+    // ---- Aviso de versión nueva (no interrumpe la planilla en curso) ----
     function barra(texto, boton, alPulsar) {
         var b = document.createElement('div');
         b.setAttribute('role', 'status');
@@ -206,22 +206,7 @@
         });
     }
 
-    var enStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-    var avisoInstalar = null;
-    window.addEventListener('beforeinstallprompt', function (ev) {
-        ev.preventDefault();
-        if (enStandalone) return;
-        avisoInstalar = barra('Instalá la app para tomar asistencia sin conexión.', 'Instalar', function (b) {
-            b.remove(); ev.prompt();
-        });
-    });
-    // iOS no ofrece instalación automática: se muestran las instrucciones una sola vez.
-    try {
-        if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !enStandalone && !localStorage.getItem('is124-ios-instalar')) {
-            localStorage.setItem('is124-ios-instalar', '1');
-            barra('Para instalar la app: tocá Compartir y luego "Agregar a pantalla de inicio".');
-        }
-    } catch (e) { /* sin almacenamiento */ }
+    // El aviso de instalación vive en el layout (_PwaInstallBanner + script.js): acá no se duplica.
 
     window.addEventListener('online', function () { ciclo(); precargar(); });
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { ciclo(); precargar(); } });

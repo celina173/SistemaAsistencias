@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
             pwaBanner.querySelector('.pwa-install-text').textContent =
                 'Instalá la app: tocá el botón Compartir de Safari y elegí "Agregar a pantalla de inicio".';
             if (pwaInstallBtn) pwaInstallBtn.hidden = true;
+            pwaBanner.classList.add('pwa-install-banner--ios');
             pwaBanner.hidden = false;
         }
 
