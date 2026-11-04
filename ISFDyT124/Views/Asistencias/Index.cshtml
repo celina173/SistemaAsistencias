@@ -17,25 +17,42 @@
 
 <main class="main-container-form">
     <div class="form-card">
-        <form asp-controller="Asistencias" asp-action="Index" method="get" class="form-grid">
+        <form asp-controller="Asistencias" asp-action="Index" method="get" class="form-grid" id="formAsistenciaIndex">
+            
             <div class="input-field" style="grid-column: span 2;">
-                <label for="carrera">Carrera</label>
-                <select asp-for="SelectedCarreraId" id="carrera" aria-label="Filtrar asistencia por carrera" class="custom-select" required>
-                    <option value="" disabled selected>Seleccione una Carrera</option>
-                    @foreach (var carrera in Model.Carreras)
-                    {
-                        <option value="@carrera.CaId">@carrera.CaDenominacion</option>
+                <label for="filtroCarrera">1. Seleccionar Carrera / Cohorte</label>
+                <select id="filtroCarrera" class="custom-select" required>
+                    <option value="">-- Seleccione una Carrera --</option>
+                    @{
+                        // ACÁ CAMBIAMOS dynamic POR EL TIPO EXACTO DEL DTO
+                        var catedras = ViewBag.Catedras as IEnumerable<ISFDyT124.DTO.CarreraMateriaDetalleDto>;
+                        var carrerasUnicas = new HashSet<string>();
+                        
+                        if (catedras != null)
+                        {
+                            foreach(var item in catedras)
+                            {
+                                if(carrerasUnicas.Add(item.CarreraDenominacion))
+                                {
+                                    <option value="@item.CarreraDenominacion">@item.CarreraDenominacion</option>
+                                }
+                            }
+                        }
                     }
                 </select>
             </div>
 
             <div class="input-field" style="grid-column: span 2;">
-                <label for="materia">Materia</label>
-                <select asp-for="SelectedMateriaId" id="materia" aria-label="Filtrar asistencia por materia" class="custom-select" required>
-                    <option value="" disabled selected>Seleccione una Materia</option>
-                    @foreach (var materia in Model.Materias)
+                <label for="selectedCaMaId">2. Seleccionar Materia</label>
+                <select name="selectedCaMaId" id="selectedCaMaId" aria-label="Filtrar asistencia por materia" class="custom-select" required>
+                    <option value="">-- Seleccione una Materia --</option>
+                    @if (catedras != null)
                     {
-                        <option value="@materia.MaId">@materia.MaDenominacion</option>
+                        foreach(var item in catedras)
+                        {
+                            // REEMPLAZAMOS LOS NOMBRES DE LAS PROPIEDADES POR LAS DEL DTO
+                            <option value="@item.CaMaId" data-carrera="@item.CarreraDenominacion" style="display:none;">@item.MateriaDenominacion</option>
+                        }
                     }
                 </select>
             </div>
@@ -44,7 +61,6 @@
                 <button type="submit" class="btn-save" id="btnSiguiente" style="width: 100%; padding: 14px;">Configurar Asistencia</button>
             </div>
             <div class="form-buttons" style="grid-column: span 2; justify-content: center; margin-top: 8px;">
-              
                 <button type="button" id="btnGlobal" class="btn-save-secondary" style="width:100%; padding:12px;">Ir a Asistencia Global</button>
             </div>
         </form>
@@ -52,17 +68,49 @@
 </main>
 
 <script>
-    (function(){
+    document.addEventListener('DOMContentLoaded', function () {
+        var filtroCarrera = document.getElementById('filtroCarrera');
+        var selectMateria = document.getElementById('selectedCaMaId');
+        var opcionesMateria = Array.from(selectMateria.options);
+
+        // Filtrado dinámico
+        function actualizarFiltro() {
+            var carreraFiltro = filtroCarrera.value;
+            
+            opcionesMateria.forEach(function(opcion) {
+                if (opcion.value === "") return; 
+                
+                var carreraOpcion = opcion.getAttribute('data-carrera');
+                if (carreraFiltro !== "" && carreraOpcion === carreraFiltro) {
+                    opcion.style.display = '';
+                } else {
+                    opcion.style.display = 'none';
+                }
+            });
+
+            // Resetear materia si se oculta la seleccionada
+            if (selectMateria.selectedIndex > 0) {
+                var seleccionActual = selectMateria.options[selectMateria.selectedIndex];
+                if (seleccionActual.style.display === 'none') {
+                    selectMateria.value = "";
+                }
+            }
+        }
+
+        filtroCarrera.addEventListener('change', actualizarFiltro);
+        actualizarFiltro(); // Ejecutar al inicio
+
+        // Acción del botón global actualizada
         document.getElementById('btnGlobal').addEventListener('click', function(){
-            var ca = document.getElementById('carrera').value;
-            var ma = document.getElementById('materia').value;
-            if(!ca || !ma){
-                alert('Seleccione Carrera y Materia antes de ir a Asistencia Global.');
+            var caMaId = document.getElementById('selectedCaMaId').value;
+            if(!caMaId){
+                alert('Seleccione Carrera/Cohorte y Materia antes de ir a Asistencia Global.');
                 return;
             }
-            var qs = '?selectedCarreraId=' + encodeURIComponent(ca) + '&selectedMateriaId=' + encodeURIComponent(ma) + '&_global=1';
+            // Envia selectedCaMaId directamente
+            var qs = '?selectedCaMaId=' + encodeURIComponent(caMaId) + '&_global=1';
             window.location.href = '/Asistencias/Index' + qs;
         });
-    })();
+    });
 </script>
 

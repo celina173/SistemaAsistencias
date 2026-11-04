@@ -88,8 +88,23 @@
             </div>
         </div>
 
-        <div class="table-container attendance-table-card">
-            <table class="attendance-table admin-modulos-table">         
+       
+        @if (!Model.EsEdicionHistorica)
+        {
+            <div class="asistencia-acciones-masivas">
+                <button type="button"
+                        id="btnTodosModulos"
+                        class="btn-modulos-toggle"
+                        aria-pressed="true">
+                    Desmarcar todos los módulos
+                </button>
+            </div>
+        }
+
+        <div class="table-container attendance-table-card asistencia-tabla-wrapper">
+
+            <table class="attendance-table admin-modulos-table">
+
                 <thead>
                     <tr>
                         <th>Apellido y Nombre</th>
@@ -100,7 +115,7 @@
                         </th>
                         <th class="text-center">Observación</th>
                     </tr>
-                </thead>
+                </thead>                
                 <tbody>
                     @for (int i = 0; i < Model.Rows.Count; i++)
                     {
@@ -114,21 +129,33 @@
                             ? "fila-bloqueada"
                             : "")">
 
-                            @* COLUMNA 1: APELLIDO Y NOMBRE *@
-                            <td>
-                                @row.FullName
+                    @* COLUMNA 1: APELLIDO Y NOMBRE *@
+                    <td class="alumno-asistencia-cell">
+                        <div class="alumno-asistencia-info">
+                            <span class="alumno-asistencia-nombre">@row.FullName</span>
 
-                                <input type="hidden"
-                                       name="Rows[@i].UsId"
-                                       value="@row.UsId" />
+                            @if (!Model.EsEdicionHistorica)
+                            {
+                                <button type="button"
+                                        class="btn-modulos-toggle btn-modulos-fila"
+                                        data-row="@i"
+                                        aria-pressed="true">
+                                    Desmarcar módulos
+                                </button>
+                            }
+                        </div>
 
-                                @if (Model.EsEdicionHistorica && row.BloqueadaPorInscripcion)
-                                {
-                                    <span class="aviso-fila-bloqueada">
-                                        No estaba inscripto en esta fecha.
-                                    </span>
-                                }
-                            </td>
+                        <input type="hidden"
+                               name="Rows[@i].UsId"
+                               value="@row.UsId" />
+
+                        @if (Model.EsEdicionHistorica && row.BloqueadaPorInscripcion)
+                        {
+                            <span class="aviso-fila-bloqueada">
+                                No estaba inscripto en esta fecha.
+                            </span>
+                        }
+                    </td>
 
                             @* COLUMNA 2: MÓDULOS *@
                             <td class="modules-cell" style="text-align: center;">
@@ -143,10 +170,7 @@
                                     <div class="modules-group">
                                         @for (int m = 0; m < moduleCount; m++)
                                         {
-                                            var isChecked =
-                                                row.Modulos != null &&
-                                                row.Modulos.Count > m &&
-                                                row.Modulos[m];
+                                            var isChecked = !Model.EsEdicionHistorica;
 
                                             <input type="checkbox"
                                                    class="custom-checkbox"
@@ -326,6 +350,157 @@
                     }
                 });
             });
+        });
+    })();
+</script>
+
+<script>
+    (function () {
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('formAsistencia');
+            const btnTodos = document.getElementById('btnTodosModulos');
+
+            if (!form || !btnTodos) {
+                return;
+            }
+
+            const esEdicionHistorica =
+                ['true', 'True'].includes(
+                    form.querySelector(
+                        'input[name="EsEdicionHistorica"]'
+                    )?.value
+                );
+
+            if (esEdicionHistorica) {
+                return;
+            }
+
+            function obtenerCheckboxes(fila) {
+                return Array.from(
+                    fila.querySelectorAll(
+                        '.modules-group input[type="checkbox"]'
+                    )
+                );
+            }
+
+            function actualizarBotonFila(fila) {
+                const checkboxes = obtenerCheckboxes(fila);
+                const boton = fila.querySelector('.btn-modulos-fila');
+
+                if (!boton || checkboxes.length === 0) {
+                    return;
+                }
+
+                const todosMarcados =
+                    checkboxes.every(checkbox => checkbox.checked);
+
+                boton.textContent = todosMarcados
+                    ? 'Desmarcar módulos'
+                    : 'Marcar módulos';
+
+                boton.setAttribute(
+                    'aria-pressed',
+                    String(todosMarcados)
+                );
+            }
+
+            function actualizarBotonGeneral() {
+                const checkboxes = Array.from(
+                    form.querySelectorAll(
+                        '.modules-group input[type="checkbox"]'
+                    )
+                );
+
+                const todosMarcados =
+                    checkboxes.length > 0 &&
+                    checkboxes.every(checkbox => checkbox.checked);
+
+                btnTodos.textContent = todosMarcados
+                    ? 'Desmarcar todos los módulos'
+                    : 'Marcar todos los módulos';
+
+                btnTodos.setAttribute(
+                    'aria-pressed',
+                    String(todosMarcados)
+                );
+            }
+
+            function actualizarBotones() {
+                form.querySelectorAll('tbody tr').forEach(
+                    actualizarBotonFila
+                );
+
+                actualizarBotonGeneral();
+            }
+
+            function cambiarCheckboxes(checkboxes, marcar) {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = marcar;
+                });
+
+                actualizarBotones();
+
+                // Dispara el evento change para recalcular los porcentajes
+                // mediante el script de porcentajes ya existente.
+                checkboxes.forEach(checkbox => {
+                    checkbox.dispatchEvent(
+                        new Event('change', { bubbles: true })
+                    );
+                });
+            }
+
+            btnTodos.addEventListener('click', function () {
+                const checkboxes = Array.from(
+                    form.querySelectorAll(
+                        '.modules-group input[type="checkbox"]'
+                    )
+                );
+
+                const todosMarcados =
+                    checkboxes.length > 0 &&
+                    checkboxes.every(checkbox => checkbox.checked);
+
+                cambiarCheckboxes(checkboxes, !todosMarcados);
+            });
+
+            form.querySelectorAll('.btn-modulos-fila').forEach(
+                function (boton) {
+                    boton.addEventListener('click', function () {
+                        const fila = boton.closest('tr');
+
+                        if (!fila) {
+                            return;
+                        }
+
+                        const checkboxes = obtenerCheckboxes(fila);
+
+                        const todosMarcados =
+                            checkboxes.length > 0 &&
+                            checkboxes.every(
+                                checkbox => checkbox.checked
+                            );
+
+                        cambiarCheckboxes(
+                            checkboxes,
+                            !todosMarcados
+                        );
+                    });
+                }
+            );
+
+            // Actualizar los textos si el docente marca o desmarca
+            // módulos manualmente.
+            form.addEventListener('change', function (event) {
+                if (
+                    event.target.matches(
+                        '.modules-group input[type="checkbox"]'
+                    )
+                ) {
+                    actualizarBotones();
+                }
+            });
+
+            actualizarBotones();
         });
     })();
 </script>

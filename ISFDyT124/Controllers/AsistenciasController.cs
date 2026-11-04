@@ -53,7 +53,8 @@ namespace ISFDyT124.Controllers
         // GET: Asistencias
         public async Task<IActionResult> Index(
             int? selectedCarreraId,
-            int? selectedMateriaId)
+            int? selectedMateriaId,
+            int? selectedCaMaId) // NUEVO PARÁMETRO
         {
             if (!selectedCarreraId.HasValue)
             {
@@ -82,6 +83,16 @@ namespace ISFDyT124.Controllers
                     int.TryParse(s2, out var v2))
                 {
                     selectedMateriaId = v2;
+                }
+            }
+
+            if (!selectedCaMaId.HasValue)
+            {
+                var s3 = (Request.HasFormContentType ? Request.Form["SelectedCaMaId"].FirstOrDefault() : null)
+                         ?? Request.Query["SelectedCaMaId"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(s3) && int.TryParse(s3, out var v3))
+                {
+                    selectedCaMaId = v3;
                 }
             }
 
@@ -165,8 +176,52 @@ namespace ISFDyT124.Controllers
                 SelectedMateriaId = selectedMateriaId
             };
 
-            if (selectedCarreraId.HasValue &&
-                selectedMateriaId.HasValue)
+            // NUEVO BLOQUE: Enviar las cátedras a la vista para el selector
+            var queryCatedras = _context.CarreraMaterias
+                .Include(cm => cm.CarreraCohorte).ThenInclude(cc => cc!.Carrera)
+                .Include(cm => cm.CarreraCohorte).ThenInclude(cc => cc!.Cohorte)
+                .Include(cm => cm.Materia)
+                .Where(cm => cm.CarreraCohorte != null && cm.Materia != null);
+
+            if (permitidos != null)
+            {
+                queryCatedras = queryCatedras.Where(cm => permitidos.Contains(cm.CaMaId));
+            }
+
+            ViewBag.Catedras = await queryCatedras
+                .Select(cm => new CarreraMateriaDetalleDto // <- ACÁ USAMOS EL DTO
+                {
+                    CaMaId = cm.CaMaId,
+                    CarreraDenominacion = cm.CarreraCohorte!.Carrera!.CaDenominacion + " - " + cm.CarreraCohorte!.Cohorte!.CoAnio,
+                    MateriaDenominacion = cm.Materia!.MaDenominacion
+                })
+                .OrderBy(c => c.CarreraDenominacion).ThenBy(c => c.MateriaDenominacion)
+                .ToListAsync();
+
+
+            // MODIFICAR LA REDIRECCIÓN
+            if (selectedCaMaId.HasValue) // Si viene de nuestra nueva vista
+            {
+                var caMa = await _context.CarreraMaterias
+                    .FirstOrDefaultAsync(cm => cm.CaMaId == selectedCaMaId.Value);
+
+                if (caMa != null)
+                {
+                    if (permitidos != null && !permitidos.Contains(caMa.CaMaId))
+                    {
+                        ModelState.AddModelError(string.Empty, "No tenés esa cátedra asignada.");
+                        return View(modelDto);
+                    }
+
+                    var isGlobal = Request.Query.ContainsKey("_global") && Request.Query["_global"].ToString() == "1";
+                    if (isGlobal)
+                    {
+                        return RedirectToAction(nameof(AsistenciaGlobal), new { CaMaId = caMa.CaMaId });
+                    }
+                    return RedirectToAction(nameof(Asistencia), new { CaMaId = caMa.CaMaId });
+                }
+            }
+            else if (selectedCarreraId.HasValue && selectedMateriaId.HasValue) // Fallback vista vieja
             {
                 var caMa = await _context.CarreraMaterias
                     .FirstOrDefaultAsync(cm =>
@@ -176,30 +231,19 @@ namespace ISFDyT124.Controllers
 
                 if (caMa != null)
                 {
-                    if (permitidos != null &&
-                        !permitidos.Contains(caMa.CaMaId))
+                    if (permitidos != null && !permitidos.Contains(caMa.CaMaId))
                     {
-                        ModelState.AddModelError(
-                            string.Empty,
-                            "No tenés esa cátedra asignada.");
-
+                        ModelState.AddModelError(string.Empty, "No tenés esa cátedra asignada.");
                         return View(modelDto);
                     }
 
-                    var isGlobal =
-                        Request.Query.ContainsKey("_global") &&
-                        Request.Query["_global"].ToString() == "1";
-
+                    var isGlobal = Request.Query.ContainsKey("_global") && Request.Query["_global"].ToString() == "1";
                     if (isGlobal)
                     {
-                        return RedirectToAction(
-                            nameof(AsistenciaGlobal),
-                            new { CaMaId = caMa.CaMaId });
+                        return RedirectToAction(nameof(AsistenciaGlobal), new { CaMaId = caMa.CaMaId });
                     }
 
-                    return RedirectToAction(
-                        nameof(Asistencia),
-                        new { CaMaId = caMa.CaMaId });
+                    return RedirectToAction(nameof(Asistencia), new { CaMaId = caMa.CaMaId });
                 }
 
                 ModelState.AddModelError(

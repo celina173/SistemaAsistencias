@@ -153,26 +153,19 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
     }
 
     [SoloConLocalDbFact]
-    public async Task La_lista_es_un_selector_y_cada_combinacion_redirige_a_la_planilla_y_a_la_global()
+    public async Task La_lista_es_un_selector_cuyas_opciones_valen_el_CaMaId_de_cada_catedra()
     {
         var caMaId = SembrarCatedraConAlumno();
         var c = await DocenteAsync();
 
-        // La lista NO trae enlaces con CaMaId: la precarga de la PWA descubre las cátedras con estos selectores.
+        // La lista NO trae enlaces con CaMaId: la precarga de la PWA descubre las cátedras con las opciones de este selector.
         var doc = await AbrirAsync(await c.GetAsync("/Asistencias"));
-        var carreras = doc.QuerySelectorAll("select[name=SelectedCarreraId] option[value]").Select(o => o.GetAttribute("value")!).Where(v => v != "").ToList();
-        var materias = doc.QuerySelectorAll("select[name=SelectedMateriaId] option[value]").Select(o => o.GetAttribute("value")!).Where(v => v != "").ToList();
-        Assert.NotEmpty(carreras);
-        Assert.NotEmpty(materias);
+        var opciones = doc.QuerySelectorAll("select[name=selectedCaMaId] option[value]").Select(o => o.GetAttribute("value")!).Where(v => v != "").ToList();
+        Assert.Contains(caMaId.ToString(), opciones);
 
-        var q = $"?selectedCarreraId={carreras[0]}&selectedMateriaId={materias[0]}";
-        var plan = await c.GetAsync("/Asistencias/Index" + q);
-        Assert.Equal(HttpStatusCode.Redirect, plan.StatusCode);
-        Assert.Contains($"CaMaId={caMaId}", plan.Headers.Location!.ToString());
-
-        var global = await c.GetAsync("/Asistencias/Index" + q + "&_global=1");
-        Assert.Equal(HttpStatusCode.Redirect, global.StatusCode);
-        Assert.Contains("AsistenciaGlobal", global.Headers.Location!.ToString(), StringComparison.OrdinalIgnoreCase);
+        // Y de cada una cuelgan la planilla y la asistencia global, con ese mismo CaMaId.
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync($"/Asistencias/Asistencia?CaMaId={caMaId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync($"/Asistencias/AsistenciaGlobal?CaMaId={caMaId}")).StatusCode);
     }
 
     [SoloConLocalDbFact]

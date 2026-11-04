@@ -541,6 +541,7 @@ body {
     color: #64748b;
     font-size: 0.8rem;
 }
+
 /* =========================================
    PANTALLA: ASISTENCIA
    ========================================= */
@@ -566,13 +567,93 @@ body {
     align-items: center;
     box-sizing: border-box;
 }
+
 /* Evitar que el formulario imponga un ancho excesivo */
-.asistencia-page #formAsistencia {
+.asistencia-page #formAsistencia,
+.asistencia-page #formModificarAsistencia {
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
 }
+
+/* =========================================
+   ACCIONES MASIVAS DE ASISTENCIA
+   Botón Marcar/Desmarcar todos los módulos
+   ========================================= */
+.asistencia-page .asistencia-acciones-masivas {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    width: calc(100% - 4rem);
+    max-width: 1140px;
+    min-width: 0;
+    margin: 24px auto 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+    /* Botón global */
+    .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 44px;
+        margin: 0;
+        padding: 11px 18px;
+        box-sizing: border-box;
+        background-color: var(--primary-color, #001a8c);
+        color: #ffffff;
+        border: 1px solid var(--primary-color, #001a8c);
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.3;
+        text-align: center;
+        text-decoration: none;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+        .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle:hover {
+            background-color: #001266;
+            border-color: #001266;
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(0, 26, 140, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle:active {
+            transform: scale(0.99);
+        }
+
+        .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle:focus-visible {
+            outline: 2px solid var(--primary-color, #002e8c);
+            outline-offset: 3px;
+        }
+
+    /* Texto de ayuda opcional */
+    .asistencia-page .asistencia-acciones-masivas .asistencia-acciones-ayuda {
+        color: #64748b;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.82rem;
+        line-height: 1.5;
+    }
+
+    /* Separación entre el botón global y la tabla */
+    .asistencia-page .asistencia-acciones-masivas + .attendance-table-card {
+        margin-top: 12px;
+    }
+
 /* =========================================
    TARJETA DE ASISTENCIA
    ========================================= */
@@ -589,6 +670,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 4px 6px -1px rgb(15 23 42 / 5%), 0 12px 28px -8px rgb(15 23 42 / 9%);
 }
+
 /* =========================================
    TABLA
    ========================================= */
@@ -644,6 +726,7 @@ body {
     .asistencia-page .attendance-table tbody tr:last-child td {
         border-bottom: none;
     }
+
 /* =========================================
    ENCABEZADO DE PORCENTAJE
    Escritorio: "Porcentaje"
@@ -656,6 +739,7 @@ body {
 .porcentaje-desktop {
     display: inline;
 }
+
 /* =========================================
    COLUMNA APELLIDO Y NOMBRE
    ========================================= */
@@ -666,6 +750,7 @@ body {
     white-space: normal;
     overflow-wrap: break-word;
 }
+
 /* =========================================
    COLUMNA MÓDULOS
    ========================================= */
@@ -695,6 +780,7 @@ body {
     .asistencia-page .attendance-table .modules-group .custom-checkbox {
         flex: 0 0 22px;
     }
+
 /* =========================================
    CHECKBOXES INSTITUCIONALES
    ========================================= */
@@ -735,6 +821,7 @@ body {
         outline: 2px solid var(--primary-color, #002e8c);
         outline-offset: 3px;
     }
+
 /* =========================================
    COLUMNA DE PORCENTAJE
    ========================================= */
@@ -759,6 +846,7 @@ body {
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
 }
+
 /* =========================================
    COLUMNA Y CAMPO DE OBSERVACIÓN
    ========================================= */
@@ -835,8 +923,10 @@ body {
     .asistencia-page .attendance-table .observation-input:focus-visible {
         outline: none;
     }
+
 /* =========================================
-   BOTONES DE ASISTENCIA Y ACCIÓN GLOBAL (.btn-cancel ROJO UNIFICADO)
+   BOTONES DE ASISTENCIA Y ACCIÓN GLOBAL
+   (.btn-cancel ROJO UNIFICADO)
    ========================================= */
 .admin-asistencia-buttons {
     display: flex;
@@ -871,6 +961,7 @@ body {
         cursor: pointer;
         transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
+
     /* Botón Guardar */
     .admin-asistencia-buttons .btn-guardar {
         width: auto;
@@ -955,12 +1046,29 @@ body {
         display: inline;
     }
 
+    /* Acciones masivas alineadas con la tarjeta */
+    .asistencia-page .asistencia-acciones-masivas {
+        width: calc(100% - 1rem);
+        max-width: 100%;
+        margin: 18px auto 0;
+    }
+
+        .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle {
+            min-height: 42px;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+        }
+
     .asistencia-page .attendance-table-card {
         width: calc(100% - 1rem);
         max-width: 100%;
         margin-top: 18px;
         margin-bottom: 30px;
         border-radius: 12px;
+    }
+
+    .asistencia-page .asistencia-acciones-masivas + .attendance-table-card {
+        margin-top: 12px;
     }
 
     .asistencia-page .attendance-table th,
@@ -1004,6 +1112,7 @@ body {
         font-size: 0.8rem;
     }
 }
+
 /* =========================================
    RESPONSIVE: CELULARES
    ========================================= */
@@ -1027,20 +1136,51 @@ body {
             margin-right: 0;
         }
 
-        .asistencia-page #formAsistencia {
+        .asistencia-page #formAsistencia,
+        .asistencia-page #formModificarAsistencia {
             width: 100%;
             max-width: 100%;
             min-width: 0;
         }
-            /* Filtro de fecha */
-            .asistencia-page #formAsistencia > .seccion-centrada {
-                width: 100% !important;
-                max-width: 100% !important;
+
+        /* Acciones masivas en celulares */
+        .asistencia-page .asistencia-acciones-masivas {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            margin: 18px 0 0;
+            padding: 0;
+            gap: 8px;
+        }
+
+            .asistencia-page .asistencia-acciones-masivas .btn-modulos-toggle {
+                width: auto;
+                max-width: 100%;
                 min-width: 0;
-                margin: 20px 0 !important;
-                padding: 0 !important;
-                box-sizing: border-box;
+                min-height: 40px;
+                padding: 9px 13px;
+                border-radius: 8px;
+                font-size: 0.8rem;
             }
+
+            .asistencia-page .asistencia-acciones-masivas .asistencia-acciones-ayuda {
+                width: 100%;
+                font-size: 0.75rem;
+            }
+
+            .asistencia-page .asistencia-acciones-masivas + .attendance-table-card {
+                margin-top: 12px;
+            }
+
+        /* Filtro de fecha */
+        .asistencia-page #formAsistencia > .seccion-centrada {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0;
+            margin: 20px 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
 
         .asistencia-page .admin-filter-container {
             width: 100%;
@@ -1057,6 +1197,7 @@ body {
             min-width: 0;
             box-sizing: border-box;
         }
+
         /* Tarjeta de asistencia */
         .asistencia-page .attendance-table-card {
             width: 100%;
@@ -1069,6 +1210,7 @@ body {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
+
         /* Tabla */
         .asistencia-page .attendance-table {
             width: 100%;
@@ -1092,6 +1234,7 @@ body {
                 font-size: 0.68rem;
                 letter-spacing: 0.2px;
             }
+
                 /* Anchos de las cuatro columnas */
                 .asistencia-page .attendance-table th:nth-child(1),
                 .asistencia-page .attendance-table td:nth-child(1) {
@@ -1115,6 +1258,7 @@ body {
                     width: 29%;
                     min-width: 0;
                 }
+
             /* Porcentaje */
             .asistencia-page .attendance-table .percentage-cell {
                 white-space: normal;
@@ -1125,6 +1269,7 @@ body {
                 font-size: 0.72rem;
                 overflow-wrap: normal;
             }
+
             /* Módulos y checkboxes */
             .asistencia-page .attendance-table .modules-group {
                 width: 100%;
@@ -1141,6 +1286,7 @@ body {
                     height: 18px;
                     margin: 0 2px;
                 }
+
             /* Observaciones normales */
             .asistencia-page .attendance-table .observation-field {
                 width: 100%;
@@ -1156,6 +1302,7 @@ body {
                 font-size: 0.72rem;
                 box-sizing: border-box;
             }
+
             /* Campos de la edición histórica */
             .asistencia-page .attendance-table .observacion-historica-input {
                 width: 100%;
@@ -1173,6 +1320,7 @@ body {
             padding: 5px 1px;
             font-size: 0.7rem;
         }
+
         /* Justificación histórica */
         .asistencia-page .justificacion-historica {
             width: 18px;
@@ -1183,6 +1331,7 @@ body {
         .asistencia-page .attendance-table .observation-cell label {
             overflow-wrap: anywhere;
         }
+
     /* =========================================
        BOTONES: CENTRADOS Y APILADOS
        ========================================= */
@@ -1211,6 +1360,7 @@ body {
             box-sizing: border-box;
         }
 }
+
 /* =========================================
    PANTALLA: ASISTENCIA GLOBAL
    Reutiliza el diseño de Asistencia
@@ -1237,6 +1387,7 @@ body {
     padding: 0;
     box-sizing: border-box;
 }
+
 /* =========================================
    TARJETA DE ASISTENCIA GLOBAL
    Mismo estilo que .attendance-table-card
@@ -1255,6 +1406,7 @@ body {
     box-shadow: 0 4px 6px -1px rgb(15 23 42 / 5%), 0 12px 28px -8px rgb(15 23 42 / 9%);
     -webkit-overflow-scrolling: touch;
 }
+
     /* Scrollbar de la tabla global */
     .global-page .global-table-container::-webkit-scrollbar {
         height: 6px;
@@ -1269,6 +1421,7 @@ body {
         background: var(--primary-color, #001a8c);
         border-radius: 10px;
     }
+
 /* =========================================
    TABLA GLOBAL
    Reutiliza tipografía, colores y bordes
@@ -1283,6 +1436,7 @@ body {
     border-spacing: 0;
     font-family: 'Inter', sans-serif;
 }
+
     /* Celdas */
     .global-page .global-table th,
     .global-page .global-table td {
@@ -1294,6 +1448,7 @@ body {
         color: var(--primary-color, #002e8c);
         border-bottom: 1px solid #f1f5f9;
     }
+
     /* Encabezados */
     .global-page .global-table th {
         padding: 15px 7px;
@@ -1306,6 +1461,7 @@ body {
         border-bottom: 2px solid #e2e8f0;
         white-space: nowrap;
     }
+
     /* Título de la cuadrícula */
     .global-page .global-table .title-cell {
         padding: 15px;
@@ -1317,6 +1473,7 @@ body {
         letter-spacing: 0.4px;
         border-bottom: 2px solid #e2e8f0;
     }
+
     /* Encabezado de fechas */
     .global-page .global-table thead tr:nth-child(2) th {
         padding: 12px 8px;
@@ -1324,6 +1481,7 @@ body {
         color: #64748b;
         text-align: center;
     }
+
     /* Columna de alumnos */
     .global-page .global-table .align-left {
         text-align: left;
@@ -1338,6 +1496,7 @@ body {
         white-space: normal;
         overflow-wrap: anywhere;
     }
+
     /* Columnas de fechas */
     .global-page .global-table .fecha-header {
         min-width: 66px;
@@ -1345,6 +1504,7 @@ body {
         padding-right: 7px;
         text-align: center;
     }
+
     /* Porcentajes por fecha */
     .global-page .global-table .global-porcentaje-cell {
         min-width: 66px;
@@ -1353,6 +1513,7 @@ body {
         font-size: 0.85rem;
         font-variant-numeric: tabular-nums;
     }
+
     /* Columna de porcentaje total */
     .global-page .global-table .icon-cell,
     .global-page .global-table .total-col {
@@ -1368,6 +1529,7 @@ body {
         color: #64748b;
         font-size: 0.9rem;
     }
+
     /* Interacción y última fila */
     .global-page .global-table tbody tr:hover {
         background-color: #f8fafc;
@@ -1376,6 +1538,7 @@ body {
     .global-page .global-table tbody tr:last-child td {
         border-bottom: none;
     }
+
     /* Mensaje sin registros */
     .global-page .global-table .global-sin-registros {
         padding: 22px 14px;
@@ -1383,9 +1546,11 @@ body {
         color: #64748b;
         white-space: normal;
     }
+
     /* =========================================
    FECHAS EDITABLES - ASISTENCIA GLOBAL
    ========================================= */
+
     /* Enlace que ocupa toda la celda de la fecha */
     .global-page .global-table .fecha-editar {
         position: relative;
@@ -1403,6 +1568,7 @@ body {
         border-radius: 8px;
         transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
     }
+
     /* La fecha se muestra normalmente */
     .global-page .global-table .fecha-texto {
         display: inline-block;
@@ -1410,6 +1576,7 @@ body {
         visibility: visible;
         transition: opacity 0.15s ease, visibility 0.15s ease;
     }
+
     /* El lápiz ocupa el mismo espacio que la fecha */
     .global-page .global-table .fecha-lapiz {
         position: absolute;
@@ -1426,6 +1593,7 @@ body {
         transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
         pointer-events: none;
     }
+
 /* Solo en dispositivos con cursor: fecha por lápiz */
 @media (hover: hover) and (pointer: fine) {
     .global-page .global-table .fecha-editar:hover {
@@ -1446,6 +1614,7 @@ body {
             transform: translate(-50%, -50%) scale(1);
         }
 }
+
 /* Accesibilidad: mismo efecto al navegar con teclado */
 .global-page .global-table .fecha-editar:focus-visible {
     color: #fff;
@@ -1465,6 +1634,7 @@ body {
         visibility: visible;
         transform: translate(-50%, -50%) scale(1);
     }
+
 /* Pantallas táctiles: conservar siempre la fecha visible */
 @media (hover: none), (pointer: coarse) {
     .global-page .global-table .fecha-editar {
@@ -1483,6 +1653,7 @@ body {
         visibility: hidden;
     }
 }
+
 /* Ajuste de tamaño en celulares */
 @media (max-width: 520px) {
     .global-page .global-table .fecha-editar {
@@ -1491,6 +1662,7 @@ body {
         border-radius: 6px;
     }
 }
+
 /* =========================================
    FILTRO DE CARRERA Y MATERIA
    Recuperar el tamaño original
@@ -1537,6 +1709,7 @@ body {
         flex-shrink: 0;
         font-size: 0.95rem;
     }
+
 /* Adaptación para celulares */
 @media (max-width: 768px) {
     .global-page .main-container-global .filtro-global-seccion {
@@ -1562,6 +1735,7 @@ body {
             width: 100%;
         }
 }
+
 /* =========================================
    RESPONSIVE: TABLETS
    ========================================= */
@@ -1598,6 +1772,7 @@ body {
             min-width: 60px;
         }
 }
+
 /* =========================================
    RESPONSIVE: CELULARES
    ========================================= */
@@ -1683,6 +1858,7 @@ body {
             max-width: 11px;
         }
 }
+
 /* =========================================
    PANTALLA: ASISTENCIA MODIFICAR
    ========================================= */
@@ -1810,6 +1986,138 @@ body {
             flex: 1;
         }
 }
+
+/* =========================================
+   BOTONES INDIVIDUALES POR ESTUDIANTE
+   Asistencia y ModificarAsistencia
+   ========================================= */
+
+.asistencia-page .attendance-table .alumno-asistencia-cell {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.asistencia-page .attendance-table .alumno-asistencia-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.asistencia-page .attendance-table .alumno-asistencia-nombre {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-align: center;
+}
+
+/* Diseño del botón individual */
+.asistencia-page .attendance-table .btn-modulos-fila {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 34px;
+    margin: 0;
+    padding: 7px 12px;
+    box-sizing: border-box;
+    background-color: #f1f5f9;
+    color: var(--primary-color, #001a8c);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    text-decoration: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+    .asistencia-page .attendance-table .btn-modulos-fila:hover:not(:disabled) {
+        background-color: #e2e8f0;
+        color: var(--primary-color, #001a8c);
+        border-color: #94a3b8;
+        box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .asistencia-page .attendance-table .btn-modulos-fila:active:not(:disabled) {
+        transform: scale(0.98);
+    }
+
+    .asistencia-page .attendance-table .btn-modulos-fila:focus-visible {
+        outline: 2px solid var(--primary-color, #002e8c);
+        outline-offset: 3px;
+    }
+
+    .asistencia-page .attendance-table .btn-modulos-fila:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+/* Las filas bloqueadas no deben permitir acciones */
+.asistencia-page .attendance-table .fila-bloqueada .btn-modulos-fila {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE: TABLETS
+   ========================================= */
+
+@media (max-width: 768px) {
+    .asistencia-page .attendance-table .alumno-asistencia-info {
+        gap: 7px;
+    }
+
+    .asistencia-page .attendance-table .btn-modulos-fila {
+        min-height: 32px;
+        padding: 6px 9px;
+        font-size: 0.73rem;
+        border-radius: 7px;
+    }
+}
+
+/* =========================================
+   RESPONSIVE: CELULARES
+   ========================================= */
+
+@media (max-width: 520px) {
+    .asistencia-page .attendance-table .alumno-asistencia-info {
+        gap: 6px;
+    }
+
+    .asistencia-page .attendance-table .alumno-asistencia-nombre {
+        font-size: 0.75rem;
+    }
+
+    .asistencia-page .attendance-table .btn-modulos-fila {
+        width: 100%;
+        max-width: 100%;
+        min-height: 30px;
+        padding: 6px 4px;
+        font-size: 0.68rem;
+        line-height: 1.25;
+        border-radius: 6px;
+    }
+}
+
 /* =========================================
    PANTALLA: PANEL ADMIN
    ========================================= */

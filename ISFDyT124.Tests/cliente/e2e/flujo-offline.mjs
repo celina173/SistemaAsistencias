@@ -55,6 +55,11 @@ try {
 
     detener(); // sin servidor
     await contexto.setOffline(true);
+    // La app instalada abre en el start_url: con sesión abierta no debe caer en el login.
+    await page.goto(base + '/?source=pwa');
+    paso('sin conexión, abrir la app con sesión no muestra el login', (await page.locator('#usuario').count()) === 0, page.url());
+    await contexto.setOffline(false);
+    await contexto.setOffline(true);
     // Dos días después, sin señal: la cátedra sin calendario sólo guardó "hoy" de antes, así que se agrega el de ahora.
     await page.clock.setFixedTime(new Date(Date.now() + 2 * 86400000));
     await page.goto(base + '/Asistencias/Asistencia?CaMaId=1');
