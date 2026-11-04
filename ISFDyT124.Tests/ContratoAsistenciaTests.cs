@@ -163,9 +163,28 @@ public class ContratoAsistenciaTests : IClassFixture<AppFactory>
         var opciones = doc.QuerySelectorAll("select[name=selectedCaMaId] option[value]").Select(o => o.GetAttribute("value")!).Where(v => v != "").ToList();
         Assert.Contains(caMaId.ToString(), opciones);
 
+        // El selector de carrera/cohorte se arma con las mismas cátedras: si falta, el docente no puede elegir nada.
+        var carreras = doc.QuerySelectorAll("select#filtroCarrera option[value]").Select(o => o.GetAttribute("value")!).Where(v => v != "").ToList();
+        Assert.NotEmpty(carreras);
+
         // Y de cada una cuelgan la planilla y la asistencia global, con ese mismo CaMaId.
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync($"/Asistencias/Asistencia?CaMaId={caMaId}")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await c.GetAsync($"/Asistencias/AsistenciaGlobal?CaMaId={caMaId}")).StatusCode);
+    }
+
+    [SoloConLocalDbFact]
+    public async Task El_inicio_del_docente_ofrece_sus_catedras_en_los_selectores()
+    {
+        // "/" es la pantalla que abre la app instalada. Una vez salió con los selectores vacíos porque el controlador
+        // de Inicio no llenaba las cátedras que la vista necesita.
+        var caMaId = SembrarCatedraConAlumno();
+        var c = await DocenteAsync();
+
+        var r = await c.GetAsync("/");
+        Assert.Equal(HttpStatusCode.OK, r.StatusCode);
+        var doc = await AbrirAsync(r);
+        Assert.NotEmpty(doc.QuerySelectorAll("select#filtroCarrera option[value]").Where(o => o.GetAttribute("value") != ""));
+        Assert.Contains(caMaId.ToString(), doc.QuerySelectorAll("select[name=selectedCaMaId] option[value]").Select(o => o.GetAttribute("value")));
     }
 
     [SoloConLocalDbFact]

@@ -89,6 +89,34 @@ namespace ISFDyT124.Controllers
                     .ToListAsync();
             }
 
+            // La vista de Inicio arma sus selectores con ViewBag.Catedras (cada opción vale el CaMaId de una
+            // cátedra), igual que Asistencias/Index. Sin esto los selectores salían vacíos para todos los roles.
+            var catedrasQuery = _context.CarreraMaterias
+                .Where(cm => cm.CarreraCohorte != null && cm.Materia != null);
+
+            if (User.IsInRole("Docente"))
+            {
+                if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int docenteIdCatedras))
+                    return Unauthorized();
+
+                var asignadas = await _context
+                    .Usuarios.Where(u => u.UsId == docenteIdCatedras)
+                    .SelectMany(u => u.CarreraMaterias)
+                    .Select(cm => cm.CaMaId)
+                    .ToListAsync();
+                catedrasQuery = catedrasQuery.Where(cm => asignadas.Contains(cm.CaMaId));
+            }
+
+            ViewBag.Catedras = await catedrasQuery
+                .Select(cm => new CarreraMateriaDetalleDto
+                {
+                    CaMaId = cm.CaMaId,
+                    CarreraDenominacion = cm.CarreraCohorte!.Carrera!.CaDenominacion + " - " + cm.CarreraCohorte!.Cohorte!.CoAnio,
+                    MateriaDenominacion = cm.Materia!.MaDenominacion,
+                })
+                .OrderBy(c => c.CarreraDenominacion).ThenBy(c => c.MateriaDenominacion)
+                .ToListAsync();
+
             return View(model);
 
 
