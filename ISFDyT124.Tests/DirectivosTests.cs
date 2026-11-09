@@ -37,9 +37,15 @@ public class DirectivosTests : IClassFixture<AppFactory>
         if (db.Usuarios.Any(u => u.UsDni == dni)) return;
         db.Usuarios.Add(new Usuario
         {
-            UsId = usId, UsApellido = "Docente", UsNombre = "Directivo" + usId, UsDni = dni,
-            UsEmail = $"directivo{usId}@prueba.local", UsContrasena = PasswordService.HashPassword("Prueba123"),
-            RoId = RolId.Docente, UsActivo = true, UsCuil = cuil,
+            UsId = usId,
+            UsApellido = "Docente",
+            UsNombre = "Directivo" + usId,
+            UsDni = dni,
+            UsEmail = $"directivo{usId}@prueba.local",
+            UsContrasena = PasswordService.HashPassword("Prueba123"),
+            RoId = RolId.Docente,
+            UsActivo = true,
+            UsCuil = cuil,
         });
         db.SaveChanges();
     }
@@ -56,7 +62,9 @@ public class DirectivosTests : IClassFixture<AppFactory>
         var token = Token(await c.GetStringAsync("/Account/Login"));
         var r = await c.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["Usuario"] = dni.ToString(), ["Contrasena"] = "Prueba123", ["__RequestVerificationToken"] = token,
+            ["Usuario"] = dni.ToString(),
+            ["Contrasena"] = "Prueba123",
+            ["__RequestVerificationToken"] = token,
         }));
         Assert.Equal(HttpStatusCode.Redirect, r.StatusCode);
     }
@@ -66,7 +74,8 @@ public class DirectivosTests : IClassFixture<AppFactory>
         var token = Token(await c.GetStringAsync("/Profesor/Directivos"));
         return await c.PostAsync("/Profesor/Directivos", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["cuil"] = cuil, ["__RequestVerificationToken"] = token,
+            ["cuil"] = cuil,
+            ["__RequestVerificationToken"] = token,
         }));
     }
 
