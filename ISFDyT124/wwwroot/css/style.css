@@ -3982,3 +3982,86 @@ label.required-asterisk > .required-asterisk-span {
         padding: 14px;
     }
 }
+
+/* ---- Auditoría de Docentes: la tabla se ajusta al ancho de la tarjeta (sin scroll lateral).
+   Antes heredaba de la asistencia global "min-width: max-content", que obligaba a una sola línea por fila.
+   Va al final y con 3 clases para ganarle a las reglas de .global-table en todos los anchos. ---- */
+.global-page .global-table.auditoria-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    table-layout: auto;
+}
+
+    .global-page .global-table.auditoria-table td.align-left {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+@media (min-width: 760px) {
+    .global-page .global-table.auditoria-table th,
+    .global-page .global-table.auditoria-table td {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .global-page .global-table.auditoria-table th:nth-child(n+3),
+    .global-page .global-table.auditoria-table td:nth-child(n+3) {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 759px) {
+    .global-page .global-table.auditoria-table td.align-left {
+        padding-left: 0;
+    }
+}
+
+/* ---- Asistencia Global: la tabla se ajusta al ancho disponible (sin scroll lateral).
+   Antes "min-width: max-content" + columnas de fecha de 66 px la hacían más ancha que la tarjeta.
+   Ahora usa todo el ancho, compacta las columnas de fecha y deja que el alumno salte de línea.
+   Si hay tantas fechas que ni así entran (o en celular), queda el scroll lateral como último recurso. ---- */
+.global-page .global-table-container.asistencia-global-card {
+    width: calc(100% - 2rem);
+    max-width: 1600px;
+}
+
+.global-page .global-table.asistencia-global-table {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    table-layout: auto;
+}
+
+    .global-page .global-table.asistencia-global-table th,
+    .global-page .global-table.asistencia-global-table td,
+    .global-page .global-table.asistencia-global-table thead tr:nth-child(2) th {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+
+    .global-page .global-table.asistencia-global-table .alumno-global-header,
+    .global-page .global-table.asistencia-global-table .alumno-global-cell {
+        min-width: 150px;
+        max-width: 260px;
+        width: 22%;
+        padding-left: 12px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .global-page .global-table.asistencia-global-table .fecha-header,
+    .global-page .global-table.asistencia-global-table .global-porcentaje-cell {
+        min-width: 0;
+        font-size: 0.74rem;
+        letter-spacing: 0;
+    }
+
+    .global-page .global-table.asistencia-global-table .fecha-editar {
+        padding: 3px 1px;
+    }
+
+    .global-page .global-table.asistencia-global-table .icon-cell,
+    .global-page .global-table.asistencia-global-table .total-col {
+        min-width: 52px;
+    }
